@@ -1,0 +1,120 @@
+<UserControl
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:vm="using:Mesen.ViewModels"
+	xmlns:c="using:Mesen.Controls"
+	xmlns:cfg="using:Mesen.Config"
+	xmlns:l="using:Mesen.Localization"
+	mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="450"
+	VerticalAlignment="Stretch"
+	HorizontalAlignment="Stretch"
+	x:DataType="vm:InputConfigViewModel"
+	x:Class="Mesen.Views.InputConfigView"
+>
+	<Design.DataContext>
+		<vm:InputConfigViewModel />
+	</Design.DataContext>
+
+	<TabControl TabStripPlacement="Top" SelectedIndex="0">
+		<TabItem Header="{l:Translate tpgGeneral}">
+			<ScrollViewer AllowAutoHide="False" HorizontalScrollBarVisibility="Auto" Padding="0 0 2 0">
+				<StackPanel>
+					<c:SystemSpecificSettings ConfigType="Input" />
+
+					<c:OptionSection Header="{l:Translate tpgGeneral}">
+						<Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+							<TextBlock Grid.Row="0" Text="{l:Translate lblDeadzone}" VerticalAlignment="Top" Margin="0 15 5 0" />
+							<c:MesenSlider
+								Margin="12 2 10 0"
+								HorizontalAlignment="Left"
+								Grid.Row="0"
+								Grid.Column="1"
+								Minimum="0"
+								Maximum="4"
+								TickFrequency="1"
+								Width="100"
+								HideValue="True"
+								Value="{Binding Config.ControllerDeadzoneSize}"
+							/>
+
+							<Grid Grid.Row="1" Grid.Column="1" RowDefinitions="Auto" ColumnDefinitions="Auto,*,Auto" Width="115" HorizontalAlignment="Left" Margin="5 0 5 0">
+								<TextBlock Text="{l:Translate lblSmall}" />
+								<TextBlock Text="{l:Translate lblLarge}" Grid.Column="2" />
+							</Grid>
+
+							<TextBlock Grid.Row="2" Text="{l:Translate lblSensitivity}" VerticalAlignment="Top" Margin="0 15 5 0" />
+							<c:MesenSlider
+								Margin="12 2 10 0"
+								HorizontalAlignment="Left"
+								Grid.Row="2"
+								Grid.Column="1"
+								Minimum="0"
+								Maximum="9"
+								TickFrequency="1"
+								Width="100"
+								HideValue="True"
+								Value="{Binding Config.MouseSensitivity}"
+							/>
+
+							<Grid Grid.Row="3" Grid.Column="1" RowDefinitions="Auto" ColumnDefinitions="Auto,*,Auto" Width="107" HorizontalAlignment="Left" Margin="10 0 5 0">
+								<TextBlock Text="{l:Translate lblLow}" />
+								<TextBlock Text="{l:Translate lblHigh}" Grid.Column="2" />
+							</Grid>
+
+							<TextBlock Grid.Row="4" Text="{l:Translate lblForceFeedbackIntensity}" VerticalAlignment="Top" Margin="0 15 5 0" />
+							<c:MesenSlider
+								Margin="12 2 10 0"
+								HorizontalAlignment="Left"
+								Grid.Row="4"
+								Grid.Column="1"
+								Minimum="0"
+								Maximum="10"
+								TickFrequency="1"
+								Width="100"
+								HideValue="True"
+								Value="{Binding Config.ForceFeedbackIntensity}"
+							/>
+
+							<Grid Grid.Row="5" Grid.Column="1" RowDefinitions="Auto" ColumnDefinitions="Auto,*,Auto" Width="130" HorizontalAlignment="Left" Margin="0 0 5 0">
+								<TextBlock Text="{l:Translate lblForceFeedbackLow}" />
+								<TextBlock Text="{l:Translate lblForceFeedbackHigh}" Grid.Column="2" />
+							</Grid>
+						</Grid>
+
+						<c:CheckBoxWarning Margin="0 10 0 0" IsChecked="{Binding Config.HidePointerForLightGuns}" Text="{l:Translate chkHidePointerForLightGuns}" />
+					</c:OptionSection>
+				</StackPanel>
+			</ScrollViewer>
+		</TabItem>
+		<TabItem Header="{l:Translate tpgDisplay}">
+			<ScrollViewer AllowAutoHide="False" HorizontalScrollBarVisibility="Auto" Padding="0 0 2 0">
+				<Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto">
+					<TextBlock Text="{l:Translate lblDisplayInputPorts}" VerticalAlignment="Top" Margin="0 5 0 0" />
+					<Grid Grid.Column="1" ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
+						<Grid.Styles>
+							<Style Selector="CheckBox">
+								<Setter Property="Margin" Value="0 0 5 0" />
+							</Style>
+						</Grid.Styles>
+
+						<CheckBox Grid.Row="0" Content="{l:Translate chkDisplayPort1}" IsChecked="{Binding Config.DisplayInputPort1}" />
+						<CheckBox Grid.Row="0" Grid.Column="1" Content="{l:Translate chkDisplayPort2}" IsChecked="{Binding Config.DisplayInputPort2}" />
+						<CheckBox Grid.Row="1" Content="{l:Translate chkDisplayPort3}" IsChecked="{Binding Config.DisplayInputPort3}" />
+						<CheckBox Grid.Row="1" Grid.Column="1" Content="{l:Translate chkDisplayPort4}" IsChecked="{Binding Config.DisplayInputPort4}" />
+						<CheckBox Grid.Row="2" Content="{l:Translate chkDisplayPort5}" IsChecked="{Binding Config.DisplayInputPort5}" />
+						<CheckBox Grid.Row="2" Grid.Column="1" Content="{l:Translate chkDisplayPort6}" IsChecked="{Binding Config.DisplayInputPort6}" />
+						<CheckBox Grid.Row="3" Content="{l:Translate chkDisplayPort7}" IsChecked="{Binding Config.DisplayInputPort7}" />
+						<CheckBox Grid.Row="3" Grid.Column="1" Content="{l:Translate chkDisplayPort8}" IsChecked="{Binding Config.DisplayInputPort8}" />
+					</Grid>
+
+					<TextBlock Grid.Row="1" Text="{l:Translate lblDisplayPosition}" />
+					<c:EnumComboBox Grid.Row="1" Grid.Column="1" SelectedItem="{Binding Config.DisplayInputPosition}" />
+
+					<CheckBox Grid.Row="2" Grid.ColumnSpan="2" IsChecked="{Binding Config.DisplayInputHorizontally}" Content="{l:Translate chkDisplayInputHorizontally}" />
+				</Grid>
+			</ScrollViewer>
+		</TabItem>
+	</TabControl>
+</UserControl>

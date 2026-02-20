@@ -1,0 +1,39 @@
+<UserControl 
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:vm="using:Mesen.Debugger.ViewModels"
+	xmlns:dc="using:Mesen.Debugger.Controls"
+	mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="200"
+	x:DataType="vm:SpritePreviewModel"
+	x:Class="Mesen.Debugger.Controls.SpritePreviewPanel"
+	Name="root"
+>
+	<Border
+		Background="#333"
+		BorderThickness="{Binding BorderSize, ElementName=root}"
+		BorderBrush="Gray"
+		HorizontalAlignment="Stretch"
+		VerticalAlignment="Stretch"
+		Margin="0 0 1 1"
+	>
+		<Panel Width="{Binding InnerWidth, ElementName=root}" Height="{Binding InnerHeight, ElementName=root}">
+			<Panel Background="{StaticResource ViewerBgBrush}" HorizontalAlignment="Center" VerticalAlignment="Center">
+				<dc:PictureViewer
+					Source="{Binding SpritePreview}"
+					Zoom="{Binding SpritePreviewZoom}"
+					ShowMousePosition="False"
+					AllowSelection="False"
+				/>
+				<Panel
+					Background="#80000000"
+					HorizontalAlignment="Stretch"
+					VerticalAlignment="Stretch"
+					IsVisible="{Binding FadePreview, ElementName=root}"
+				/>
+			</Panel>
+		</Panel>
+	</Border>
+</UserControl>

@@ -1,0 +1,120 @@
+struct Screen : Video {
+  DeclareClass(Screen, "video.screen")
+  using Video::Video;
+
+  Screen(string name = {}, u32 width = 0, u32 height = 0);
+  ~Screen();
+  auto main(uintptr_t) -> void;
+  auto quit() -> void;
+  auto power() -> void;
+
+  auto canvasWidth() const -> u32 { return _canvasWidth; }
+  auto canvasHeight() const -> u32 { return _canvasHeight; }
+  auto width() const -> u32 { return _width; }
+  auto height() const -> u32 { return _height; }
+  auto scaleX() const -> f64 { return _scaleX; }
+  auto scaleY() const -> f64 { return _scaleY; }
+  auto aspectX() const -> f64 { return _aspectX; }
+  auto aspectY() const -> f64 { return _aspectY; }
+  auto overscan() const -> bool { return _overscan; }
+  auto colors() const -> u32 { return _colors; }
+  auto pixels(bool frame = 0) -> std::span<u32>;
+
+  auto saturation() const -> double { return _saturation; }
+  auto gamma() const -> double { return _gamma; }
+  auto luminance() const -> double { return _luminance; }
+
+  auto fillColor() const -> u32 { return _fillColor; }
+  auto colorBleed() const -> bool { return _colorBleed; }
+  auto interframeBlending() const -> bool { return _interframeBlending; }
+  auto rotation() const -> u32 { return _rotation; }
+
+  auto resetPalette() -> void;
+  auto resetSprites() -> void;
+
+  auto setRefresh(std::function<void ()> refresh) -> void;
+  auto setViewport(u32 x, u32 y, u32 width, u32 height) -> void;
+  auto refreshRateHint(double refreshRate) -> void;
+  auto refreshRateHint(double pixelFrequency, int dotsPerLine, int linesPerFrame) -> void;
+
+  auto setSize(u32 width, u32 height) -> void;
+  auto setScale(f64 scaleX, f64 scaleY) -> void;
+  auto setAspect(f64 aspectX, f64 aspectY) -> void;
+  auto setOverscan(bool overscan) -> void;
+
+  auto setSaturation(f64 saturation) -> void;
+  auto setGamma(f64 gamma) -> void;
+  auto setLuminance(f64 luminance) -> void;
+
+  auto setFillColor(u32 fillColor) -> void;
+  auto setColorBleed(bool colorBleed) -> void;
+  auto setColorBleedWidth(u32 width) -> void;
+  auto setInterframeBlending(bool interframeBlending) -> void;
+  auto setRotation(u32 rotation) -> void;
+
+  auto setProgressive(bool progressiveDouble = false) -> void;
+  auto setInterlace(bool interlaceField) -> void;
+
+  auto attach(Node::Video::Sprite) -> void;
+  auto detach(Node::Video::Sprite) -> void;
+
+  auto colors(u32 colors, std::function<n64 (n32)> color) -> void;
+  auto frame() -> void;
+  auto refresh() -> void;
+  auto lookupPalette(u32 index) -> u32;
+  auto overrideLineDraw(u32 y, const u32* source) -> void;
+  auto clearOverrideLineDraw(u32 y) -> void;
+
+  auto serialize(string& output, string depth) -> void override;
+  auto unserialize(Markup::Node node) -> void override;
+
+private:
+  auto refreshPalette() -> void;
+
+protected:
+  u32  _canvasWidth = 0;
+  u32  _canvasHeight = 0;
+  u32  _width = 0;
+  u32  _height = 0;
+  f64  _scaleX = 1.0;
+  f64  _scaleY = 1.0;
+  f64  _aspectX = 1.0;
+  f64  _aspectY = 1.0;
+  u32  _colors = 0;
+  f64  _saturation = 1.0;
+  f64  _gamma = 1.0;
+  f64  _luminance = 1.0;
+  u32  _fillColor = 0;
+  bool _colorBleed = false;
+  u32  _colorBleedWidth = 1;
+  bool _interframeBlending = false;
+  bool _overscan = true;
+  u32  _rotation = 0;  //counter-clockwise (90 = left, 270 = right)
+
+  std::function<n64 (n32)> _color;
+  std::unique_ptr<u32[]> _inputA;
+  std::unique_ptr<u32[]> _inputB;
+  std::unique_ptr<u32[]> _output;
+  std::unique_ptr<u32[]> _rotate;
+  std::unique_ptr<u32[]> _palette;
+  std::vector<n1> _lineOverrideActive;
+  std::vector<const u32*> _lineOverride;
+  std::vector<Node::Video::Sprite> _sprites;
+
+//unserialized:
+  nall::thread _thread;
+  recursive_mutex _mutex;
+  mutex _frameMutex;
+  condition_variable _frameCondition;
+  atomic<bool> _kill = false;
+  atomic<bool> _frame = false;
+  std::function<void ()> _refresh;
+  bool _progressive = false;
+  bool _progressiveDouble = false;
+  bool _interlace = false;
+  bool _interlaceField = false;
+  u32  _viewportX = 0;
+  u32  _viewportY = 0;
+  u32  _viewportWidth = 0;
+  u32  _viewportHeight = 0;
+};

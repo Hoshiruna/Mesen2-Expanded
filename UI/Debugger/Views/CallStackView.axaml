@@ -1,0 +1,54 @@
+<UserControl
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:vm="using:Mesen.Debugger.ViewModels"
+	xmlns:c="using:Mesen.Debugger.Controls"
+	xmlns:du="using:Mesen.Debugger.Utilities"
+	mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="110"
+	VerticalAlignment="Stretch"
+	HorizontalAlignment="Stretch"
+	x:DataType="vm:CallStackViewModel"
+	x:Class="Mesen.Debugger.Views.CallStackView"
+>
+	<Design.DataContext>
+		<vm:CallStackViewModel />
+	</Design.DataContext>
+
+	<UserControl.Styles>
+		<Style Selector="DataBoxCell">
+			<Setter Property="Foreground" Value="{Binding Path=RowBrush, DataType={x:Type vm:StackInfo}}"/>
+			<Setter Property="FontStyle" Value="{Binding Path=RowStyle, DataType={x:Type vm:StackInfo}}"/>
+		</Style>
+	</UserControl.Styles>
+
+	<Border BorderThickness="0 1 0 0" BorderBrush="{StaticResource MesenGrayBorderColor}">
+		<DataBox
+			Items="{Binding CallStackContent}"
+			Selection="{Binding Selection}"
+			GridLinesVisibility="All"
+			CellDoubleClick="OnCellDoubleClick"
+			ColumnWidths="{Binding ColumnWidths}"
+		>
+			<DataBox.Columns>
+				<DataBoxTextColumn
+					Header="{l:Translate colFunction}"
+					Binding="{Binding EntryPoint, DataType={x:Type vm:StackInfo}}"
+					InitialWidth="100"
+				/>
+				<DataBoxTextColumn
+					Header="{l:Translate colPcAddress}"
+					Binding="{Binding PcAddress, DataType={x:Type vm:StackInfo}}"
+					InitialWidth="90"
+				/>
+				<DataBoxTextColumn
+					Header="{l:Translate colRomAddress}"
+					Binding="{Binding AbsAddress, DataType={x:Type vm:StackInfo}}"
+					InitialWidth="90"
+				/>
+			</DataBox.Columns>
+		</DataBox>
+	</Border>
+</UserControl>

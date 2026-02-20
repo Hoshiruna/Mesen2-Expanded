@@ -1,0 +1,61 @@
+<Application
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:dbg="using:Mesen.Debugger"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:u="using:Mesen.Utilities"
+	x:Class="Mesen.App"
+	Name="Mesen"
+>
+	<Application.Resources>
+		<FontFamily x:Key="MesenFont">Microsoft Sans Serif</FontFamily>
+		<x:Double x:Key="MesenFontSize">11</x:Double>
+		
+		<FontFamily x:Key="MesenMenuFont">Segoe UI</FontFamily>
+		<x:Double x:Key="MesenMenuFontSize">12</x:Double>
+
+		<FontFamily x:Key="MesenDisassemblyFont">Consolas</FontFamily>
+		<x:Double x:Key="MesenDisassemblyFontSize">12</x:Double>
+
+		<FontFamily x:Key="MesenMemoryViewerFont">Consolas</FontFamily>
+		<x:Double x:Key="MesenMemoryViewerFontSize">12</x:Double>
+
+		<FontFamily x:Key="MesenAssemblerFont">Consolas</FontFamily>
+		<x:Double x:Key="MesenAssemblerFontSize">12</x:Double>
+
+		<FontFamily x:Key="MesenScriptWindowFont">Consolas</FontFamily>
+		<x:Double x:Key="MesenScriptWindowFontSize">12</x:Double>
+
+		<FontFamily x:Key="MesenMonospaceFont">Consolas</FontFamily>
+		<x:Double x:Key="MesenMonospaceFontSize">12</x:Double>
+
+		<l:EnumConverter x:Key="Enum" />
+		<u:FontNameConverter x:Key="FontNameConverter" />
+		<u:NullTextConverter x:Key="NullTextConverter" />
+		
+		<VisualBrush x:Key="ViewerBgBrush" TileMode="Tile" Stretch="None" AlignmentX="Left" AlignmentY="Top" SourceRect="0,0,5,5" DestinationRect="0,0,5,5">
+			<VisualBrush.Visual>
+				<Panel Background="#202020">
+					<Line StartPoint="0, 0" EndPoint="5, 5" Stroke="Gray" StrokeThickness="1" Opacity="0.5" />
+					<Line StartPoint="5, 0" EndPoint="0, 5" Stroke="LightGray" StrokeThickness="1" Opacity="0.5" />
+				</Panel>
+			</VisualBrush.Visual>
+		</VisualBrush>
+	</Application.Resources>
+	
+	<Application.DataTemplates>
+		<DataTemplate DataType="x:Enum">
+			<TextBlock Text="{Binding, Converter={StaticResource Enum}}" />
+		</DataTemplate>
+	</Application.DataTemplates>
+
+	<Application.Styles>
+		<FluentTheme />
+		<StyleInclude Source="/Styles/MesenStyles.xaml" />
+	</Application.Styles>
+
+	<NativeMenu.Menu>
+		<NativeMenu>
+		</NativeMenu>
+	</NativeMenu.Menu>
+</Application>

@@ -1,0 +1,49 @@
+<Window
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:m="clr-namespace:Mesen"
+	xmlns:vm="using:Mesen.ViewModels"
+	xmlns:c="using:Mesen.Controls"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:v="using:Mesen.Views"
+	xmlns:w="using:Mesen.Windows"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d"
+	x:Class="Mesen.Windows.CommandLineHelpWindow"
+	Width="550" Height="400"
+	MinWidth="550" MinHeight="400"
+	Title="{l:Translate wndTitle}"
+	CanResize="True"
+	Name="root"
+	Icon="/Assets/CommandLine.png"
+>
+	<Window.Styles>
+	</Window.Styles>
+	
+	<DockPanel>
+		<StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Margin="5 3">
+			<Button
+				MinWidth="70"
+				HorizontalContentAlignment="Center"
+				IsCancel="True"
+				Click="btnOk_OnClick"
+				Content="{l:Translate btnOk}"
+			/>
+		</StackPanel>
+
+		<TabControl ItemsSource="{Binding HelpTabs, ElementName=root}">
+			<TabControl.ItemTemplate>
+				<DataTemplate DataType="w:CommandLineTabEntry">
+					<TextBlock Text="{Binding Name}" />
+				</DataTemplate>
+			</TabControl.ItemTemplate>
+
+			<TabControl.ContentTemplate>
+				<DataTemplate DataType="w:CommandLineTabEntry">
+					<TextBox ScrollViewer.HorizontalScrollBarVisibility="Auto" AcceptsReturn="True" VerticalAlignment="Stretch" Height="NaN" IsReadOnly="True" Text="{Binding Content}" />
+				</DataTemplate>
+			</TabControl.ContentTemplate>
+		</TabControl>
+	</DockPanel>
+</Window>

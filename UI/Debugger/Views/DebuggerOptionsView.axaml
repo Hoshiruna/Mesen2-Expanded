@@ -1,0 +1,331 @@
+<UserControl
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:cfg="using:Mesen.Config"
+	xmlns:c="using:Mesen.Controls"
+	xmlns:dc="using:Mesen.Debugger.Controls"
+	xmlns:dv="using:Mesen.Debugger.Views"
+	xmlns:dvm="using:Mesen.Debugger.ViewModels"
+	xmlns:l="using:Mesen.Localization"
+	mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="610"
+	VerticalAlignment="Stretch"
+	x:DataType="dvm:DebuggerOptionsViewModel"
+	x:Class="Mesen.Debugger.Views.DebuggerOptionsView"
+>
+	<Design.DataContext>
+		<dvm:DebuggerOptionsViewModel />
+	</Design.DataContext>
+	
+	<UserControl.Styles>
+		<Style Selector="WrapPanel > CheckBox">
+			<Setter Property="Margin" Value="0 0 7 0" />
+		</Style>
+		<Style Selector="CheckBox">
+			<Setter Property="ToolTip.ShowDelay" Value="100" />
+		</Style>
+	</UserControl.Styles>
+
+	<StackPanel Margin="3 0">
+		<c:OptionSection Header="{l:Translate lblDisassemblyOptions}" Margin="0">
+			<Grid ColumnDefinitions="Auto,Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+				<TextBlock VerticalAlignment="Center" Text="{l:Translate lblVerifiedData}" />
+				<c:EnumComboBox
+					Grid.Column="1"
+					Width="105"
+					SelectedItem="{Binding Config.VerifiedDataDisplay}"
+				/>
+				
+				<TextBlock Grid.Row="1" VerticalAlignment="Center" Text="{l:Translate lblUnidentifiedBlock}" />
+				<c:EnumComboBox
+					Grid.Row="1" Grid.Column="1"
+					Width="105"
+					SelectedItem="{Binding Config.UnidentifiedBlockDisplay}"
+				/>
+
+				<TextBlock
+					IsVisible="{Binding IsGba}"
+					Grid.Row="2"
+					VerticalAlignment="Center"
+					Text="{l:Translate lblDisassemblyMode}"
+				/>
+				<DockPanel Grid.Row="2" Grid.Column="1" IsVisible="{Binding IsGba}">
+					<Image
+						Source="/Assets/Help.png"
+						Stretch="None"
+						Margin="4 4"
+						DockPanel.Dock="Right"
+						VerticalAlignment="Top"
+						HorizontalAlignment="Right"
+						ToolTip.Tip="{l:Translate lblDisassemblyModeHint}"
+						ToolTip.ShowDelay="0"
+						ToolTip.HorizontalOffset="10"
+						ToolTip.Placement="Bottom"
+					/>
+					<c:EnumComboBox
+						Grid.Row="2"
+						Grid.Column="1"
+						SelectedItem="{Binding Config.Gba.DisassemblyMode}"
+					/>
+				</DockPanel>
+				
+				<DockPanel Grid.Row="3" Grid.ColumnSpan="2">
+					<TextBlock VerticalAlignment="Center" Text="{l:Translate lblAddressDisplay}" />
+					<c:EnumComboBox SelectedItem="{Binding Config.AddressDisplayType}" />
+				</DockPanel>
+			</Grid>
+			
+			<CheckBox
+				IsChecked="{Binding Config.ShowByteCode}"
+				Content="{l:Translate chkShowByteCode}"
+			/>
+			<CheckBox
+				IsChecked="{Binding Config.ShowMemoryValues}"
+				Content="{l:Translate chkShowMemoryValues}"
+			/>
+			<CheckBox
+				IsChecked="{Binding Config.ShowJumpLabels}"
+				Content="{l:Translate chkShowJumpLabels}"
+			/>
+			<CheckBox
+				IsChecked="{Binding Config.UseLowerCaseDisassembly}"
+				Content="{l:Translate chkUseLowerCaseDisassembly}"
+			/>
+			<CheckBox
+				IsVisible="{Binding IsSpc}"
+				IsChecked="{Binding Config.Snes.UseAltSpcOpNames}"
+				Content="{l:Translate chkSnesUseAltSpcOpNames}"
+			/>
+		</c:OptionSection>
+
+		<c:OptionSection Header="{l:Translate lblBreakOptions}">
+			<StackPanel IsVisible="{Binding IsSnes}">
+				<CheckBox
+					IsChecked="{Binding Config.Snes.BreakOnBrk}"
+					Content="{l:Translate chkBreakOnBrk}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Snes.BreakOnCop}"
+					Content="{l:Translate chkBreakOnCop}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Snes.BreakOnWdm}"
+					Content="{l:Translate chkBreakOnWdm}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Snes.BreakOnStp}"
+					Content="{l:Translate chkBreakOnStp}"
+				/>
+				<Rectangle Stroke="#AAA" Height="1" StrokeThickness="1" HorizontalAlignment="Stretch" Margin="0 2" />
+				<CheckBox
+					IsChecked="{Binding Config.Snes.BreakOnInvalidPpuAccess}"
+					Content="{l:Translate chkBreakOnInvalidPpuAccess}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Snes.BreakOnReadDuringAutoJoy}"
+					Content="{l:Translate chkBreakOnReadDuringAutoJoy}"
+				/>
+			</StackPanel>
+			<StackPanel IsVisible="{Binding IsSpc}">
+				<CheckBox
+					IsChecked="{Binding Config.Snes.SpcBreakOnBrk}"
+					Content="{l:Translate chkBreakOnBrk}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Snes.SpcBreakOnStpSleep}"
+					Content="{l:Translate chkSpcBreakOnStpSleep}"
+				/>
+			</StackPanel>
+			<StackPanel IsVisible="{Binding IsGameboy}">
+				<CheckBox
+					IsChecked="{Binding Config.Gameboy.GbBreakOnInvalidOamAccess}"
+					Content="{l:Translate chkGbBreakOnInvalidOamAccess}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Gameboy.GbBreakOnInvalidVramAccess}"
+					Content="{l:Translate chkGbBreakOnInvalidVramAccess}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Gameboy.GbBreakOnDisableLcdOutsideVblank}"
+					Content="{l:Translate chkGbBreakOnDisableLcdOutsideVblank}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Gameboy.GbBreakOnInvalidOpCode}"
+					Content="{l:Translate chkGbBreakOnInvalidOpCode}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Gameboy.GbBreakOnNopLoad}"
+					Content="{l:Translate chkGbBreakOnNopLoad}"
+				/>
+				
+				<!-- not implemented -->
+				<CheckBox
+					IsVisible="False"
+					IsChecked="{Binding Config.Gameboy.GbBreakOnOamCorruption}"
+					Content="{l:Translate chkGbBreakOnOamCorruption}"
+				/>
+			</StackPanel>
+			<StackPanel IsVisible="{Binding IsNes}">
+				<CheckBox
+					IsChecked="{Binding Config.Nes.BreakOnBrk}"
+					Content="{l:Translate chkBreakOnBrk}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Nes.BreakOnUnofficialOpCode}"
+					Content="{l:Translate chkBreakOnUnofficialOpCode}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Nes.BreakOnUnstableOpCode}"
+					Content="{l:Translate chkBreakOnUnstableOpCode}"
+					ToolTip.Tip="{l:Translate chkBreakOnUnstableOpCodeHint}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Nes.BreakOnCpuCrash}"
+					Content="{l:Translate chkBreakOnCpuCrash}"
+				/>
+				<Rectangle Stroke="#AAA" Height="1" StrokeThickness="1" HorizontalAlignment="Stretch" Margin="0 2" />
+				<CheckBox
+					IsChecked="{Binding Config.Nes.BreakOnBusConflict}"
+					Content="{l:Translate chkBreakOnBusConflict}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Nes.BreakOnDecayedOamRead}"
+					Content="{l:Translate chkBreakOnDecayedOamRead}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Nes.BreakOnDmaInputRead}"
+					Content="{l:Translate chkNesDmaInputRead}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Nes.BreakOnInvalidOamWrite}"
+					Content="{l:Translate chkNesInvalidOamWrite}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Nes.BreakOnInvalidVramAccess}"
+					Content="{l:Translate chkNesInvalidVramAccess}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Nes.BreakOnPpuScrollGlitch}"
+					Content="{l:Translate chkBreakOnPpuScrollGlitch}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Nes.BreakOnExtOutputMode}"
+					Content="{l:Translate chkNesBreakOnExtOutputMode}"
+				/>
+			</StackPanel>
+			<StackPanel IsVisible="{Binding IsPce}">
+				<CheckBox
+					IsChecked="{Binding Config.Pce.BreakOnBrk}"
+					Content="{l:Translate chkBreakOnBrk}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Pce.BreakOnUnofficialOpCode}"
+					Content="{l:Translate chkBreakOnUnofficialOpCode}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Pce.BreakOnInvalidVramAddress}"
+					Content="{l:Translate chkPceBreakOnInvalidVramAddress}"
+				/>
+			</StackPanel>
+			<StackPanel IsVisible="{Binding IsSms}">
+				<CheckBox
+					IsChecked="{Binding Config.Sms.BreakOnNopLoad}"
+					Content="{l:Translate chkGbBreakOnNopLoad}"
+				/>
+			</StackPanel>
+			<StackPanel IsVisible="{Binding IsGba}">
+				<CheckBox
+					IsChecked="{Binding Config.Gba.BreakOnInvalidOpCode}"
+					Content="{l:Translate chkGbaBreakOnInvalidOpCode}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Gba.BreakOnNopLoad}"
+					Content="{l:Translate chkGbaBreakOnNopLoad}"
+				/>
+				<CheckBox
+					IsChecked="{Binding Config.Gba.BreakOnUnalignedMemAccess}"
+					Content="{l:Translate chkBreakOnUnalignedMemAccess}"
+				/>
+			</StackPanel>
+			<StackPanel IsVisible="{Binding IsWs}">
+				<CheckBox
+					IsChecked="{Binding Config.Ws.BreakOnUndefinedOpCode}"
+					Content="{l:Translate chkBreakOnUndefinedOpCode}"
+				/>
+			</StackPanel>
+			<Rectangle  IsVisible="{Binding HasSpecificBreakOptions}" Stroke="#AAA" Height="1" StrokeThickness="1" HorizontalAlignment="Stretch" Margin="0 2" />
+			<CheckBox
+				IsChecked="{Binding Config.BreakOnUninitRead}"
+				Content="{l:Translate chkBreakOnUninitRead}"
+			/>
+			<CheckBox
+				IsChecked="{Binding Config.BreakOnPowerCycleReset}"
+				Content="{l:Translate chkBreakOnPowerCycleReset}"
+			/>
+			<CheckBox
+				IsChecked="{Binding Config.BreakOnOpen}"
+				Content="{l:Translate chkBreakOnOpen}"
+			/>
+		</c:OptionSection>
+
+		<c:OptionSection Header="{l:Translate lblMiscSettings}">
+			<CheckBox
+				IsChecked="{Binding Config.Snes.IgnoreDspReadWrites}"
+				Content="{l:Translate chkSnesIgnoreDspReadWrites}"
+				ToolTip.Tip="{l:Translate chkSnesIgnoreDspReadWritesHint}"
+			>
+				<CheckBox.IsVisible>
+					<MultiBinding Converter="{x:Static BoolConverters.Or}">
+						<MultiBinding.Bindings>
+							<Binding Path="IsSpc" />
+							<Binding Path="IsSnes" />
+						</MultiBinding.Bindings>
+					</MultiBinding>
+				</CheckBox.IsVisible>
+			</CheckBox>
+			
+			<CheckBox
+				IsChecked="{Binding Config.BringToFrontOnBreak}"
+				Content="{l:Translate chkBringToFrontOnBreak}"
+			/>
+			
+			<CheckBox
+				IsChecked="{Binding Config.BringToFrontOnPause}"
+				Content="{l:Translate chkBringToFrontOnPause}"
+			/>
+			
+			<CheckBox
+				IsChecked="{Binding Config.FocusGameOnResume}"
+				Content="{l:Translate chkFocusGameOnResume}"
+			/>
+			
+			<CheckBox
+				IsChecked="{Binding Config.RefreshWhileRunning}"
+				Content="{l:Translate chkRefreshWhileRunning}"
+			/>
+			
+			<CheckBox
+				IsChecked="{Binding Config.DrawPartialFrame}"
+				Content="{l:Translate chkDrawPartialFrame}"
+			/>
+			
+			<CheckBox
+				IsChecked="{Binding Config.UsePredictiveBreakpoints}"
+				Content="{l:Translate chkUsePredictiveBreakpoints}"
+				ToolTip.Tip="{l:Translate chkUsePredictiveBreakpointsHint}"
+			/>
+			<CheckBox
+				IsChecked="{Binding Config.SingleBreakpointPerInstruction}"
+				IsVisible="{Binding !Config.UsePredictiveBreakpoints}"
+				Content="{l:Translate chkSingleBreakpointPerInstruction}"
+			/>
+			<CheckBox
+				IsChecked="True"
+				IsEnabled="False"
+				IsVisible="{Binding Config.UsePredictiveBreakpoints}"
+				Content="{l:Translate chkSingleBreakpointPerInstruction}"
+			/>
+		</c:OptionSection>
+	</StackPanel>
+</UserControl>

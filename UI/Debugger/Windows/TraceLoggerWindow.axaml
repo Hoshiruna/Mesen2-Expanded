@@ -1,0 +1,204 @@
+<Window
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:m="clr-namespace:Mesen"
+	xmlns:vm="using:Mesen.Debugger.ViewModels"
+	xmlns:sys="using:System"
+	xmlns:v="using:Mesen.Views"
+	xmlns:dbg="using:Mesen.Debugger"
+	xmlns:c="using:Mesen.Controls"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:i="using:Mesen.Interop"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:dvm="using:Mesen.Debugger.ViewModels"
+	xmlns:dc="using:Mesen.Debugger.Controls"
+	xmlns:dv="using:Mesen.Debugger.Views"
+	mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="300"
+	x:Class="Mesen.Debugger.Windows.TraceLoggerWindow"
+	Icon="/Assets/LogWindow.png"
+	Width="700" Height="500"
+	x:DataType="vm:TraceLoggerViewModel"
+	Title="{l:Translate wndTitle}"
+>
+	<Design.DataContext>
+		<vm:TraceLoggerViewModel />
+	</Design.DataContext>
+
+	<Window.Styles>
+		<Style Selector="TextBox.readonlyFormat">
+			<Setter Property="Background" Value="#28808080" />
+		</Style>
+		<Style Selector="TabControl:singleitem > TabItem">
+			<Setter Property="IsVisible" Value="False" />
+		</Style>
+	</Window.Styles>
+
+	<DockPanel>
+		<c:MesenMenu DockPanel.Dock="Top" Name="ActionMenu">
+			<MenuItem Header="{l:Translate mnuFile}" ItemsSource="{Binding FileMenuItems}" />
+			<MenuItem Header="{l:Translate mnuDebug}" ItemsSource="{Binding DebugMenuItems}" />
+			<MenuItem Header="{l:Translate mnuSearch}" ItemsSource="{Binding SearchMenuItems}" />
+			<MenuItem Header="{l:Translate mnuView}" ItemsSource="{Binding ViewMenuItems}" />
+		</c:MesenMenu>
+
+		<StackPanel Orientation="Horizontal" DockPanel.Dock="Top" IsVisible="{Binding Config.ShowToolbar}">
+			<dc:ActionToolbar Items="{Binding ToolbarItems}" />
+		</StackPanel>
+
+		<Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto" DockPanel.Dock="Bottom">
+			<c:ButtonWithIcon
+				Grid.Column="0"
+				Click="OnClearClick"
+				Icon="Assets/Close.png"
+				Text="{l:Translate btnClear}"
+			/>
+
+			<c:ButtonWithIcon
+				Grid.Column="2"
+				Click="OnOpenTraceFile"
+				IsEnabled="{Binding AllowOpenTraceFile}"
+				Icon="Assets/Folder.png"
+				Text="{l:Translate btnOpenTraceFile}"
+			/>
+			<c:ButtonWithIcon
+				Grid.Column="3"
+				Click="OnStartLoggingClick"
+				IsEnabled="{Binding IsStartLoggingEnabled}"
+				IsVisible="{Binding !IsLoggingToFile}"
+				Icon="Assets/Record.png"
+				Text="{l:Translate btnStart}"
+			/>
+			<c:ButtonWithIcon
+				Grid.Column="3"
+				Click="OnStopLoggingClick"
+				IsVisible="{Binding IsLoggingToFile}"
+				Icon="Assets/MediaStop.png"
+				Text="{l:Translate btnStop}"
+			/>
+		</Grid>
+		
+		<TabControl ItemsSource="{Binding Tabs}" SelectedItem="{Binding SelectedTab}" Padding="1" DockPanel.Dock="Bottom">
+			<TabControl.ItemTemplate>
+				<DataTemplate>
+					<StackPanel Orientation="Horizontal">
+						<CheckBox IsChecked="{Binding Options.Enabled}" IsVisible="{Binding ShowEnableButton}" />
+						<TextBlock Text="{Binding TabName}" />
+					</StackPanel>
+				</DataTemplate>
+			</TabControl.ItemTemplate>
+
+			<TabControl.ContentTemplate>
+				<DataTemplate DataType="vm:TraceLoggerOptionTab">
+					<c:GroupBox Header="{Binding LogOptionsTitle}">
+						<StackPanel>
+							<Grid ColumnDefinitions="Auto,3,Auto,10,Auto,10,Auto" RowDefinitions="Auto,Auto,Auto" Margin="0 0 0 5">
+								<CheckBox Content="{l:Translate chkRegisters}" IsChecked="{Binding Options.ShowRegisters}" IsEnabled="{Binding !Options.UseCustomFormat}" />
+								<CheckBox Grid.Row="1" Content="{l:Translate chkStatusFlags}" IsChecked="{Binding Options.ShowStatusFlags}" IsEnabled="{Binding !Options.UseCustomFormat}" />
+								<StackPanel Grid.Row="2" Orientation="Horizontal" IsVisible="{Binding ShowStatusFormat}" Margin="0 -1 0 0" IsEnabled="{Binding !Options.UseCustomFormat}">
+									<TextBlock Text="{l:Translate lblFlagFormat}" />
+									<c:EnumComboBox SelectedItem="{Binding Options.StatusFormat}" Width="105" />
+								</StackPanel>
+
+								<CheckBox Grid.Column="2" Grid.Row="0" Content="{l:Translate chkEffectiveAddress}" IsChecked="{Binding Options.ShowEffectiveAddresses}" IsEnabled="{Binding !Options.UseCustomFormat}" />
+								<CheckBox Grid.Column="2" Grid.Row="1" Content="{l:Translate chkMemoryValue}" IsChecked="{Binding Options.ShowMemoryValues}" IsEnabled="{Binding !Options.UseCustomFormat}" />
+								<CheckBox Grid.Column="2" Grid.Row="3" Content="{l:Translate chkByteCode}" IsChecked="{Binding Options.ShowByteCode}" VerticalAlignment="Top" IsEnabled="{Binding !Options.UseCustomFormat}" />
+
+								<CheckBox Grid.Column="4" Grid.Row="0" Content="{l:Translate chkClockCounter}" IsChecked="{Binding Options.ShowClockCounter}" IsEnabled="{Binding !Options.UseCustomFormat}" />
+								<CheckBox Grid.Column="4" Grid.Row="1" Content="{l:Translate chkFrameCounter}" IsChecked="{Binding Options.ShowFrameCounter}" IsEnabled="{Binding !Options.UseCustomFormat}" />
+								<CheckBox Grid.Column="4" Grid.Row="2" Content="{l:Translate chkFramePosition}" IsChecked="{Binding Options.ShowFramePosition}" VerticalAlignment="Top" IsEnabled="{Binding !Options.UseCustomFormat}" />
+
+								<CheckBox Grid.Column="6" Grid.Row="0" Content="{l:Translate chkUseLabels}" IsChecked="{Binding Options.UseLabels}" />
+								<CheckBox Grid.Column="6" Grid.Row="1" Content="{l:Translate chkIndentCode}" IsChecked="{Binding Options.IndentCode}" IsVisible="{Binding ShowIndentCode}" />
+							</Grid>
+
+							<Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+								<CheckBox VerticalAlignment="Center" Content="{l:Translate chkCustomFormat}" IsChecked="{Binding Options.UseCustomFormat}" />
+								<TextBox
+									Grid.Column="1"
+									Text="{Binding Format, Converter={StaticResource NullTextConverter}}"
+									IsReadOnly="True"
+									IsVisible="{Binding !Options.UseCustomFormat}"
+									Classes="readonlyFormat"
+								/>
+								<TextBox
+									Grid.Column="1"
+									Text="{Binding Options.Format, Converter={StaticResource NullTextConverter}}"
+									IsVisible="{Binding Options.UseCustomFormat}"
+									MaxLength="1000"
+								/>
+								<Image Grid.Row="0" Grid.Column="2" Source="/Assets/Help.png" ToolTip.Tip="{Binding FormatTooltip}" ToolTip.Placement="Right" ToolTip.ShowDelay="0" />
+								
+								<TextBlock VerticalAlignment="Center" Grid.Row="1" Text="{l:Translate lblCondition}" />
+								<DockPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2">
+									<Image
+										DockPanel.Dock="Right"
+										Stretch="None"
+										Source="/Assets/Help.png"
+										ToolTip.Tip="{Binding HelpTooltip}"
+										ToolTip.Placement="Right"
+										ToolTip.ShowDelay="0"
+									/>
+									<Image
+										IsVisible="{Binding !IsConditionValid}"
+										DockPanel.Dock="Right"
+										Stretch="None"
+										Source="/Assets/Error.png"
+										ToolTip.Tip="{l:Translate lblConditionError}"
+										ToolTip.Placement="Right"
+										ToolTip.ShowDelay="0"
+									/>
+									<TextBox
+										Text="{Binding Options.Condition, Converter={StaticResource NullTextConverter}}"
+										MaxLength="1000"
+									/>
+								</DockPanel>
+							</Grid>
+						</StackPanel>
+					</c:GroupBox>
+				</DataTemplate>
+			</TabControl.ContentTemplate>
+		</TabControl>
+
+		<Border BorderBrush="Gray" BorderThickness="1">
+			<Grid ColumnDefinitions="*,Auto" RowDefinitions="*,Auto">
+				<ScrollBar
+					Grid.Column="1"
+					Orientation="Vertical"
+					VerticalAlignment="Stretch"
+					AllowAutoHide="False"
+					Minimum="{Binding MinScrollPosition}"
+					Maximum="{Binding MaxScrollPosition}"
+					Value="{Binding ScrollPosition}"
+				/>
+				
+				<ScrollBar
+					Orientation="Horizontal"
+					Grid.Row="1"
+					Maximum="{Binding #disViewer.HorizontalScrollMaxPosition}"
+					Value="{Binding #disViewer.HorizontalScrollPosition}"
+				/>
+
+				<Panel Grid.Row="1" Grid.Column="1" Background="{DynamicResource ButtonBackground}" />
+
+				<Panel>
+					<dc:DisassemblyViewer
+						Name="disViewer"
+						Lines="{Binding TraceLogLines}"
+						FontFamily="{DynamicResource MesenDisassemblyFont}"
+						FontSize="{DynamicResource MesenDisassemblyFontSize}"
+						StyleProvider="{Binding StyleProvider}"
+						SearchString="{Binding QuickSearch.SearchString}"
+						ShowByteCode="{Binding ShowByteCode}"
+					/>
+
+					<dv:QuickSearchView
+						DataContext="{Binding QuickSearch}"
+						VerticalAlignment="Top"
+						HorizontalAlignment="Right"
+					/>
+				</Panel>
+			</Grid>
+		</Border>
+	</DockPanel>
+</Window>

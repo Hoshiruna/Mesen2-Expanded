@@ -1,0 +1,180 @@
+<UserControl 
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:dc="using:Mesen.Debugger.Controls"
+	mc:Ignorable="d"
+	d:DesignHeight="400"
+	x:Name="root"
+	x:Class="Mesen.Debugger.Controls.CodeScrollBar"
+>
+	<UserControl.Styles>
+		<Style Selector="Canvas.hidden, TextBlock.hidden">
+			<Setter Property="Opacity" Value="0"/>
+		</Style>
+		<Style Selector="Panel:pointerover Canvas.hidden, Panel:pointerover TextBlock.hidden">
+			<Setter Property="Opacity" Value="1"/>
+		</Style>
+		
+		<Style Selector="Panel TextBlock">
+			<Setter Property="FontFamily" Value="{DynamicResource MesenMonospaceFont}" />
+			<Setter Property="FontSize" Value="11" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+			<Setter Property="VerticalAlignment" Value="Top" />
+			<Setter Property="Foreground" Value="#80808080" />
+			<Setter Property="Opacity" Value="1" />
+		</Style>
+
+		<Style Selector="RepeatButton">
+			<Setter Property="Template">
+				<ControlTemplate>
+					<Border x:Name="Root">
+						<Viewbox Width="{DynamicResource ScrollBarButtonArrowIconFontSize}"
+									Height="{DynamicResource ScrollBarButtonArrowIconFontSize}">
+							<Path x:Name="Arrow"
+							  VerticalAlignment="Center"
+							  HorizontalAlignment="Center"
+							  Width="20" Height="20" />
+						</Viewbox>
+					</Border>
+				</ControlTemplate>
+			</Setter>
+		</Style>
+		
+		<Style Selector="RepeatButton Border" >
+			<Setter Property="Background" Value="{DynamicResource ScrollBarButtonBackground}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource ScrollBarButtonBorderBrush}" />
+		</Style>
+
+		<Style Selector="RepeatButton:pointerover Border" >
+			<Setter Property="Background" Value="{DynamicResource ScrollBarButtonBackgroundPointerOver}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource ScrollBarButtonBorderBrushPointerOver}" />
+		</Style>
+
+		<Style Selector="RepeatButton:pressed Border" >
+			<Setter Property="Background" Value="{DynamicResource ScrollBarButtonBackgroundPressed}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource ScrollBarButtonBorderBrushPressed}" />
+		</Style>
+
+		<Style Selector="RepeatButton:disabled Border" >
+			<Setter Property="Background" Value="{DynamicResource ScrollBarButtonBackgroundPressed}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource ScrollBarButtonBorderBrushDisabled}" />
+		</Style>
+
+		<Style Selector="RepeatButton Path" >
+			<Setter Property="Fill" Value="{DynamicResource ScrollBarButtonArrowForeground}" />
+		</Style>
+
+		<Style Selector="RepeatButton:pointerover Path" >
+			<Setter Property="Fill" Value="{DynamicResource ScrollBarButtonArrowForegroundPointerOver}" />
+		</Style>
+
+		<Style Selector="RepeatButton:pressed Path" >
+			<Setter Property="Fill" Value="{DynamicResource ScrollBarButtonArrowForegroundPressed}" />
+		</Style>
+
+		<Style Selector="RepeatButton:disabled Path" >
+			<Setter Property="Fill" Value="{DynamicResource ScrollBarButtonArrowForegroundDisabled}" />
+		</Style>
+
+		<Style Selector="RepeatButton.up Path">
+			<Setter Property="Data"
+					  Value="M 19.091797 14.970703 L 10 5.888672 L 0.908203 14.970703 L 0.029297 14.091797 L 10 4.111328 L 19.970703 14.091797 Z" />
+		</Style>
+
+		<Style Selector="RepeatButton.down Path">
+			<Setter Property="Data"
+					  Value="M 18.935547 4.560547 L 19.814453 5.439453 L 10 15.253906 L 0.185547 5.439453 L 1.064453 4.560547 L 10 13.496094 Z" />
+		</Style>
+	</UserControl.Styles>
+
+	<Border Background="{DynamicResource ScrollBarTrackFillPointerOver}">
+		<Grid RowDefinitions="Auto,*,Auto">
+			<Panel Grid.Row="1" Name="Panel" Background="Transparent">
+				<Rectangle 
+					Name="Thumb"
+					Fill="#404040FF"
+					Stroke="#77F"
+					StrokeThickness="1"
+					Height="20"
+					VerticalAlignment="Top"
+				/>
+				
+				<ContentControl Content="{Binding BreakpointBar, ElementName=root}" />
+
+				<Canvas Classes="hidden" IsVisible="{Binding ShowMarkers, ElementName=root}">
+					<Canvas.Transitions>
+						<Transitions>
+							<DoubleTransition Property="Opacity" Duration="0:0:0.1" />
+						</Transitions>
+					</Canvas.Transitions>
+					<Canvas.Styles>
+						<Style Selector="TextBlock">
+							<Setter Property="FontFamily" Value="{DynamicResource MesenMonospaceFont}" />
+							<Setter Property="FontSize" Value="11" />
+							<Setter Property="VerticalAlignment" Value="Center" />
+							<Setter Property="Foreground" Value="#808080" />
+							<Setter Property="Opacity" Value="1" />
+							<Setter Property="Canvas.Right" Value="1" />
+						</Style>
+					</Canvas.Styles>
+
+					<TextBlock Text="00" Canvas.Top="0" />
+					<TextBlock Text="20" Canvas.Top="{Binding MarkerTop[0], ElementName=root}" />
+					<TextBlock Text="40" Canvas.Top="{Binding MarkerTop[1], ElementName=root}" />
+					<TextBlock Text="60" Canvas.Top="{Binding MarkerTop[2], ElementName=root}" />
+					<TextBlock Text="80" Canvas.Top="{Binding MarkerTop[3], ElementName=root}" />
+					<TextBlock Text="A0" Canvas.Top="{Binding MarkerTop[4], ElementName=root}" />
+					<TextBlock Text="C0" Canvas.Top="{Binding MarkerTop[5], ElementName=root}" />
+					<TextBlock Text="E0" Canvas.Top="{Binding MarkerTop[6], ElementName=root}" />
+					<TextBlock Text="FF" Canvas.Bottom="0" />
+				</Canvas>
+			</Panel>
+			
+			<RepeatButton
+				HorizontalAlignment="Center"
+				Classes="up"
+				Grid.Row="0"
+				Focusable="False"
+				MinWidth="{DynamicResource ScrollBarSize}"
+				Height="{DynamicResource ScrollBarSize}"
+				BorderThickness="0"
+				Click="DecrementClick"
+				Width="18"
+			>
+				<Viewbox Width="8" Height="8" Margin="0 3 0 0">
+					<Path
+						VerticalAlignment="Center"
+						HorizontalAlignment="Center"
+						Width="20"
+						Height="20"
+					/>
+				</Viewbox>
+			</RepeatButton>
+			
+			<RepeatButton
+				HorizontalAlignment="Center"
+				Classes="down"
+				Grid.Row="2"
+				Focusable="False"
+				MinWidth="{DynamicResource ScrollBarSize}"
+				Height="{DynamicResource ScrollBarSize}"
+				BorderThickness="0"
+				Click="IncrementClick"
+				Width="18"
+			>
+				<Viewbox Width="8" Height="8" Margin="0 3 0 0">
+					<Path
+						VerticalAlignment="Center"
+						HorizontalAlignment="Center"
+						Width="20"
+						Height="20"
+					/>
+				</Viewbox>
+			</RepeatButton>
+		</Grid>
+	
+</Border>
+</UserControl>

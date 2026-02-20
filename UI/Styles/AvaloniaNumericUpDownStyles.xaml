@@ -1,0 +1,78 @@
+<Styles
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:sys="clr-namespace:System;assembly=netstandard"
+>
+	<Design.PreviewWith>
+		<Window Width="440" Height="620" Padding="5">
+			<StackPanel>
+				<NumericUpDown Value="1" />
+				<NumericUpDown Value="1" Minimum="1" />
+				<NumericUpDown Value="1" Maximum="1" />
+				<NumericUpDown Value="100" IsEnabled="False" />
+			</StackPanel>
+		</Window>
+	</Design.PreviewWith>
+	
+	<!-- NumericUpDown -->
+	<Style Selector="NumericUpDown ButtonSpinner">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Border Background="{TemplateBinding Background}"
+							BorderBrush="{TemplateBinding BorderBrush}"
+							BorderThickness="{TemplateBinding BorderThickness}"
+							CornerRadius="{TemplateBinding CornerRadius}"
+							MinHeight="{TemplateBinding MinHeight}">
+					<DockPanel>
+						<Border BorderThickness="1 0 0 0" BorderBrush="Gray" DockPanel.Dock="Right">
+							<Grid Name="PART_SpinnerPanel" RowDefinitions="*,Auto,*"
+											IsVisible="{TemplateBinding ShowButtonSpinner}">
+								<RepeatButton Name="PART_IncreaseButton"
+												  Grid.Row="0"
+													BorderBrush="{TemplateBinding BorderBrush}"
+													BorderThickness="0"
+													VerticalAlignment="Stretch"
+													VerticalContentAlignment="Center"
+													Foreground="{TemplateBinding Foreground}"
+													FontSize="{TemplateBinding FontSize}"
+													MaxWidth="14"
+													MinWidth="14"
+										>
+									<PathIcon
+											Width="10"
+											Margin="0 -2 0 0"
+											Height="8"
+											Data="{StaticResource ButtonSpinnerIncreaseButtonIcon}" />
+								</RepeatButton>
+								<Rectangle Fill="Gray" Height="1" Grid.Row="1" />
+								<RepeatButton Name="PART_DecreaseButton" Grid.Row="2"
+													BorderBrush="{TemplateBinding BorderBrush}"
+													BorderThickness="0 0 0 0"
+													VerticalAlignment="Stretch"
+													VerticalContentAlignment="Center"
+													Foreground="{TemplateBinding Foreground}"
+													FontSize="{TemplateBinding FontSize}"
+													MaxWidth="14"
+													MinWidth="14"
+										>
+									<PathIcon
+											Width="10"
+											Margin="0 -1 0 0"
+											Height="8"
+											Data="{StaticResource ButtonSpinnerDecreaseButtonIcon}" />
+								</RepeatButton>
+							</Grid>
+						</Border>
+						<ContentPresenter Name="PART_ContentPresenter"
+												Grid.Column="1"
+												ContentTemplate="{TemplateBinding ContentTemplate}"
+												Content="{TemplateBinding Content}"
+												HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+												VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+												Padding="{TemplateBinding Padding}" />
+					</DockPanel>
+				</Border>
+			</ControlTemplate>
+		</Setter>
+	</Style>
+</Styles>

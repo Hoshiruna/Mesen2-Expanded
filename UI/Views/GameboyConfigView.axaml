@@ -1,0 +1,154 @@
+<UserControl
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:vm="using:Mesen.ViewModels"
+	xmlns:c="using:Mesen.Controls"
+	xmlns:v="using:Mesen.Views"
+	xmlns:dc="using:Mesen.Debugger.Controls"
+	xmlns:cfg="using:Mesen.Config"
+	xmlns:l="using:Mesen.Localization"
+	mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="250"
+	VerticalAlignment="Stretch"
+	HorizontalAlignment="Stretch"
+	x:DataType="vm:GameboyConfigViewModel"
+	x:Class="Mesen.Views.GameboyConfigView"
+>
+	<Design.DataContext>
+		<vm:GameboyConfigViewModel />
+	</Design.DataContext>
+
+	<UserControl.Styles>
+		<Style Selector="dc|PaletteSelector">
+			<Setter Property="SelectionMode" Value="None" />
+			<Setter Property="ColumnCount" Value="4" />
+			<Setter Property="BlockSize" Value="20" />
+		</Style>
+	</UserControl.Styles>
+	
+	<TabControl TabStripPlacement="Top" SelectedIndex="{Binding SelectedTab}">
+		<TabItem Header="{l:Translate tpgGeneral}">
+			<ScrollViewer AllowAutoHide="False" HorizontalScrollBarVisibility="Auto" Padding="0 0 2 0">
+				<StackPanel>
+					<StackPanel Orientation="Horizontal">
+						<TextBlock Text="{l:Translate lblModel}" Margin="3 0 5 0" />
+						<c:EnumComboBox SelectedItem="{Binding Config.Model}" MinWidth="200" />
+					</StackPanel>
+					<CheckBox IsChecked="{Binding Config.UseSgb2}" Content="{l:Translate chkUseSgb2}" />
+				</StackPanel>
+			</ScrollViewer>
+		</TabItem>
+		<TabItem Header="{l:Translate tpgAudio}">
+			<ScrollViewer AllowAutoHide="False" HorizontalScrollBarVisibility="Auto" Padding="0 0 2 0">
+				<StackPanel>
+					<c:GroupBox Header="{l:Translate grpVolume}" HorizontalAlignment="Left">
+						<StackPanel Orientation="Horizontal" Height="150">
+							<StackPanel.Styles>
+								<Style Selector="c|MesenSlider">
+									<Setter Property="Minimum" Value="0" />
+									<Setter Property="Maximum" Value="100" />
+									<Setter Property="Orientation" Value="Vertical" />
+									<Setter Property="Margin" Value="5 0" />
+								</Style>
+							</StackPanel.Styles>
+
+							<c:MesenSlider Text="{l:Translate lblSquare1}" Value="{Binding Config.Square1Vol}" />
+							<c:MesenSlider Text="{l:Translate lblSquare2}" Value="{Binding Config.Square2Vol}" />
+							<c:MesenSlider Text="{l:Translate lblWave}" Value="{Binding Config.WaveVol}" />
+							<c:MesenSlider Text="{l:Translate lblNoise}" Value="{Binding Config.NoiseVol}" />
+						</StackPanel>
+					</c:GroupBox>
+				</StackPanel>
+			</ScrollViewer>
+		</TabItem>
+		<TabItem Header="{l:Translate tpgEmulation}">
+			<ScrollViewer AllowAutoHide="False" HorizontalScrollBarVisibility="Auto" Padding="0 0 2 0">
+				<StackPanel>
+					<StackPanel Orientation="Horizontal">
+						<TextBlock Text="{l:Translate lblRamPowerOnState}" />
+						<c:EnumComboBox SelectedItem="{Binding Config.RamPowerOnState}" Width="200" />
+					</StackPanel>
+				</StackPanel>
+			</ScrollViewer>
+		</TabItem>
+		<TabItem Header="{l:Translate tpgInput}">
+			<ScrollViewer AllowAutoHide="False" HorizontalScrollBarVisibility="Auto" Padding="0 0 2 0">
+				<StackPanel>
+					<c:OptionSection Header="{l:Translate grpControllers}" Margin="0">
+						<StackPanel Orientation="Horizontal">
+							<TextBlock Text="{l:Translate lblPlayer1}" />
+							<Button
+								Margin="10 0 0 0"
+								Command="{Binding SetupPlayer}"
+								CommandParameter="{Binding $self}"
+								Content="{l:Translate btnSetup}"
+							/>
+						</StackPanel>
+					</c:OptionSection>
+					<c:OptionSection Header="{l:Translate grpGeneral}">
+						<c:CheckBoxWarning IsChecked="{Binding Config.AllowInvalidInput}" Text="{l:Translate chkAllowInvalidInput}" />
+					</c:OptionSection>
+				</StackPanel>
+			</ScrollViewer>
+		</TabItem>
+		<TabItem Header="{l:Translate tpgVideo}">
+			<ScrollViewer AllowAutoHide="False" HorizontalScrollBarVisibility="Auto" Padding="0 0 2 0">
+				<StackPanel>
+					<v:VideoConfigOverrideView DataContext="{Binding Config.ConfigOverrides}" />
+
+					<c:OptionSection Header="{l:Translate lblGameboyPalette}">
+						<Grid ColumnDefinitions="Auto,Auto,Auto" RowDefinitions="Auto,Auto,Auto">
+							<TextBlock Text="{l:Translate lblGbBackground}" />
+							<Border BorderBrush="#555" BorderThickness="1" Margin="0 1 5 0" Grid.Column="1" Width="82">
+								<dc:PaletteSelector
+									PaletteColors="{Binding Config.BgColors}"
+									ColorClick="BgColor_OnClick"
+								/>
+							</Border>
+							<Button
+								Grid.Column="2"
+								Content="{l:Translate btnSelectPreset}"
+								Click="btnSelectPreset_OnClick"
+							>
+								<Button.ContextMenu>
+									<ContextMenu Placement="BottomEdgeAlignedLeft">
+										<MenuItem Header="{l:Translate lblGrayscale}" Click="mnuGrayscalePreset_Click" />
+										<MenuItem Header="{l:Translate lblGrayscaleHighContrast}" Click="mnuGrayscaleHighContrastPreset_Click" />
+										<MenuItem Header="{l:Translate lblGreen}" Click="mnuGreenPreset_Click" />
+										<MenuItem Header="{l:Translate lblBrown}" Click="mnuBrownPreset_Click" />
+									</ContextMenu>
+								</Button.ContextMenu>
+							</Button>
+
+							<TextBlock Text="{l:Translate lblGbObj0}" Grid.Row="1" />
+							<Border BorderBrush="#555" BorderThickness="1" Margin="0 1 5 0" Grid.Column="1" Grid.Row="1" Width="82">
+								<dc:PaletteSelector
+									PaletteColors="{Binding Config.Obj0Colors}"
+									ColorClick="Obj0Color_OnClick"
+								/>
+							</Border>
+
+							<TextBlock Text="{l:Translate lblGbObj1}" Grid.Row="2" />
+							<Border BorderBrush="#555" BorderThickness="1" Margin="0 1 5 0" Grid.Column="1" Grid.Row="2" Width="82">
+								<dc:PaletteSelector
+									PaletteColors="{Binding Config.Obj1Colors}"
+									ColorClick="Obj1Color_OnClick"
+								/>
+							</Border>
+						</Grid>
+					</c:OptionSection>
+					<c:OptionSection Header="{l:Translate lblLcdSettings}">
+						<CheckBox IsChecked="{Binding Config.GbcAdjustColors}" Content="{l:Translate chkGbcAdjustColors}"/>
+						<CheckBox IsChecked="{Binding Config.BlendFrames}" Content="{l:Translate chkGbBlendFrames}" />
+						<c:CheckBoxWarning IsChecked="{Binding Config.DisableBackground}" Text="{l:Translate chkDisableBackground}" />
+						<c:CheckBoxWarning IsChecked="{Binding Config.DisableSprites}" Text="{l:Translate chkDisableSprites}" />
+					</c:OptionSection>
+					<c:OptionSection Header="{l:Translate lblMiscSettings}">
+						<CheckBox IsChecked="{Binding Config.HideSgbBorders}" Content="{l:Translate chkHideSgbBorders}"/>
+					</c:OptionSection>
+				</StackPanel>
+			</ScrollViewer>
+		</TabItem>
+	</TabControl>
+</UserControl>

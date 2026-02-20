@@ -1,0 +1,125 @@
+<UserControl 
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:dc="using:Mesen.Debugger.Controls"
+	mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="50"
+	x:Name="root"
+	HorizontalAlignment="Stretch"
+	x:Class="Mesen.Debugger.Controls.DynamicTooltip"
+>
+	<UserControl.Styles>
+		<Style Selector="TextBox">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="VerticalAlignment" Value="Top" />
+		</Style>
+		<Style Selector="StackPanel.mono TextBox">
+			<Setter Property="FontFamily" Value="{DynamicResource MesenMonospaceFont}" />
+			<Setter Property="FontSize" Value="{DynamicResource MesenMonospaceFontSize}" />
+		</Style>
+		<Style Selector="StackPanel.regular TextBox">
+			<Setter Property="FontFamily" Value="{DynamicResource MesenFont}" />
+			<Setter Property="FontSize" Value="{DynamicResource MesenFontSize}" />
+		</Style>
+	</UserControl.Styles>
+
+	<UserControl.DataTemplates>
+		<DataTemplate DataType="dc:TooltipSeparator">
+			<Rectangle
+				Height="1"
+				Fill="{StaticResource MesenGrayBorderColor}"
+				Margin="5 3"
+				IsVisible="{Binding !Hidden}"
+			/>
+		</DataTemplate>
+		
+		<DataTemplate DataType="dc:CustomTooltipEntry">
+			<ContentControl Content="{Binding Value}" />
+		</DataTemplate>
+		
+		<DataTemplate DataType="dc:TooltipEntry">
+			<StackPanel
+				Orientation="Horizontal"
+				Classes.mono="{Binding UseMonoFont}"
+				Classes.regular="{Binding !UseMonoFont}"
+		  >
+				<TextBlock
+					Name="Header"
+					Text="{Binding Name}"
+					VerticalAlignment="{Binding VerticalAlignment}"
+					MinWidth="{Binding FirstColumnWidth, ElementName=root}"
+					IsVisible="{Binding Name.Length}"
+					Margin="0 0 10 2"
+				/>
+				<ContentControl Content="{Binding Value}">
+					<ContentControl.DataTemplates>
+						<DataTemplate DataType="x:String">
+							<TextBox
+								Text="{Binding}"
+								Margin="0"
+								Padding="0"
+								MinHeight="0"
+								MinWidth="0"
+								Height="NaN"
+								BorderThickness="0"
+								IsReadOnly="True"
+								Tapped="TextBox_Tapped"
+								ContextRequested="TextBox_ContextRequested"
+								LostFocus="TextBox_LostFocus"
+							/>
+						</DataTemplate>
+						<DataTemplate DataType="x:Boolean">
+							<CheckBox IsChecked="{Binding}" IsEnabled="False" Margin="-3 -3 0 0" />
+						</DataTemplate>
+						<DataTemplate DataType="dc:TooltipPictureEntry">
+							<Border BorderBrush="Gray" Background="#666" BorderThickness="1">
+								<dc:PictureViewer
+									Source="{Binding Source}"
+									Zoom="{Binding Zoom}"
+									AllowSelection="False"
+									ShowMousePosition="False"
+								/>
+							</Border>
+						</DataTemplate>
+						<DataTemplate DataType="dc:TooltipColorEntry">
+							<Border BorderBrush="Gray" BorderThickness="1" Margin="0 1" VerticalAlignment="Top">
+								<dc:PaletteSelector
+									PaletteColors="{Binding Color}"
+									BlockSize="32"
+									ColumnCount="1"
+									SelectionMode="None"
+								/>
+							</Border>
+						</DataTemplate>
+						<DataTemplate DataType="dc:TooltipPaletteEntry">
+							<Border BorderBrush="Gray" BorderThickness="1" Margin="0 1" VerticalAlignment="Top">
+								<dc:PaletteSelector
+									PaletteColors="{Binding RgbPalette}"
+									RawPalette="{Binding RawPalette}"
+									RawFormat="{Binding RawFormat}"
+									BlockSize="12"
+									ColumnCount="4"
+									SelectionMode="None"
+								/>
+							</Border>
+						</DataTemplate>
+						<DataTemplate DataType="x:Array">
+							<Border BorderBrush="Gray" BorderThickness="1" Margin="0 1" VerticalAlignment="Top">
+								<dc:PaletteSelector
+									PaletteColors="{Binding}"
+									BlockSize="12"
+									ColumnCount="4"
+									SelectionMode="None"
+								/>
+							</Border>
+						</DataTemplate>
+					</ContentControl.DataTemplates>
+				</ContentControl>
+			</StackPanel>
+		</DataTemplate>
+	</UserControl.DataTemplates>
+	
+	<ItemsControl DataContext="{Binding, ElementName=root}" ItemsSource="{Binding Items}" />
+</UserControl>

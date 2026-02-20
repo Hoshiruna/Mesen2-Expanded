@@ -1,0 +1,119 @@
+﻿<Window
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:m="clr-namespace:Mesen"
+	xmlns:vm="using:Mesen.ViewModels"
+	xmlns:c="using:Mesen.Controls"
+	xmlns:w="using:Mesen.Windows"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:v="using:Mesen.Views"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d"
+	x:Class="Mesen.Windows.AboutWindow"
+	Width="400" Height="525"
+	Title="{l:Translate wndTitle}"
+	CanResize="False"
+	Name="root"
+>
+	<Window.Styles>
+		<Style Selector="ListBoxItem">
+			<Setter Property="Margin" Value="0" />
+			<Setter Property="Padding" Value="5 3" />
+		</Style>
+		<Style Selector="ListBox">
+			<Setter Property="ItemTemplate">
+				<DataTemplate DataType="w:AboutListEntry">
+					<Grid ColumnDefinitions="Auto,*,110">
+						<TextBlock
+							Text="{Binding Name}"
+							Foreground="{DynamicResource SystemAccentColor}"
+							TextDecorations="Underline"
+							Cursor="Hand"
+							ToolTip.Tip="{Binding Url}"
+							IsVisible="{Binding Url.Length}"
+							PointerPressed="OnLinkPressed"
+						/>
+						<TextBlock
+							Text="{Binding Name}"
+							IsVisible="{Binding !Url.Length}"
+						/>
+						<TextBlock Text="{Binding Note}" Grid.Column="2" />
+					</Grid>
+				</DataTemplate>
+			</Setter>
+		</Style>
+		
+	</Window.Styles>
+	
+	<DockPanel>
+		<DockPanel DockPanel.Dock="Top">
+			<Image
+				DockPanel.Dock="Left"
+				Source="/Assets/Icon.ico"
+				Height="64"
+				Width="64"
+				Margin="10"
+			/>
+			<StackPanel>
+				<TextBlock Text="{l:Translate lblName}" FontSize="20" Margin="0 4 0 0" />
+				<StackPanel Orientation="Horizontal" Margin="3">
+					<TextBlock Text="{l:Translate lblVersion}" Margin="0 0 5 0" />
+					<TextBlock Text="{Binding Version, ElementName=root}" />
+				</StackPanel>
+				<StackPanel Orientation="Horizontal" Margin="3">
+					<TextBlock Text="{l:Translate lblBuildDate}" Margin="0 0 5 0" />
+					<TextBlock Text="{Binding BuildDate, ElementName=root}" />
+				</StackPanel>
+				<StackPanel Orientation="Horizontal" Margin="3" IsVisible="{Binding BuildShortSha.Length, ElementName=root}">
+					<TextBlock Text="{l:Translate lblCommitId}" Margin="0 0 5 0" />
+					<TextBlock Text="{Binding BuildShortSha, ElementName=root}" Foreground="{DynamicResource SystemAccentColor}" TextDecorations="Underline" Cursor="Hand" Tapped="OnCommitLinkTapped" />
+				</StackPanel>
+				<StackPanel Orientation="Horizontal" Margin="3">
+					<TextBlock Text="{l:Translate lblRuntimeVersion}" Margin="0 0 5 0" />
+					<TextBlock Text="{Binding RuntimeVersion, ElementName=root}" />
+				</StackPanel>
+				<TextBlock Name="lblCopyright" Margin="3" />
+				<StackPanel Orientation="Horizontal" Margin="3">
+					<TextBlock Text="{l:Translate lblWebsite}" Margin="0 0 5 0" />
+					<TextBlock Text="{l:Translate lblLink}" Foreground="{DynamicResource SystemAccentColor}" TextDecorations="Underline" Cursor="Hand" Tapped="OnMesenLinkTapped" />
+				</StackPanel>
+			</StackPanel>
+		</DockPanel>
+		
+		<StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Margin="5 3">
+			<Button
+				MinWidth="70"
+				HorizontalContentAlignment="Center"
+				IsCancel="True"
+				Click="btnOk_OnClick"
+				Content="{l:Translate btnOk}"
+			/>
+		</StackPanel>
+
+		<c:GroupBox Header="{l:Translate grpAcknowledgements}" Margin="5 5 5 0">
+			<DockPanel>
+				<StackPanel DockPanel.Dock="Top">
+					<TextBlock Text="{l:Translate lblAcknowledgeList}" Margin="0 5 0 5" TextWrapping="Wrap" />
+					<Border BorderBrush="Gray" BorderThickness="1">
+						<ListBox
+							ItemsSource="{Binding AcknowledgeList, ElementName=root}"
+							Background="Transparent"
+							ScrollViewer.AllowAutoHide="False"
+						/>
+					</Border>
+					<TextBlock Text="{l:Translate lblSpecialThanks}" Margin="0 5 0 5" TextWrapping="Wrap" />
+					<TextBlock Text="{l:Translate lblUsedSoftware}" Margin="0 15 0 5" />
+				</StackPanel>
+
+				<Border BorderBrush="Gray" BorderThickness="1">
+					<ListBox
+						ItemsSource="{Binding LibraryList, ElementName=root}"
+						Background="Transparent"
+					/>
+				</Border>
+			</DockPanel>
+		</c:GroupBox>
+		
+	</DockPanel>
+</Window>

@@ -1,0 +1,88 @@
+<Window
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:m="clr-namespace:Mesen"
+	xmlns:vm="using:Mesen.ViewModels"
+	xmlns:sys="using:System"
+	xmlns:v="using:Mesen.Views"
+	xmlns:c="using:Mesen.Controls"
+	xmlns:i="using:Mesen.Interop"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:dvm="using:Mesen.Debugger.ViewModels"
+	xmlns:dc="using:Mesen.Debugger.Controls"
+	xmlns:dv="using:Mesen.Debugger.Views"
+	mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="600"
+	x:Class="Mesen.Debugger.Windows.TileEditorWindow"
+	x:DataType="dvm:TileEditorViewModel"
+	Width="600" Height="600"
+	Title="{l:Translate wndTitle}"
+	Icon="/Assets/Edit.png"
+>
+	<Design.DataContext>
+		<dvm:TileEditorViewModel />
+	</Design.DataContext>
+	
+	<DockPanel>
+		<Panel DockPanel.Dock="Top">
+			<c:MesenMenu DockPanel.Dock="Top" Name="ActionMenu">
+				<MenuItem Header="{l:Translate mnuFile}" ItemsSource="{Binding FileMenuActions}" />
+				<MenuItem Header="{l:Translate mnuView}" ItemsSource="{Binding ViewMenuActions}" />
+				<MenuItem Header="{l:Translate mnuTools}" ItemsSource="{Binding ToolsMenuActions}" />
+			</c:MesenMenu>
+		</Panel>
+
+		<dc:ActionToolbar Items="{Binding ToolbarActions}" DockPanel.Dock="Top" />
+
+		<ScrollViewer Margin="3 0" DockPanel.Dock="Right">
+			<StackPanel>
+				<Border BorderBrush="Gray" BorderThickness="1" HorizontalAlignment="Left" VerticalAlignment="Top">
+					<dc:PaletteSelector
+						ColumnCount="{Binding PaletteColumnCount}"
+						BlockSize="14"
+						SelectionMode="SingleColor"
+						PaletteColors="{Binding PaletteColors}"
+						RawPalette="{Binding RawPalette}"
+						RawFormat="{Binding RawFormat}"
+						SelectedPalette="{Binding SelectedColor}"
+					/>
+				</Border>
+				<DockPanel Margin="3 5">
+					<TextBlock Text="{l:Translate lblBackground}" VerticalAlignment="Center" DockPanel.Dock="Left" />
+					<c:EnumComboBox SelectedItem="{Binding Config.Background}" />
+				</DockPanel>
+				<CheckBox IsChecked="{Binding Config.ShowGrid}" Content="{l:Translate chkShowGrid}" />
+				<StackPanel Margin="3 0 3 5">
+					<TextBlock Text="{l:Translate lblHint1}" />
+					<TextBlock Text="{l:Translate lblHint2}" />
+					<TextBlock Text="{l:Translate lblHint3}" />
+					<TextBlock Text="{l:Translate lblHint4}" />
+					<TextBlock Text="{l:Translate lblHint5}" />
+				</StackPanel>
+				<c:GroupBox Header="{l:Translate lblPreview}">
+					<Border BorderBrush="Gray" Background="{StaticResource ViewerBgBrush}" BorderThickness="1" HorizontalAlignment="Left">
+						<dc:PictureViewer
+							Zoom="4"
+							Source="{Binding ViewerBitmap}"
+							AllowSelection="False"
+							ShowMousePosition="False"
+							CustomGrids="{Binding CustomGrids}"
+						/>
+					</Border>
+				</c:GroupBox>
+			</StackPanel>
+		</ScrollViewer>
+
+		<dc:ScrollPictureViewer
+			x:Name="picViewer"
+			AllowClickDrag="False"
+			AllowSelection="False"
+			Zoom="{Binding Config.ImageScale}"
+			Source="{Binding ViewerBitmap}"
+			GridSizeX="1"
+			GridSizeY="1"
+			CustomGrids="{Binding CustomGrids}"
+		/>
+	</DockPanel>
+</Window>

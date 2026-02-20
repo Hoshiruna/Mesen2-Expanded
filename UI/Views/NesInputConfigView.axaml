@@ -1,0 +1,190 @@
+<UserControl
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:vm="using:Mesen.ViewModels"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:c="using:Mesen.Controls"
+	xmlns:v="using:Mesen.Views"
+	xmlns:cfg="using:Mesen.Config"
+	mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="450"
+	VerticalAlignment="Stretch"
+	HorizontalAlignment="Stretch"
+	x:DataType="vm:NesInputConfigViewModel"
+	x:Class="Mesen.Views.NesInputConfigView"
+>
+	<Design.DataContext>
+		<vm:NesInputConfigViewModel />
+	</Design.DataContext>
+
+	<ScrollViewer AllowAutoHide="False" HorizontalScrollBarVisibility="Auto" Padding="0 0 2 0">
+		<StackPanel>
+			<c:OptionSection Header="{l:Translate grpControllers}" Margin="0">
+				<Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" HorizontalAlignment="Left">
+					<TextBlock Grid.Row="0" Grid.Column="0" Text="{l:Translate lblPlayer1}" />
+					<c:InputComboBox
+						Grid.Row="0" Grid.Column="1"
+						Config="{Binding Config.Port1}"
+						ControllerType="{Binding Config.Port1.Type}"
+						AvailableValues="{Binding AvailableControllerTypesP1}"
+					/>
+
+					<TextBlock Grid.Row="1" Grid.Column="0" Text="{l:Translate lblPlayer2}" />
+					<c:InputComboBox
+						Grid.Row="1" Grid.Column="1"
+						Config="{Binding Config.Port2}"
+						IsEnabled="{Binding !HasFourScore}"
+						ControllerType="{Binding Config.Port2.Type}"
+						AvailableValues="{Binding AvailableControllerTypesP2}"
+					/>
+
+					<c:GroupBox
+						Header="{l:Translate lblFourScoreConfig}"
+						IsVisible="{Binding HasFourScore}"
+						HorizontalAlignment="Right"
+						Margin="0 5 -6 5"
+						Grid.Row="2"
+						Grid.Column="0"
+						Grid.ColumnSpan="3"
+					>
+						<Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
+							<TextBlock Grid.Row="0" Grid.Column="0" Text="{l:Translate lblPort1A}" />
+							<c:InputComboBox
+								Grid.Row="0" Grid.Column="1"
+								Config="{Binding Config.Port1}"
+								ControllerType="{Binding Config.Port1A.Type}"
+								AvailableValues="{Binding AvailableControllerTypesFourPlayer}"
+							/>
+
+							<TextBlock Grid.Row="1" Grid.Column="0" Text="{l:Translate lblPort1B}" />
+							<c:InputComboBox
+								Grid.Row="1" Grid.Column="1"
+								Config="{Binding Config.Port2}"
+								ControllerType="{Binding Config.Port1B.Type}"
+								AvailableValues="{Binding AvailableControllerTypesFourPlayer}"
+							/>
+
+							<TextBlock Grid.Row="2" Grid.Column="0" Text="{l:Translate lblPort1C}" />
+							<c:InputComboBox
+								Grid.Row="2" Grid.Column="1"
+								Config="{Binding Config.Port1C}"
+								ControllerType="{Binding Config.Port1C.Type}"
+								AvailableValues="{Binding AvailableControllerTypesFourPlayer}"
+							/>
+
+							<TextBlock Grid.Row="3" Grid.Column="0" Text="{l:Translate lblPort1D}" />
+							<c:InputComboBox
+								Grid.Row="3" Grid.Column="1"
+								Config="{Binding Config.Port1D}"
+								ControllerType="{Binding Config.Port1D.Type}"
+								AvailableValues="{Binding AvailableControllerTypesFourPlayer}"
+							/>
+						</Grid>
+					</c:GroupBox>
+					
+					<TextBlock Grid.Row="3" Grid.Column="0" Text="{l:Translate lblExpansionDevice}" Margin="0 10 0 0" />
+					<c:InputComboBox
+						Margin="0 10 0 0"
+						Grid.Row="3" Grid.Column="1"
+						Config="{Binding Config.ExpPort}"
+						ControllerType="{Binding Config.ExpPort.Type}"
+						AvailableValues="{Binding AvailableExpansionTypes}"
+					/>
+
+					<c:GroupBox
+						Header="{Binding ExpConfigLabel}"
+						IsVisible="{Binding HasExpansionHub}"
+						HorizontalAlignment="Right"
+						Margin="0 5 -6 5"
+						Grid.Row="4"
+						Grid.Column="0"
+						Grid.ColumnSpan="3"
+					>
+						<Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
+							<TextBlock Grid.Row="0" Grid.Column="0" Text="{l:Translate lblExpPortA}" />
+							<c:InputComboBox
+								Grid.Row="0" Grid.Column="1"
+								Config="{Binding Config.ExpPort}"
+								ControllerType="{Binding Config.ExpPortA.Type}"
+								AvailableValues="{Binding AvailableControllerTypesExpansionHub}"
+							/>
+
+							<TextBlock Grid.Row="1" Grid.Column="0" Text="{l:Translate lblExpPortB}" />
+							<c:InputComboBox
+								Grid.Row="1" Grid.Column="1"
+								Config="{Binding Config.ExpPortB}"
+								ControllerType="{Binding Config.ExpPortB.Type}"
+								AvailableValues="{Binding AvailableControllerTypesExpansionHub}"
+							/>
+
+							<TextBlock
+								Grid.Row="2" Grid.Column="0"
+								Text="{l:Translate lblExpPortC}"
+								IsVisible="{Binding HasFourPlayerAdapter}"
+							/>
+							<c:InputComboBox
+								Grid.Row="2" Grid.Column="1"
+								IsVisible="{Binding HasFourPlayerAdapter}"
+								Config="{Binding Config.ExpPortC}"
+								ControllerType="{Binding Config.ExpPortC.Type}"
+								AvailableValues="{Binding AvailableControllerTypesExpansionHub}"
+							/>
+
+							<TextBlock
+								Grid.Row="3" Grid.Column="0"
+								Text="{l:Translate lblExpPortD}"
+								IsVisible="{Binding HasFourPlayerAdapter}"
+							/>
+							<c:InputComboBox
+								Grid.Row="3" Grid.Column="1"
+								IsVisible="{Binding HasFourPlayerAdapter}"
+								Config="{Binding Config.ExpPortD}"
+								ControllerType="{Binding Config.ExpPortD.Type}"
+								AvailableValues="{Binding AvailableControllerTypesExpansionHub}"
+							/>
+						</Grid>
+					</c:GroupBox>
+
+					<TextBlock Grid.Row="5" Grid.Column="0" Text="{l:Translate lblMapperInput}" Margin="0 10 0 0" IsVisible="{Binding ShowMapperInput}" />
+					<c:InputComboBox
+						Margin="0 10 0 0"
+						Grid.Row="5" Grid.Column="1"
+						Config="{Binding Config.MapperInput}"
+						ControllerType="{Binding Config.MapperInput.Type}"
+						AvailableValues="{Binding AvailableControllerTypesMapperInput}"
+						IsVisible="{Binding ShowMapperInput}"
+					/>
+				</Grid>
+			</c:OptionSection>
+			<c:OptionSection Header="{l:Translate grpGeneral}">
+				<CheckBox IsChecked="{Binding Config.AutoConfigureInput}" Content="{l:Translate chkAutoConfigureInput}" />
+				<c:CheckBoxWarning IsChecked="{Binding Config.AllowInvalidInput}" Text="{l:Translate chkAllowInvalidInput}" />
+
+				<Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
+					<TextBlock Grid.Row="0" Text="{l:Translate lblLightDetectionRadius}" VerticalAlignment="Top" Margin="0 15 5 0" />
+					<c:MesenSlider
+						Margin="12 0 10 0"
+						HorizontalAlignment="Left"
+						Grid.Row="0"
+						Grid.Column="1"
+						Minimum="0"
+						Maximum="3"
+						TickFrequency="1"
+						Width="100"
+						HideValue="True"
+						Value="{Binding Config.LightDetectionRadius}"
+					/>
+
+					<Grid Grid.Row="1" Grid.Column="1" RowDefinitions="Auto" ColumnDefinitions="Auto,*,Auto" Width="115" HorizontalAlignment="Left" Margin="5 0 5 0">
+						<TextBlock Text="{l:Translate lblSmall}" />
+						<TextBlock Text="{l:Translate lblLarge}" Grid.Column="2" />
+					</Grid>
+				</Grid>
+			</c:OptionSection>
+			<c:OptionSection Header="{l:Translate grpHardware}">
+				<v:ShortcutKeysTabView HeaderMargin="0 0 0 0" Margin="0 0 10 0" ShortcutKeys="{Binding ShortcutKeys}" />
+			</c:OptionSection>
+		</StackPanel>
+	</ScrollViewer>
+</UserControl>

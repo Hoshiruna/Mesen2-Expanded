@@ -1,0 +1,96 @@
+<Styles
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:sys="clr-namespace:System;assembly=netstandard"	
+	xmlns:cc="using:AvaloniaEdit.CodeCompletion"
+	xmlns:search="using:AvaloniaEdit.Search"
+	xmlns:ae="using:AvaloniaEdit"
+	xmlns:aee="using:AvaloniaEdit.Editing"  
+>
+	<Style Selector="ae|TextEditor aee|TextArea">
+		<Setter Property="SelectionBrush" Value="#600078D7" />
+		<Setter Property="SelectionCornerRadius" Value="0" />
+	</Style>
+	
+	<Style Selector="search|SearchPanel">
+		<Setter Property="BorderBrush" Value="{StaticResource MesenGrayBorderColor}" />
+		<Setter Property="Margin" Value="0 0 5 0" />
+		<Setter Property="BorderThickness" Value="1 0 1 1" />
+		<Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
+	</Style>
+
+	<Style Selector="search|SearchPanel Path">
+		<Setter Property="Fill" Value="{DynamicResource ThemeForegroundBrush}" />
+		<Setter Property="Stroke" Value="{DynamicResource ThemeForegroundBrush}" />
+	</Style>
+	
+	<Style Selector="search|SearchPanel Button">
+		<Setter Property="Height" Value="21" />
+		<Setter Property="BorderThickness" Value="1" />
+	</Style>
+	
+	<Style Selector="search|SearchPanel Button Path">
+		<Setter Property="MaxWidth" Value="12" />
+	</Style>
+	
+	<Style Selector="ContentPresenter#PART_MessageContent TextBlock">
+		<Setter Property="IsVisible" Value="False" />
+	</Style>
+	
+	<Style Selector="search|SearchPanel ToggleButton.ExpanderToggle">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Border Background="Transparent" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Height="20">
+					<Path Fill="{DynamicResource ThemeForegroundBrush}"
+				 VerticalAlignment="Center"
+				 HorizontalAlignment="Center"
+				 Data="M 0 2 L 4 6 L 0 10 Z" />
+				</Border>
+			</ControlTemplate>
+		</Setter>
+	</Style>
+	
+	<Style Selector="cc|CompletionList">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Border BorderBrush="Gray" BorderThickness="1">
+					<cc:CompletionListBox Name="PART_ListBox" FontSize="11">
+						<cc:CompletionListBox.ItemsPanel>
+							<ItemsPanelTemplate>
+								<!-- Disable virtualization for auto-complete popup to prevent display bugs -->
+								<StackPanel />
+							</ItemsPanelTemplate>
+						</cc:CompletionListBox.ItemsPanel>
+						<cc:CompletionListBox.ItemTemplate>
+							<DataTemplate x:DataType="cc:ICompletionData">
+								<StackPanel Orientation="Horizontal" Margin="0">
+									<Image Source="{Binding Image}"
+											 Width="16"
+											 Height="16"
+											 Margin="0,0,2,0" />
+									<ContentPresenter Content="{Binding Content}" Margin="0 2 0 0" />
+								</StackPanel>
+							</DataTemplate>
+						</cc:CompletionListBox.ItemTemplate>
+					</cc:CompletionListBox>
+				</Border>
+			</ControlTemplate>
+		</Setter>
+	</Style>
+
+	<Style Selector="cc|CompletionList ListBox">
+		<Setter Property="Padding" Value="0"/>
+	</Style>
+
+	<Style Selector="cc|CompletionList ListBox > ListBoxItem">
+		<Setter Property="Padding" Value="4 0 0 0"/>
+		<Setter Property="VerticalAlignment" Value="Center"/>
+		<Setter Property="VerticalContentAlignment" Value="Center"/>
+		<Setter Property="Height" Value="20"/>
+	</Style>
+
+	<Style Selector="ContentControl.ToolTip">
+		<Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
+		<Setter Property="Foreground" Value="{DynamicResource ThemeForegroundBrush}" />
+	</Style>
+</Styles>

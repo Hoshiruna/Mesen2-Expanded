@@ -1,0 +1,146 @@
+<UserControl
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:cfg="using:Mesen.Config"
+	xmlns:c="using:Mesen.Controls"
+	xmlns:dc="using:Mesen.Debugger.Controls"
+	xmlns:dv="using:Mesen.Debugger.Views"
+	xmlns:dvm="using:Mesen.Debugger.ViewModels"
+	xmlns:l="using:Mesen.Localization"
+	mc:Ignorable="d" d:DesignHeight="410" d:DesignWidth="200"
+	VerticalAlignment="Stretch"
+	HorizontalAlignment="Stretch"
+	Name="root"
+	x:DataType="dvm:MemoryToolsDisplayOptionsViewModel"
+	x:Class="Mesen.Debugger.Views.MemoryToolsDisplayOptionsView"
+>
+	<Design.DataContext>
+		<dvm:MemoryToolsDisplayOptionsViewModel />
+	</Design.DataContext>
+
+	<UserControl.Styles>
+		<Style Selector="dc|NavButton">
+			<Setter Property="DockPanel.Dock" Value="Right" />
+		</Style>
+	</UserControl.Styles>
+	
+	<StackPanel>
+		<c:OptionSection Header="{l:Translate lblAccessHighlight}" Margin="0">
+			<DockPanel>
+				<dc:NavButton Nav="NextRead" />
+				<dc:NavButton Nav="PrevRead" />
+				<dc:ColorCheckbox
+					Text="{l:Translate chkHighlightRead}"
+					Checked="{Binding Config.ReadHighlight.Highlight}"
+					Color="{Binding Config.ReadHighlight.Color}"
+				/>
+			</DockPanel>
+			<DockPanel>
+				<dc:NavButton Nav="NextWrite" />
+				<dc:NavButton Nav="PrevWrite" />
+				<dc:ColorCheckbox
+					Text="{l:Translate chkHighlightWrite}"
+					Checked="{Binding Config.WriteHighlight.Highlight}"
+					Color="{Binding Config.WriteHighlight.Color}"
+				/>
+			</DockPanel>			
+			<DockPanel>
+				<dc:NavButton Nav="NextExec" />
+				<dc:NavButton Nav="PrevExec" />
+				<dc:ColorCheckbox
+					Text="{l:Translate chkHighlightExec}"
+					Checked="{Binding Config.ExecHighlight.Highlight}"
+					Color="{Binding Config.ExecHighlight.Color}"
+				/>
+			</DockPanel>			
+			
+			<WrapPanel>
+				<TextBlock VerticalAlignment="Center" Text="{l:Translate lblFadeSpeed}" />
+				<c:EnumComboBox
+					Width="100"
+					SelectedItem="{Binding Config.FadeSpeed}"
+				/>
+			</WrapPanel>
+		</c:OptionSection>
+
+		<c:OptionSection Header="{l:Translate lblDataTypeHighlight}">
+			<DockPanel>
+				<dc:NavButton Nav="NextCode" />
+				<dc:NavButton Nav="PrevCode" />
+				<dc:ColorCheckbox
+					Text="{l:Translate chkHighlightCode}"
+					Checked="{Binding Config.CodeHighlight.Highlight}"
+					Color="{Binding Config.CodeHighlight.Color}"
+				/>
+			</DockPanel>
+
+			<DockPanel>
+				<dc:NavButton Nav="NextData" />
+				<dc:NavButton Nav="PrevData" />
+				<dc:ColorCheckbox
+					Text="{l:Translate chkHighlightData}"
+					Checked="{Binding Config.DataHighlight.Highlight}"
+					Color="{Binding Config.DataHighlight.Color}"
+				/>
+			</DockPanel>
+			<DockPanel>
+				<dc:NavButton Nav="NextUnknown" />
+				<dc:NavButton Nav="PrevUnknown" />
+				<TextBlock Text="{l:Translate lblUnidentified}" Margin="38 0 0 0"  VerticalAlignment="Center" />
+			</DockPanel>
+
+			<dc:ColorCheckbox
+				Text="{l:Translate chkHighlightLabel}"
+				Checked="{Binding Config.LabelHighlight.Highlight}"
+				Color="{Binding Config.LabelHighlight.Color}"
+			/>
+			<dc:ColorCheckbox
+				Text="{l:Translate chkHighlightFrozenAddresses}"
+				Checked="{Binding Config.FrozenHighlight.Highlight}"
+				Color="{Binding Config.FrozenHighlight.Color}"
+				IsVisible="{Binding ShowFrozenAddressesOption}"
+			/>			
+			<dc:ColorCheckbox
+				Text="{l:Translate chkHighlightNesPcmData}"
+				Checked="{Binding Config.NesPcmDataHighlight.Highlight}"
+				Color="{Binding Config.NesPcmDataHighlight.Color}"
+				IsVisible="{Binding ShowNesPcmDataOption}"
+			/>
+			<dc:ColorCheckbox
+				Text="{l:Translate chkHighlightNesDrawnChrRom}"
+				Checked="{Binding Config.NesDrawnChrRomHighlight.Highlight}"
+				Color="{Binding Config.NesDrawnChrRomHighlight.Color}"
+				IsVisible="{Binding ShowNesDrawnChrRomOption}"
+			/>
+			<CheckBox
+				Margin="16 0"
+				IsChecked="{Binding Config.HighlightBreakpoints}"
+				Content="{l:Translate chkHighlightBreakpoints}"
+			/>
+		</c:OptionSection>
+
+		<c:OptionSection Header="{l:Translate lblMiscSettings}">
+			<StackPanel Orientation="Horizontal">
+				<TextBlock DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">Columns: </TextBlock>
+				<ComboBox
+					SelectedItem="{Binding Config.BytesPerRow}"
+					ItemsSource="{Binding AvailableWidths}"
+				/>
+			</StackPanel>
+			<CheckBox
+				IsChecked="{Binding Config.HighDensityTextMode}"
+				Content="{l:Translate chkHighDensityTextMode}"
+			/>
+			<CheckBox
+				IsChecked="{Binding Config.ShowCharacters}"
+				Content="{l:Translate chkShowCharacters}"
+			/>
+			<CheckBox
+				IsChecked="{Binding Config.ShowTooltips}"
+				Content="{l:Translate chkShowTooltips}"
+			/>
+		</c:OptionSection>
+	</StackPanel>
+</UserControl>

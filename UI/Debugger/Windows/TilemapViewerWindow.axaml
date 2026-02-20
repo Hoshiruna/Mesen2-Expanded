@@ -1,0 +1,123 @@
+<Window
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:m="clr-namespace:Mesen"
+	xmlns:vm="using:Mesen.ViewModels"
+	xmlns:sys="using:System"
+	xmlns:v="using:Mesen.Views"
+	xmlns:c="using:Mesen.Controls"
+	xmlns:i="using:Mesen.Interop"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:dvm="using:Mesen.Debugger.ViewModels"
+	xmlns:dc="using:Mesen.Debugger.Controls"
+	xmlns:dv="using:Mesen.Debugger.Views"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="600"
+	x:Class="Mesen.Debugger.Windows.TilemapViewerWindow"
+	x:DataType="dvm:TilemapViewerViewModel"
+	Width="600" Height="600"
+	Title="{l:Translate wndTitle}"
+	Icon="/Assets/VideoOptions.png"
+>
+	<Design.DataContext>
+		<dvm:TilemapViewerViewModel />
+	</Design.DataContext>
+
+	<Window.Styles>
+		<Style Selector="TabStrip:singleitem">
+			<Setter Property="IsVisible" Value="False" />
+		</Style>		
+	</Window.Styles>
+
+	<DockPanel>
+		<Panel DockPanel.Dock="Top">
+			<c:MesenMenu DockPanel.Dock="Top" Name="ActionMenu">
+				<MenuItem Header="{l:Translate mnuFile}" ItemsSource="{Binding FileMenuActions}" />
+				<MenuItem Header="{l:Translate mnuView}" ItemsSource="{Binding ViewMenuActions}" />
+			</c:MesenMenu>
+			<c:IconButton
+				HorizontalAlignment="Right"
+				DockPanel.Dock="Right"
+				ToolTip.Tip="{l:Translate btnToggleSettings}"
+				Click="OnSettingsClick"
+				Icon="Assets/Settings.png"
+			/>
+		</Panel>
+
+		<dv:RefreshTimingView DataContext="{Binding RefreshTiming}" DockPanel.Dock="Bottom" />
+
+		<ScrollViewer DockPanel.Dock="Right" IsVisible="{Binding Config.ShowSettingsPanel}">
+			<StackPanel Margin="3">
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" IsVisible="{Binding IsTilemapInfoVisible}">
+					<TextBlock Text="{l:Translate lblDisplayMode}" />
+					<c:EnumComboBox
+						SelectedItem="{Binding Config.DisplayMode}"
+						AvailableValues="{Binding AvailableDisplayModes}"
+						Width="100"
+					/>
+				</StackPanel>
+				<CheckBox Content="{l:Translate chkShowGrid}" IsChecked="{Binding Config.ShowGrid}" />
+				<CheckBox Content="{l:Translate chkNesShowAttributeGrid}" IsChecked="{Binding Config.NesShowAttributeGrid}" IsVisible="{Binding IsNes}" />
+				<CheckBox Content="{l:Translate chkNesShowAttributeByteGrid}" IsChecked="{Binding Config.NesShowAttributeByteGrid}" IsVisible="{Binding IsNes}" />
+				<CheckBox Content="{l:Translate chkNesShowTilemapGrid}" IsChecked="{Binding Config.NesShowTilemapGrid}" IsVisible="{Binding IsNes}" />
+				<CheckBox Content="{l:Translate chkShowScrollOverlay}" IsChecked="{Binding Config.ShowScrollOverlay}" />
+
+				<c:GroupBox Header="{l:Translate lblHighlightOptions}" Margin="0" IsVisible="{Binding IsNes}">
+					<Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
+						<TextBlock Text="{l:Translate lblTileHighlightMode}" />
+						<c:EnumComboBox Grid.Column="1" SelectedItem="{Binding Config.TileHighlightMode}" />
+						<TextBlock Grid.Row="1" Text="{l:Translate lblAttributeHighlightMode}" />
+						<c:EnumComboBox Grid.Row="1" Grid.Column="1" SelectedItem="{Binding Config.AttributeHighlightMode}" />
+					</Grid>
+				</c:GroupBox>
+
+				<c:GroupBox Header="{l:Translate lblTilemap}" Margin="0 5 0 0" IsVisible="{Binding IsTilemapInfoVisible}">
+					<ContentControl Content="{Binding TilemapInfoPanel}" />
+				</c:GroupBox>
+				
+				<c:GroupBox
+					Header="{l:Translate lblSelectedTile}"
+					IsVisible="{Binding PreviewPanel, Converter={x:Static ObjectConverters.IsNotNull}}"
+				>
+					<ContentControl Content="{Binding PreviewPanel}" />
+				</c:GroupBox>
+			</StackPanel>
+		</ScrollViewer>
+
+		<TabControl
+			ItemsSource="{Binding Tabs}"
+			SelectedItem="{Binding SelectedTab}"
+			IsVisible="{Binding ShowTabs}"
+			Padding="1"
+			DockPanel.Dock="Top"
+		>
+			<TabControl.Styles>
+				<Style Selector="TabItem">
+					<Setter Property="IsEnabled" Value="{Binding Enabled, DataType={x:Type dvm:TilemapViewerTab}}" />
+				</Style>
+			</TabControl.Styles>
+			<TabControl.ItemTemplate>
+				<DataTemplate>
+					<TextBlock Text="{Binding Title}" IsEnabled="{Binding Enabled, DataType={x:Type dvm:TilemapViewerTab}}" />
+				</DataTemplate>
+			</TabControl.ItemTemplate>
+			<TabControl.ContentTemplate>
+				<DataTemplate></DataTemplate>
+			</TabControl.ContentTemplate>
+		</TabControl>
+
+		<dc:ScrollPictureViewer
+			x:Name="picViewer"
+			Source="{Binding ViewerBitmap}"
+			Zoom="{Binding Config.ImageScale}"
+			ShowGrid="{Binding Config.ShowGrid}"
+			SelectionRect="{Binding SelectionRect}"
+			CustomGrids="{Binding CustomGrids}"
+			OverlayRect="{Binding ScrollOverlayRect}"
+			GridSizeX="{Binding GridSizeX}"
+			GridSizeY="{Binding GridSizeY}"
+			OverlayLines="{Binding OverlayLines}"
+		/>
+	</DockPanel>
+</Window>

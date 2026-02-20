@@ -1,0 +1,54 @@
+<UserControl
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:vm="using:Mesen.Debugger.ViewModels"
+	xmlns:c="using:Mesen.Debugger.Controls"
+	xmlns:du="using:Mesen.Debugger.Utilities"
+	xmlns:l="using:Mesen.Localization"
+	mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="110"
+	VerticalAlignment="Stretch"
+	HorizontalAlignment="Stretch"
+	Focusable="True"
+	x:DataType="vm:LabelListViewModel"
+	x:Class="Mesen.Debugger.Views.LabelListView"
+>
+	<Design.DataContext>
+		<vm:LabelListViewModel />
+	</Design.DataContext>
+
+	<UserControl.Styles>
+		<Style Selector="DataBoxRow ToolTip TextBlock">
+			<Setter Property="FontFamily" Value="{DynamicResource MesenMonospaceFont}" />
+		</Style>
+		<Style Selector="DataBoxRow:selected DataBoxCell TextBlock ToolTip TextBlock">
+			<Setter Property="Foreground" Value="{DynamicResource ToolTipForeground}" />
+		</Style>
+		<Style Selector="DataBoxRow">
+			<Setter Property="Foreground" Value="{Binding RowBrush, DataType={x:Type vm:LabelViewModel}}" />
+			<Setter Property="FontStyle" Value="{Binding RowStyle, DataType={x:Type vm:LabelViewModel}}" />
+		</Style>
+	</UserControl.Styles>
+
+	<Border BorderThickness="0 1 0 0" BorderBrush="#80808080">
+		<DataBox
+			Items="{Binding Labels}"
+			Selection="{Binding Selection}"
+			GridLinesVisibility="All"
+			SelectionMode="Multiple"
+			SortMode="Multiple"
+			SortCommand="{Binding Sort}"
+			SortState="{Binding SortState}"
+			CellDoubleClick="OnCellDoubleClick"
+			ColumnWidths="{Binding ColumnWidths}"
+		>
+			<DataBox.Columns>
+				<DataBoxTextColumn ColumnName="Label" Header="{l:Translate colLabel}" Binding="{Binding LabelText, DataType={x:Type vm:LabelViewModel}}" CanUserResize="True" InitialWidth="100" />
+				<DataBoxTextColumn ColumnName="RelAddr" Header="{l:Translate colCpuAddr}" Binding="{Binding RelAddressDisplay, DataType={x:Type vm:LabelViewModel}}" CanUserResize="True" InitialWidth="80" />
+				<DataBoxTextColumn ColumnName="AbsAddr" Header="{l:Translate colRomAddr}" Binding="{Binding AbsAddressDisplay, DataType={x:Type vm:LabelViewModel}}" CanUserResize="True" InitialWidth="80" />
+				<DataBoxTextColumn ColumnName="Comment" ShowToolTip="True" Header="{l:Translate colComment}" Binding="{Binding LabelComment, DataType={x:Type vm:LabelViewModel}}" CanUserResize="True" InitialWidth="100" />
+			</DataBox.Columns>
+		</DataBox>
+	</Border>
+</UserControl>

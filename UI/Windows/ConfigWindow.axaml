@@ -1,0 +1,203 @@
+<Window
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:m="clr-namespace:Mesen"
+	xmlns:vm="using:Mesen.ViewModels"
+	xmlns:c="using:Mesen.Controls"
+	xmlns:v="using:Mesen.Views"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d" d:DesignWidth="620" d:DesignHeight="500"
+	x:DataType="vm:ConfigViewModel"
+	x:Class="Mesen.Windows.ConfigWindow"
+	Width="620" Height="500"
+	Topmost="{Binding AlwaysOnTop}"
+	Title="{l:Translate wndTitle}"
+>
+	<Design.DataContext>
+		<vm:ConfigViewModel />
+	</Design.DataContext>
+
+	<Window.DataTemplates>
+		<DataTemplate DataType="{x:Type vm:AudioConfigViewModel}">
+			<v:AudioConfigView />
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:EmulationConfigViewModel}">
+			<v:EmulationConfigView />
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:InputConfigViewModel}">
+			<v:InputConfigView />
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:VideoConfigViewModel}">
+			<v:VideoConfigView />
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:NesConfigViewModel}">
+			<v:NesConfigView />
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:SnesConfigViewModel}">
+			<v:SnesConfigView />
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:GameboyConfigViewModel}">
+			<v:GameboyConfigView />
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:GbaConfigViewModel}">
+			<v:GbaConfigView />
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:PceConfigViewModel}">
+			<v:PceConfigView />
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:SmsConfigViewModel}">
+			<v:SmsConfigView />
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:WsConfigViewModel}">
+			<v:WsConfigView />
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:OtherConsolesConfigViewModel}">
+			<v:OtherConsolesConfigView />
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:PreferencesConfigViewModel}">
+			<v:PreferencesConfigView />
+		</DataTemplate>
+	</Window.DataTemplates>
+
+	<DockPanel>
+		<Panel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Background="#2888">
+			<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" RowDefinitions="Auto" Margin="5 3">
+				<c:ButtonWithIcon Grid.Column="0" Click="OpenMesenFolder" Icon="Assets/Folder.png" Text="{l:Translate btnOpenMesenFolder}" />
+				<c:ButtonWithIcon Grid.Column="1" Click="ResetAllSettings" Icon="Assets/ResetSettings.png" Text="{l:Translate btnResetSettings}" />
+
+				<Button Grid.Column="3" MinWidth="70" HorizontalContentAlignment="Center" Click="Ok_OnClick" Content="{l:Translate btnOK}" />
+				<Button Grid.Column="4" MinWidth="70" HorizontalContentAlignment="Center" Click="Cancel_OnClick" Content="{l:Translate btnCancel}" />
+			</Grid>
+		</Panel>
+		
+		<TabControl TabStripPlacement="Left" Background="#20888888" SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}" Padding="0">
+			<TabItem Content="{Binding Audio}">
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/Audio.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabAudio}" />
+					</StackPanel>
+				</TabItem.Header>
+			</TabItem>
+			<TabItem Content="{Binding Emulation}">
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/HammerScrewdriver.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabEmulation}" />
+					</StackPanel>
+				</TabItem.Header>
+			</TabItem>
+			<TabItem Content="{Binding Input}">
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/Controller.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabInput}" />
+					</StackPanel>
+				</TabItem.Header>
+			</TabItem>
+			<TabItem Content="{Binding Video}">
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/VideoOptions.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabVideo}" />
+					</StackPanel>
+				</TabItem.Header>
+			</TabItem>
+			
+			<TabItem IsEnabled="False" MinHeight="10">
+				<TabItem.Header>
+					<Rectangle Fill="{StaticResource MesenGrayBorderColor}" Height="1" />
+				</TabItem.Header>
+			</TabItem>
+			
+			<TabItem Content="{Binding Nes}"> 
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/NesIcon.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabNes}" />
+					</StackPanel>
+				</TabItem.Header>
+			</TabItem>
+
+			<TabItem Content="{Binding Snes}">
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/SnesIcon.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabSnes}" />
+					</StackPanel>
+				</TabItem.Header>
+			</TabItem>
+
+			<TabItem Content="{Binding Gameboy}">
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/GameboyIcon.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabGameboy}" />
+					</StackPanel>
+				</TabItem.Header>
+			</TabItem>
+
+			<TabItem Content="{Binding Gba}">
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/GbaIcon.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabGba}" />
+					</StackPanel>
+				</TabItem.Header>
+			</TabItem>
+
+			<TabItem Content="{Binding PcEngine}">
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/PceIcon.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabPcEngine}" />
+					</StackPanel>
+				</TabItem.Header>
+			</TabItem>
+
+			<TabItem Content="{Binding Sms}">
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/SmsIcon.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabSms}" />
+					</StackPanel>
+				</TabItem.Header>
+			</TabItem>
+
+			<TabItem Content="{Binding Ws}">
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/WsIcon.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabWs}" />
+					</StackPanel>
+				</TabItem.Header>
+			</TabItem>
+			
+			<TabItem Content="{Binding OtherConsoles}">
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/Drive.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabOtherConsoles}" />
+					</StackPanel>
+				</TabItem.Header>
+			</TabItem>
+			
+			<TabItem IsEnabled="False" MinHeight="10">
+				<TabItem.Header>
+					<Rectangle Fill="{StaticResource MesenGrayBorderColor}" Height="1" />
+				</TabItem.Header>
+			</TabItem>
+			
+			<TabItem Content="{Binding Preferences}">
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/Settings.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabPreferences}" />
+					</StackPanel>
+				</TabItem.Header>
+			</TabItem>
+		</TabControl>
+	</DockPanel>
+</Window>

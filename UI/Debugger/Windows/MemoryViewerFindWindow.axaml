@@ -1,0 +1,151 @@
+<Window
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:m="clr-namespace:Mesen"
+	xmlns:vm="using:Mesen.Debugger.ViewModels"
+	xmlns:sys="using:System"
+	xmlns:du="using:Mesen.Debugger.Utilities"
+	xmlns:dvm="using:Mesen.Debugger.ViewModels"
+	xmlns:c="using:Mesen.Controls"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d"
+	x:Class="Mesen.Debugger.Windows.MemoryViewerFindWindow"
+  x:DataType="vm:MemoryViewerFindViewModel"
+	Width="360"
+	Height="260"
+	Name="root"
+	CanResize="False"
+	Title="{l:Translate wndTitle}"
+>
+	<Design.DataContext>
+		<vm:MemoryViewerFindViewModel />
+	</Design.DataContext>
+	
+	<DockPanel Margin="3">
+		<StackPanel DockPanel.Dock="Bottom">
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" IsVisible="{Binding ShowNotFoundError}">
+				<Image Source="/Assets/Warning.png" Stretch="None" />
+				<TextBlock Text="{l:Translate lblNoMatchFound}" Padding="3" />
+			</StackPanel>
+			
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+				<c:ButtonWithIcon
+					Icon="Assets/PreviousArrow.png"
+					MinWidth="70"
+					HorizontalContentAlignment="Center"
+					Click="FindPrev_OnClick"
+					Text="{l:Translate btnFindPrev}"
+					IsEnabled="{Binding IsValid}"
+				/>
+				<c:ButtonWithIcon
+					Icon="Assets/NextArrow.png"
+					MinWidth="70"
+					HorizontalContentAlignment="Center"
+					IsDefault="True"
+					Click="FindNext_OnClick"
+					Text="{l:Translate btnFindNext}"
+					IsEnabled="{Binding IsValid}"
+				/>
+				<Button
+					MinWidth="70"
+					HorizontalContentAlignment="Center"
+					IsCancel="True"
+					Click="Close_OnClick"
+					Content="{l:Translate btnClose}"
+				/>
+			</StackPanel>
+		</StackPanel>
+
+		<Grid DockPanel.Dock="Top" VerticalAlignment="Top" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+			<TextBlock
+				Text="{l:Translate lblSearch}"
+				VerticalAlignment="Center"
+				Margin="0 0 5 0"
+			/>
+			<TextBox
+				Grid.Column="1"
+				Name="txtValue"
+				HorizontalAlignment="Stretch"
+				AcceptsReturn="True"
+				VerticalContentAlignment="Center"
+				ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+				ScrollViewer.VerticalScrollBarVisibility="Disabled"
+				Height="21"
+				MinHeight="21"
+				Text="{Binding SearchString, Converter={StaticResource NullTextConverter}}"
+				MaxLength="300"
+			/>
+			<Image
+				Grid.Column="2"
+				Stretch="None"
+				Margin="2 -1 2 0"
+				Source="/Assets/Help.png"
+				ToolTip.Tip="{l:Translate lblSearchHelp}"
+				ToolTip.Placement="Bottom"
+				ToolTip.ShowDelay="0"
+			/>
+			<TextBlock
+				Grid.Row="1"
+				Text="{l:Translate lblDataType}"
+				VerticalAlignment="Center"
+				Margin="0 0 5 0"
+			/>
+			<c:EnumComboBox
+				Grid.Row="1"
+				Grid.Column="1"
+				Grid.ColumnSpan="2"
+				SelectedItem="{Binding DataType}"
+		  />
+			<TextBlock
+				Grid.Row="2"
+				IsVisible="{Binding IsInteger}"
+				Text="{l:Translate lblIntType}"
+				VerticalAlignment="Center"
+				Margin="0 0 5 0"
+			/>
+			<c:EnumComboBox
+				Grid.Row="2"
+				Grid.Column="1"
+				Grid.ColumnSpan="2"
+				IsVisible="{Binding IsInteger}"
+				SelectedItem="{Binding IntType}"
+		  />
+			<CheckBox
+				Grid.Row="3"
+				Grid.ColumnSpan="3"
+				IsVisible="{Binding IsString}"
+				IsChecked="{Binding CaseSensitive}"
+				Content="{l:Translate chkCaseSensitive}"
+		  />
+			<CheckBox
+				Grid.Row="4"
+				Grid.ColumnSpan="3"
+				IsVisible="{Binding IsString}"
+				IsChecked="{Binding UseTblMappings}"
+				Content="{l:Translate chkUseTblMappings}"
+		  />
+		</Grid>
+
+		<Grid ColumnDefinitions="1*,1*" RowDefinitions="Auto" >
+			<c:OptionSection Header="{l:Translate lblAccessFilters}">
+				<CheckBox Content="{l:Translate chkFilterNotAccessed}" IsChecked="{Binding FilterNotAccessed}" />
+				<CheckBox Content="{l:Translate chkFilterRead}" IsChecked="{Binding FilterRead}" />
+				<CheckBox Content="{l:Translate chkFilterWrite}" IsChecked="{Binding FilterWrite}" />
+				<CheckBox Content="{l:Translate chkFilterExec}" IsChecked="{Binding FilterExec}" />
+				<StackPanel Orientation="Horizontal">
+					<CheckBox Content="{l:Translate chkFilterTimeSpan}" IsChecked="{Binding FilterTimeSpanEnabled}" />
+					<c:MesenNumericTextBox MinWidth="35" Margin="5 0" Min="1" Max="9999" Value="{Binding FilterTimeSpan}" IsEnabled="{Binding FilterTimeSpanEnabled}" />
+					<TextBlock Text="{l:Translate lblFrames}" />
+				</StackPanel>
+			</c:OptionSection>
+
+			<c:OptionSection Header="{l:Translate lblDataTypeFilters}" Grid.Column="1">
+				<CheckBox Content="{l:Translate chkFilterCode}" IsChecked="{Binding FilterCode}" />
+				<CheckBox Content="{l:Translate chkFilterData}" IsChecked="{Binding FilterData}" />
+				<CheckBox Content="{l:Translate chkFilterUnidentified}" IsChecked="{Binding FilterUnidentified}" />
+			</c:OptionSection>
+		</Grid>
+	</DockPanel>
+</Window>

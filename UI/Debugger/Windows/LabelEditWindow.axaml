@@ -1,0 +1,91 @@
+<Window
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:m="clr-namespace:Mesen"
+	xmlns:vm="using:Mesen.Debugger.ViewModels"
+	xmlns:sys="using:System"
+	xmlns:v="using:Mesen.Views"
+	xmlns:du="using:Mesen.Debugger.Utilities"
+	xmlns:c="using:Mesen.Controls"
+	xmlns:i="using:Mesen.Interop"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:dvm="using:Mesen.Debugger.ViewModels"
+	xmlns:dc="using:Mesen.Debugger.Controls"
+	mc:Ignorable="d" d:DesignWidth="350" d:DesignHeight="250"
+	x:Class="Mesen.Debugger.Windows.LabelEditWindow"
+	x:DataType="vm:LabelEditViewModel"
+	Icon="/Assets/EditLabel.png"
+	Width="350" Height="250"
+	MinWidth="350" MinHeight="250"
+	Title="{l:Translate wndTitle}"
+>
+	<Design.DataContext>
+		<vm:LabelEditViewModel />
+	</Design.DataContext>
+
+	<DockPanel>
+		<DockPanel DockPanel.Dock="Bottom">
+			<Button DockPanel.Dock="Right" MinWidth="70" HorizontalContentAlignment="Center" IsCancel="True" Click="Cancel_OnClick" Content="{l:Translate btnCancel}" />
+			<Button DockPanel.Dock="Right" MinWidth="70" HorizontalContentAlignment="Center" IsDefault="True" Click="Ok_OnClick" Content="{l:Translate btnOk}" IsEnabled="{Binding OkEnabled}" />
+			<c:ButtonWithIcon Icon="Assets/Close.png" Text="{l:Translate btnDelete}" Click="Delete_OnClick" IsVisible="{Binding AllowDelete}" />
+		</DockPanel>
+
+		<Grid
+			DockPanel.Dock="Right"
+			ColumnDefinitions="Auto,*"
+			RowDefinitions="Auto,Auto,Auto,*,Auto,Auto"
+			Margin="5 0 5 0"
+		>
+			<TextBlock Grid.Column="0" Grid.Row="0" Text="{l:Translate lblMemoryType}" />
+			<c:EnumComboBox 
+				Grid.Column="1" Grid.Row="0"
+				SelectedItem="{Binding Label.MemoryType}"
+				AvailableValues="{Binding AvailableMemoryTypes}"
+			/>
+
+			<TextBlock Grid.Column="0" Grid.Row="1" Text="{l:Translate lblAddress}" />
+			<StackPanel Grid.Column="1" Grid.Row="1" Orientation="Horizontal">
+				<TextBlock Margin="0 0 3 0">$</TextBlock>
+				<c:MesenNumericTextBox Value="{Binding Label.Address}" Hex="True" Trim="True" Width="60" />
+				<TextBlock Margin="3 0 0 0" Text="{Binding MaxAddress}" Foreground="Gray" />
+			</StackPanel>
+
+			<TextBlock Grid.Column="0" Grid.Row="2" Text="{l:Translate lblLabel}" />
+			<TextBox
+				Grid.Column="1" Grid.Row="2"
+				Name="txtLabel"
+				Text="{Binding Label.Label, Converter={StaticResource NullTextConverter}}"
+			/>
+
+			<TextBlock Grid.Column="0" Grid.Row="3" Text="{l:Translate lblComment}" />
+			<TextBox
+				Grid.Column="1" Grid.Row="3"
+				AcceptsReturn="True"
+				ScrollViewer.HorizontalScrollBarVisibility="Auto"
+				Height="NaN"
+				MinHeight="100"
+				VerticalContentAlignment="Top"
+				Text="{Binding Label.Comment, Converter={StaticResource NullTextConverter}}"
+				FontFamily="{DynamicResource MesenMonospaceFont}"
+				FontSize="{DynamicResource MesenMonospaceFontSize}"
+			/>
+
+			<TextBlock Grid.Column="0" Grid.Row="4" Text="{l:Translate lblLength}" />
+			<StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="4">
+				<c:MesenNumericUpDown
+					Value="{Binding Label.Length}"
+					Minimum="1"
+					Maximum="65536"
+				/>
+				<TextBlock Text="{l:Translate lblBytes}" Margin="3 0" />
+			</StackPanel>
+
+			<Grid Grid.Row="5" Margin="0 5" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto" IsVisible="{Binding ErrorMessage.Length}" >
+				<Image Source="/Assets/Warning.png" Stretch="None" />
+				<TextBlock Grid.Column="1" Text="{Binding ErrorMessage}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Margin="3 0 0 0" />
+			</Grid>
+		</Grid>
+	</DockPanel>
+</Window>

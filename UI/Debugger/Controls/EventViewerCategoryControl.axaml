@@ -1,0 +1,41 @@
+<UserControl 
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:u="using:Mesen.Utilities"
+	xmlns:cp="using:ThemeEditor.Controls.ColorPicker"
+	mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="50"
+	x:Name="root"
+	HorizontalAlignment="Stretch"
+	x:Class="Mesen.Debugger.Controls.EventViewerCategoryControl"
+>
+	<UserControl.Resources>
+		<u:ArgbColorToBrushConverter x:Key="BrushConverter" />
+	</UserControl.Resources>
+
+	<StackPanel Orientation="Horizontal">
+		<Button
+			MinWidth="0"
+			Padding="0"
+			Margin="0"
+			BorderThickness="0"
+			Background="Transparent"
+			Click="OnColorClick"
+		>
+			<Border
+				BorderBrush="{DynamicResource MesenBlackBorderColor}"
+				BorderThickness="1"
+				Background="{Binding Config.Color, ElementName=root, Converter={StaticResource BrushConverter}}"
+				Width="16"
+				Height="16"
+			/>
+		</Button>
+		<CheckBox
+			Content="{Binding Text, ElementName=root}"
+			IsChecked="{Binding Config.Visible, ElementName=root}"
+			MinWidth="0"
+		/>
+	</StackPanel>
+</UserControl>

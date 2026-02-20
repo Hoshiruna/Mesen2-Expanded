@@ -1,0 +1,195 @@
+<UserControl
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:vm="using:Mesen.ViewModels"
+	xmlns:c="using:Mesen.Controls"
+	xmlns:v="using:Mesen.Views"
+	xmlns:dc="using:Mesen.Debugger.Controls"
+	xmlns:cfg="using:Mesen.Config"
+	xmlns:l="using:Mesen.Localization"
+	mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="550"
+	VerticalAlignment="Stretch"
+	HorizontalAlignment="Stretch"
+	x:DataType="vm:SnesConfigViewModel"
+	x:Class="Mesen.Views.SnesConfigView"
+>
+	<Design.DataContext>
+		<vm:SnesConfigViewModel />
+	</Design.DataContext>
+	
+	<UserControl.Styles>
+		<Style Selector="TextBlock.red">
+			<Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+		</Style>
+		<Style Selector="TextBlock.gray">
+			<Setter Property="Foreground" Value="{DynamicResource MesenNotRecommendedInactiveBrush}" />
+		</Style>
+	</UserControl.Styles>
+	
+	<TabControl TabStripPlacement="Top" SelectedIndex="{Binding SelectedTab}">
+		<TabItem Header="{l:Translate tpgGeneral}">
+			<ScrollViewer AllowAutoHide="False" HorizontalScrollBarVisibility="Auto" Padding="0 0 2 0">
+				<StackPanel>
+					<StackPanel Orientation="Horizontal">
+						<TextBlock Text="{l:Translate lblRegion}" Margin="5 0" />
+						<c:EnumComboBox
+							Grid.Column="1"
+							Width="130"
+							SelectedItem="{Binding Config.Region}"
+							AvailableValues="{Binding AvailableRegions}"
+						/>
+					</StackPanel>
+				</StackPanel>
+			</ScrollViewer>
+		</TabItem>
+		
+		<TabItem Header="{l:Translate tpgAudio}">
+			<ScrollViewer AllowAutoHide="False" HorizontalScrollBarVisibility="Auto" Padding="0 0 2 0">
+				<StackPanel>
+					<c:GroupBox Header="{l:Translate grpVolume}" HorizontalAlignment="Left" Margin="0 0 0 5">
+						<StackPanel Orientation="Horizontal" Height="150">
+							<StackPanel.Styles>
+								<Style Selector="c|MesenSlider">
+									<Setter Property="Minimum" Value="0" />
+									<Setter Property="Maximum" Value="100" />
+									<Setter Property="Orientation" Value="Vertical" />
+									<Setter Property="Margin" Value="4 0" />
+								</Style>
+							</StackPanel.Styles>
+
+							<c:MesenSlider Text="{l:Translate lblChannel1}" Value="{Binding Config.Channel1Vol}" />
+							<c:MesenSlider Text="{l:Translate lblChannel2}" Value="{Binding Config.Channel2Vol}" />
+							<c:MesenSlider Text="{l:Translate lblChannel3}" Value="{Binding Config.Channel3Vol}" />
+							<c:MesenSlider Text="{l:Translate lblChannel4}" Value="{Binding Config.Channel4Vol}" />
+							<c:MesenSlider Text="{l:Translate lblChannel5}" Value="{Binding Config.Channel5Vol}" />
+							<c:MesenSlider Text="{l:Translate lblChannel6}" Value="{Binding Config.Channel6Vol}" />
+							<c:MesenSlider Text="{l:Translate lblChannel7}" Value="{Binding Config.Channel7Vol}" />
+							<c:MesenSlider Text="{l:Translate lblChannel8}" Value="{Binding Config.Channel8Vol}" />
+						</StackPanel>
+					</c:GroupBox>
+					<StackPanel Orientation="Horizontal">
+						<TextBlock Text="{l:Translate lblAudioInterpolation}" Margin="5 0" />
+						<c:EnumComboBox
+							Width="180"
+							SelectedItem="{Binding Config.InterpolationType}"
+						/>
+					</StackPanel>
+				</StackPanel>
+			</ScrollViewer>
+		</TabItem>
+		
+		<TabItem Header="{l:Translate tpgEmulation}">
+			<ScrollViewer AllowAutoHide="False" HorizontalScrollBarVisibility="Auto" Padding="0 0 2 0">
+				<StackPanel>
+					<Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
+						<TextBlock Text="{l:Translate lblRamPowerOnState}" />
+						<c:EnumComboBox HorizontalAlignment="Left" Grid.Column="1" SelectedItem="{Binding Config.RamPowerOnState}" Width="200" />
+
+						<TextBlock Grid.Row="1" Text="{l:Translate lblSpcClockSpeedAdjustment}" />
+						<StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+							<c:MesenNumericUpDown
+								Minimum="-999"
+								Maximum="999"
+								Value="{Binding Config.SpcClockSpeedAdjustment}"
+							/>
+							<TextBlock Margin="5 0 0 0" Text="{Binding SpcEffectiveClockSpeed}" />
+							<TextBlock
+								VerticalAlignment="Center"
+								Margin="2 0 0 0"
+								Classes.red="{Binding !IsDefaultSpcClockSpeed}"
+								Classes.gray="{Binding IsDefaultSpcClockSpeed}"
+								Text="{l:Translate lblNotRecommended}"
+							/>
+						</StackPanel>
+					</Grid>
+					
+					<c:CheckBoxWarning IsChecked="{Binding Config.EnableRandomPowerOnState}" Text="{l:Translate chkRandomPowerOnState}" />
+					<c:CheckBoxWarning IsChecked="{Binding Config.EnableStrictBoardMappings}" Text="{l:Translate chkStrictBoardMappings}" />
+				</StackPanel>
+			</ScrollViewer>
+		</TabItem>
+
+		<TabItem Header="{l:Translate tpgInput}">
+			<v:SnesInputConfigView DataContext="{Binding Input}" />
+		</TabItem>
+
+		<TabItem Header="{l:Translate tpgOverclocking}">
+			<ScrollViewer AllowAutoHide="False" HorizontalScrollBarVisibility="Auto" Padding="0 0 2 0">
+				<StackPanel>
+					<Border BorderThickness="1" BorderBrush="Gray" Padding="3" Width="370" HorizontalAlignment="Left">
+						<Panel>
+							<Image Source="/Assets/Help.png" Margin="0" Width="16" Height="16" HorizontalAlignment="Left" />
+							<TextBlock Text="{l:Translate lblOverclockHint}" TextWrapping="Wrap" Margin="25 0 0 0" />
+						</Panel>
+					</Border>
+
+					<c:OptionSection Header="{l:Translate grpPpuTiming}">
+						<Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto" Margin="10 0">
+							<TextBlock Grid.Column="0" Grid.Row="0" Text="{l:Translate lblExtraScanlinesBeforeNmi}" />
+							<c:MesenNumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding Config.PpuExtraScanlinesBeforeNmi}" Minimum="0" Maximum="1000" />
+							<TextBlock Grid.Column="0" Grid.Row="1" Text="{l:Translate lblExtraScanlinesAfterNmi}" />
+							<c:MesenNumericUpDown Grid.Column="1" Grid.Row="1" Value="{Binding Config.PpuExtraScanlinesAfterNmi}" Minimum="0" Maximum="1000" />
+						</Grid>
+					</c:OptionSection>
+
+					<c:OptionSection Header="{l:Translate lblChipSpecificOc}">
+						<Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto" Margin="10 0">
+							<TextBlock Grid.Column="0" Grid.Row="0" Text="{l:Translate lblSuperFxClockSpeed}" />
+							<c:MesenNumericUpDown
+								Grid.Column="1"
+								Grid.Row="0"
+								Value="{Binding Config.GsuClockSpeed}"
+								Minimum="100"
+								Maximum="1000"
+								Increment="100"
+								LostFocus="nudGsuSpeed_LostFocus"
+							/>
+						</Grid>
+					</c:OptionSection>
+				</StackPanel>
+			</ScrollViewer>
+		</TabItem>
+
+		<TabItem Header="{l:Translate tpgVideo}">
+			<ScrollViewer AllowAutoHide="False" HorizontalScrollBarVisibility="Auto" Padding="0 0 2 0">
+				<StackPanel>
+					<v:VideoConfigOverrideView DataContext="{Binding Config.ConfigOverrides}" />
+
+					<c:OptionSection Header="{l:Translate lblMiscSettings}">
+						<CheckBox IsChecked="{Binding Config.BlendHighResolutionModes}" Content="{l:Translate chkBlendHighResolutionModes}" />
+						<c:CheckBoxWarning IsChecked="{Binding Config.ForceFixedResolution}" Text="{l:Translate chkForceFixedResolution}" />
+						<c:CheckBoxWarning IsChecked="{Binding Config.DisableFrameSkipping}" Text="{l:Translate chkDisableFrameSkipping}" />
+						<c:CheckBoxWarning IsChecked="{Binding Config.HideBgLayer1}" Text="{l:Translate chkHideBgLayer1}" />
+						<c:CheckBoxWarning IsChecked="{Binding Config.HideBgLayer2}" Text="{l:Translate chkHideBgLayer2}" />
+						<c:CheckBoxWarning IsChecked="{Binding Config.HideBgLayer3}" Text="{l:Translate chkHideBgLayer3}" />
+						<c:CheckBoxWarning IsChecked="{Binding Config.HideBgLayer4}" Text="{l:Translate chkHideBgLayer4}" />
+						<c:CheckBoxWarning IsChecked="{Binding Config.HideSprites}" Text="{l:Translate chkHideSprites}" />
+					</c:OptionSection>
+
+					<c:OptionSection Header="{l:Translate lblOverscan}">
+						<c:OverscanInput Overscan="{Binding Config.Overscan}" />
+					</c:OptionSection>
+				</StackPanel>
+			</ScrollViewer>
+		</TabItem>
+
+		<TabItem Header="{l:Translate tpgBsx}">
+			<ScrollViewer AllowAutoHide="False" HorizontalScrollBarVisibility="Auto" Padding="0 0 2 0">
+				<StackPanel>
+					<c:OptionSection Header="{l:Translate lblBsxDateTime}" Margin="0">
+						<RadioButton GroupName="BsxDateTime" Content="{l:Translate lblCurrentDate}" IsChecked="{Binding !Config.BsxUseCustomTime}" />
+						<RadioButton VerticalAlignment="Center" GroupName="BsxDateTime" Content="{l:Translate lblCustomDate}" IsChecked="{Binding Config.BsxUseCustomTime}" />
+						<Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto" Margin="35 0 0 0">
+							<TextBlock Text="{l:Translate lblDate}" />
+							<DatePicker Grid.Column="1" MonthFormat="MMM" SelectedDate="{Binding Config.BsxCustomDate}" />
+							<TextBlock Text="{l:Translate lblTime}" Grid.Row="1" />
+							<TimePicker Grid.Column="1" Grid.Row="1" SelectedTime="{Binding Config.BsxCustomTime}" />
+						</Grid>
+					</c:OptionSection>
+				</StackPanel>
+			</ScrollViewer>
+		</TabItem>
+	</TabControl>
+</UserControl>

@@ -1,0 +1,1509 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="PGO Optimize|x64">
+      <Configuration>PGO Optimize</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="PGO Profile|x64">
+      <Configuration>PGO Profile</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GBA\GbaCpuMultiply.h" />
+    <ClInclude Include="GBA\GbaWaitStates.h" />
+    <ClInclude Include="NES\Epsm.h" />
+    <ClInclude Include="NES\Mappers\Homebrew\Rainbow.h" />
+    <ClInclude Include="NES\Mappers\Homebrew\RainbowAudio.h" />
+    <ClInclude Include="NES\Debugger\IExtModeMapperDebug.h" />
+    <ClInclude Include="NES\Mappers\Homebrew\FlashS29.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\CnromProtect.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper487.h" />
+    <ClInclude Include="NES\OpnInterface.h" />
+    <ClInclude Include="SMS\Input\ColecoVisionController.h" />
+    <ClInclude Include="Debugger\AddressInfo.h" />
+    <ClInclude Include="Debugger\Base6502Assembler.h" />
+    <ClInclude Include="Debugger\CdlManager.h" />
+    <ClInclude Include="Debugger\DisassemblySearch.h" />
+    <ClInclude Include="Debugger\FrozenAddressManager.h" />
+    <ClInclude Include="Debugger\StepBackManager.h" />
+    <ClInclude Include="Gameboy\APU\GbChannelDac.h" />
+    <ClInclude Include="Gameboy\APU\GbEnvelope.h" />
+    <ClInclude Include="Gameboy\Carts\Eeprom93Lc56.h" />
+    <ClInclude Include="Gameboy\Carts\GbHuc1.h" />
+    <ClInclude Include="Gameboy\Carts\GbM161.h" />
+    <ClInclude Include="Gameboy\Carts\GbMbc3Rtc.h" />
+    <ClInclude Include="Gameboy\Carts\GbMbc6.h" />
+    <ClInclude Include="Gameboy\Carts\GbMbc7.h" />
+    <ClInclude Include="Gameboy\Carts\GbMbc7Accelerometer.h" />
+    <ClInclude Include="Gameboy\Carts\GbMmm01.h" />
+    <ClInclude Include="Gameboy\Carts\GbWisdomTree.h" />
+    <ClInclude Include="Gameboy\GbxFooter.h" />
+    <ClInclude Include="GBA\Cart\GbaGpio.h" />
+    <ClInclude Include="GBA\Cart\GbaRtc.h" />
+    <ClInclude Include="GBA\Cart\GbaTiltSensor.h" />
+    <ClInclude Include="GBA\APU\GbaApu.h" />
+    <ClInclude Include="GBA\APU\GbaApuFifo.h" />
+    <ClInclude Include="GBA\APU\GbaEnvelope.h" />
+    <ClInclude Include="GBA\APU\GbaNoiseChannel.h" />
+    <ClInclude Include="GBA\APU\GbaSquareChannel.h" />
+    <ClInclude Include="GBA\APU\GbaWaveChannel.h" />
+    <ClInclude Include="GBA\Cart\GbaEeprom.h" />
+    <ClInclude Include="GBA\Cart\GbaFlash.h" />
+    <ClInclude Include="GBA\Debugger\DummyGbaCpu.h" />
+    <ClInclude Include="GBA\Debugger\GbaAssembler.h" />
+    <ClInclude Include="GBA\Debugger\GbaCodeDataLogger.h" />
+    <ClInclude Include="GBA\Debugger\GbaDebugger.h" />
+    <ClInclude Include="GBA\Debugger\GbaDisUtils.h" />
+    <ClInclude Include="GBA\Debugger\GbaEventManager.h" />
+    <ClInclude Include="GBA\Debugger\GbaPpuTools.h" />
+    <ClInclude Include="GBA\Debugger\GbaTraceLogger.h" />
+    <ClInclude Include="GBA\Cart\GbaCart.h" />
+    <ClInclude Include="GBA\GbaConsole.h" />
+    <ClInclude Include="GBA\GbaControlManager.h" />
+    <ClInclude Include="GBA\GbaCpu.h" />
+    <ClInclude Include="GBA\GbaDefaultVideoFilter.h" />
+    <ClInclude Include="GBA\GbaDmaController.h" />
+    <ClInclude Include="GBA\GbaPpu.h" />
+    <ClInclude Include="GBA\GbaMemoryManager.h" />
+    <ClInclude Include="GBA\GbaRomPrefetch.h" />
+    <ClInclude Include="GBA\GbaSerial.h" />
+    <ClInclude Include="GBA\GbaTimer.h" />
+    <ClInclude Include="GBA\GbaTypes.h" />
+    <ClInclude Include="GBA\Input\GbaController.h" />
+    <ClInclude Include="GBA\Debugger\MgbaLogHandler.h" />
+    <ClInclude Include="Genesis\GenesisAresCore.h" />
+    <ClInclude Include="Genesis\GenesisConsole.h" />
+    <ClInclude Include="Genesis\GenesisControlManager.h" />
+    <ClInclude Include="Genesis\GenesisDefaultVideoFilter.h" />
+    <ClInclude Include="Genesis\GenesisTypes.h" />
+    <ClInclude Include="Genesis\Input\GenesisController.h" />
+    <ClInclude Include="Genesis\Debugger\GenesisDebugger.h" />
+    <ClInclude Include="Genesis\Debugger\GenesisDisUtils.h" />
+    <ClInclude Include="Genesis\Debugger\GenesisEventManager.h" />
+    <ClInclude Include="Genesis\Debugger\GenesisTraceLogger.h" />
+    <ClInclude Include="NES\HdPacks\HdBuilderPpu.h" />
+    <ClInclude Include="NES\HdPacks\HdPackBuilder.h" />
+    <ClInclude Include="PCE\CdRom\PceCdSeekDelay.h" />
+    <ClInclude Include="Shared\ColorUtilities.h" />
+    <ClInclude Include="Shared\Utilities\emu2413.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\FnsMmc1.h" />
+    <ClInclude Include="Shared\SaveStateCompatInfo.h" />
+    <ClInclude Include="Shared\Utilities\Emu2413Serializer.h" />
+    <ClInclude Include="Shared\Video\GenericNtscFilter.h" />
+    <ClInclude Include="Shared\Video\SoftwareRenderer.h" />
+    <ClInclude Include="SMS\Carts\SmsCodemasterCart.h" />
+    <ClInclude Include="SMS\Carts\SmsNemesisCart.h" />
+    <ClInclude Include="SMS\Carts\SmsKoreanCart.h" />
+    <ClInclude Include="SMS\Carts\SmsMsxCart.h" />
+    <ClInclude Include="SMS\Carts\SmsSegaCart.h" />
+    <ClInclude Include="SMS\Carts\SmsCart.h" />
+    <ClInclude Include="SMS\Debugger\DummySmsCpu.h" />
+    <ClInclude Include="SMS\Debugger\SmsAssembler.h" />
+    <ClInclude Include="SMS\Debugger\SmsDebugger.h" />
+    <ClInclude Include="SMS\Debugger\SmsDisUtils.h" />
+    <ClInclude Include="SMS\Debugger\SmsEventManager.h" />
+    <ClInclude Include="SMS\Debugger\SmsTraceLogger.h" />
+    <ClInclude Include="SMS\Debugger\SmsVdpTools.h" />
+    <ClInclude Include="SMS\Input\SmsController.h" />
+    <ClInclude Include="SMS\Input\SmsLightPhaser.h" />
+    <ClInclude Include="SMS\SmsBiosMapper.h" />
+    <ClInclude Include="SMS\SmsConsole.h" />
+    <ClInclude Include="SMS\SmsControlManager.h" />
+    <ClInclude Include="SMS\SmsCpu.h" />
+    <ClInclude Include="SMS\SmsDefaultVideoFilter.h" />
+    <ClInclude Include="SMS\SmsFmAudio.h" />
+    <ClInclude Include="SMS\SmsMemoryManager.h" />
+    <ClInclude Include="SMS\SmsNtscFilter.h" />
+    <ClInclude Include="SMS\SmsPsg.h" />
+    <ClInclude Include="SMS\SmsTypes.h" />
+    <ClInclude Include="SMS\SmsVdp.h" />
+    <ClInclude Include="Shared\ArmEnums.h" />
+    <ClInclude Include="SNES\Coprocessors\ST018\ArmV3Cpu.h" />
+    <ClInclude Include="SNES\Coprocessors\ST018\ArmV3Types.h" />
+    <ClInclude Include="SNES\Coprocessors\ST018\St018.h" />
+    <ClInclude Include="SNES\Coprocessors\ST018\St018Types.h" />
+    <ClInclude Include="SNES\Coprocessors\SufamiTurbo\SufamiTurbo.h" />
+    <ClInclude Include="SNES\Debugger\DummyArmV3Cpu.h" />
+    <ClInclude Include="SNES\Debugger\St018Debugger.h" />
+    <ClInclude Include="SNES\Debugger\St018DisUtils.h" />
+    <ClInclude Include="SNES\Debugger\TraceLogger\St018TraceLogger.h" />
+    <ClInclude Include="SNES\DSP\DspInterpolation.h" />
+    <ClInclude Include="SNES\DSP\Dsp.h" />
+    <ClInclude Include="NES\Debugger\NesCodeDataLogger.h" />
+    <ClInclude Include="NES\Input\BandaiMicrophone.h" />
+    <ClInclude Include="NES\Input\DatachBarcodeReader.h" />
+    <ClInclude Include="NES\Loaders\StudyBoxLoader.h" />
+    <ClInclude Include="NES\Loaders\UnifBoards.h" />
+    <ClInclude Include="NES\Loaders\UnifLoader.h" />
+    <ClInclude Include="NES\Mappers\Bandai\Bandai74161_7432.h" />
+    <ClInclude Include="NES\Mappers\Bandai\BandaiFcg.h" />
+    <ClInclude Include="NES\Mappers\Bandai\BandaiKaraoke.h" />
+    <ClInclude Include="NES\Mappers\Bandai\BaseEeprom24C0X.h" />
+    <ClInclude Include="NES\Mappers\Bandai\Eeprom24C01.h" />
+    <ClInclude Include="NES\Mappers\Bandai\Eeprom24C02.h" />
+    <ClInclude Include="NES\Mappers\Codemasters\BF9096.h" />
+    <ClInclude Include="NES\Mappers\Codemasters\BF909x.h" />
+    <ClInclude Include="NES\Mappers\Codemasters\GoldenFive.h" />
+    <ClInclude Include="NES\Mappers\Homebrew\Action53.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\CpRom.h" />
+    <ClInclude Include="NES\Mappers\Homebrew\Cheapocabra.h" />
+    <ClInclude Include="NES\Mappers\Homebrew\FaridSlrom.h" />
+    <ClInclude Include="NES\Mappers\Homebrew\FaridUnrom.h" />
+    <ClInclude Include="NES\Mappers\Homebrew\FlashSST39SF040.h" />
+    <ClInclude Include="NES\Mappers\Homebrew\MagicFloor218.h" />
+    <ClInclude Include="NES\Mappers\Homebrew\SealieComputing.h" />
+    <ClInclude Include="NES\Mappers\Homebrew\UnRom512.h" />
+    <ClInclude Include="NES\Mappers\Irem\BnRom.h" />
+    <ClInclude Include="NES\Mappers\Irem\IremG101.h" />
+    <ClInclude Include="NES\Mappers\Irem\IremH3001.h" />
+    <ClInclude Include="NES\Mappers\Irem\IremLrog017.h" />
+    <ClInclude Include="NES\Mappers\Irem\IremTamS1.h" />
+    <ClInclude Include="NES\Mappers\Jaleco\JalecoJf11_14.h" />
+    <ClInclude Include="NES\Mappers\Jaleco\JalecoJf13.h" />
+    <ClInclude Include="NES\Mappers\Jaleco\JalecoJf16.h" />
+    <ClInclude Include="NES\Mappers\Jaleco\JalecoJf17_19.h" />
+    <ClInclude Include="NES\Mappers\Jaleco\JalecoJfxx.h" />
+    <ClInclude Include="NES\Mappers\Jaleco\JalecoSs88006.h" />
+    <ClInclude Include="NES\Mappers\JyCompany\JyCompany.h" />
+    <ClInclude Include="NES\Mappers\JyCompany\Mapper35.h" />
+    <ClInclude Include="NES\Mappers\JyCompany\Mapper91.h" />
+    <ClInclude Include="NES\Mappers\Kaiser\Kaiser202.h" />
+    <ClInclude Include="NES\Mappers\Kaiser\Kaiser7012.h" />
+    <ClInclude Include="NES\Mappers\Kaiser\Kaiser7013B.h" />
+    <ClInclude Include="NES\Mappers\Kaiser\Kaiser7016.h" />
+    <ClInclude Include="NES\Mappers\Kaiser\Kaiser7017.h" />
+    <ClInclude Include="NES\Mappers\Kaiser\Kaiser7022.h" />
+    <ClInclude Include="NES\Mappers\Kaiser\Kaiser7031.h" />
+    <ClInclude Include="NES\Mappers\Kaiser\Kaiser7037.h" />
+    <ClInclude Include="NES\Mappers\Kaiser\Kaiser7057.h" />
+    <ClInclude Include="NES\Mappers\Kaiser\Kaiser7058.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\McAcc.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\A65AS.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Ac08.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\ActionEnterprises.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Ax5705.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Bb.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Bmc12in1.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Bmc190in1.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Bmc235.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Bmc255.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Bmc51.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Bmc60311C.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Bmc64in1NoRepeat.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Bmc70in1.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Bmc80013B.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Bmc810544CA1.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Bmc8157.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Bmc830425C4391T.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\BmcG146.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\BmcK3046.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Cc21.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\CityFighter.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\ColorDreams.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\ColorDreams46.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Dance2000.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\DaouInfosys.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\DreamTech01.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Edu2000.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Eh8813A.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\FrontFareast.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Ghostbusters63in1.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Gkcx1.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Gs2004.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Gs2013.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Henggedianzi177.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Henggedianzi179.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Hp898f.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\MagicKidGooGoo.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Malee.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper103.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper106.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper107.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper116.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper117.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper120.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper15.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper170.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper183.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper200.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper202.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper203.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper204.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper212.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper213.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper214.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper216.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper222.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper225.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper226.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper227.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper229.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper230.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper231.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper233.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper234.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper240.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper241.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper244.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper246.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper39.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper42.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper43.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper50.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper57.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper58.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper60.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper62.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Mapper83.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Nanjing.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Nina01.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Nina03_06.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\NovelDiamond.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Racermate.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Rt01.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Subor166.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Super40in1Ws.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Supervision.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\T230.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\T262.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Unl255in1.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\UnlD1038.h" />
+    <ClInclude Include="NES\Mappers\Homebrew\UnlDripGame.h" />
+    <ClInclude Include="NES\Mappers\Homebrew\UnlDripGameAudio.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\UnlPci556.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\UnlPuzzle.h" />
+    <ClInclude Include="NES\Mappers\Unlicensed\Yoko.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\Bmc830118C.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\Bmc8in1.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\BmcGn45.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\BmcHpxx.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\DragonFighter.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_114.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_115.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_12.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_121.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_123.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_126.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_134.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_14.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_165.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_182.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_187.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_196.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_197.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_198.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_199.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_205.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_208.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_215.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_217.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_219.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_224.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_238.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_245.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_249.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_250.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_254.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_37.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_44.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_45.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_47.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_49.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_52.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_Bmc411120C.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_BmcF15.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_ChrRam.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_Coolboy.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_Kof97.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_MaliSB.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\MMC3_StreetHeroes.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\ResetTxrom.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\Sachen9602.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\Unl158B.h" />
+    <ClInclude Include="NES\Mappers\Mmc3Variants\Unl8237A.h" />
+    <ClInclude Include="NES\Mappers\Homebrew\NsfCart31.h" />
+    <ClInclude Include="NES\Mappers\Namco\Namco108.h" />
+    <ClInclude Include="NES\Mappers\Namco\Namco108_154.h" />
+    <ClInclude Include="NES\Mappers\Namco\Namco108_76.h" />
+    <ClInclude Include="NES\Mappers\Namco\Namco108_88.h" />
+    <ClInclude Include="NES\Mappers\Namco\Namco108_95.h" />
+    <ClInclude Include="NES\Mappers\Namco\Namco163.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\CNROM.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\FamicomBox.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\GxRom.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\MMC1.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\MMC1_105.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\MMC1_155.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\MMC2.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\MMC3.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\MMC3_37.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\MMC3_47.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\MMC4.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\MMC5.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\Mmc5MemoryHandler.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\NROM.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\TxSRom.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\UNROM.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\UnRom_180.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\UnRom_94.h" />
+    <ClInclude Include="NES\Mappers\Ntdec\Bmc63.h" />
+    <ClInclude Include="NES\Mappers\Ntdec\BmcNtd03.h" />
+    <ClInclude Include="NES\Mappers\Ntdec\Caltron41.h" />
+    <ClInclude Include="NES\Mappers\Ntdec\Mapper112.h" />
+    <ClInclude Include="NES\Mappers\Ntdec\Mapper174.h" />
+    <ClInclude Include="NES\Mappers\Ntdec\Mapper221.h" />
+    <ClInclude Include="NES\Mappers\Ntdec\NtdecTc112.h" />
+    <ClInclude Include="NES\Mappers\Ntdec\Tf1201.h" />
+    <ClInclude Include="NES\Mappers\Sachen\Sachen74LS374N.h" />
+    <ClInclude Include="NES\Mappers\Sachen\Sachen8259.h" />
+    <ClInclude Include="NES\Mappers\Sachen\Sachen9602.h" />
+    <ClInclude Include="NES\Mappers\Sachen\Sachen_133.h" />
+    <ClInclude Include="NES\Mappers\Sachen\Sachen_136.h" />
+    <ClInclude Include="NES\Mappers\Sachen\Sachen_143.h" />
+    <ClInclude Include="NES\Mappers\Sachen\Sachen_145.h" />
+    <ClInclude Include="NES\Mappers\Sachen\Sachen_147.h" />
+    <ClInclude Include="NES\Mappers\Sachen\Sachen_148.h" />
+    <ClInclude Include="NES\Mappers\Sachen\Sachen_149.h" />
+    <ClInclude Include="NES\Mappers\StudyBox.h" />
+    <ClInclude Include="NES\Mappers\Sunsoft\Sunsoft184.h" />
+    <ClInclude Include="NES\Mappers\Sunsoft\Sunsoft3.h" />
+    <ClInclude Include="NES\Mappers\Sunsoft\Sunsoft4.h" />
+    <ClInclude Include="NES\Mappers\Sunsoft\Sunsoft89.h" />
+    <ClInclude Include="NES\Mappers\Sunsoft\Sunsoft93.h" />
+    <ClInclude Include="NES\Mappers\Sunsoft\SunsoftFme7.h" />
+    <ClInclude Include="NES\Mappers\Taito\TaitoTc0190.h" />
+    <ClInclude Include="NES\Mappers\Taito\TaitoTc0690.h" />
+    <ClInclude Include="NES\Mappers\Taito\TaitoX1005.h" />
+    <ClInclude Include="NES\Mappers\Taito\TaitoX1017.h" />
+    <ClInclude Include="NES\Mappers\Tengen\Rambo1.h" />
+    <ClInclude Include="NES\Mappers\Tengen\Rambo1_158.h" />
+    <ClInclude Include="NES\Mappers\Txc\Bmc11160.h" />
+    <ClInclude Include="NES\Mappers\Txc\Mapper61.h" />
+    <ClInclude Include="NES\Mappers\Txc\MMC3_189.h" />
+    <ClInclude Include="NES\Mappers\Txc\Txc22000.h" />
+    <ClInclude Include="NES\Mappers\Txc\Txc22211A.h" />
+    <ClInclude Include="NES\Mappers\Txc\Txc22211B.h" />
+    <ClInclude Include="NES\Mappers\Txc\Txc22211C.h" />
+    <ClInclude Include="NES\Mappers\Txc\TxcChip.h" />
+    <ClInclude Include="NES\Mappers\Konami\VRC1.h" />
+    <ClInclude Include="NES\Mappers\Konami\VRC2_4.h" />
+    <ClInclude Include="NES\Mappers\Konami\VRC3.h" />
+    <ClInclude Include="NES\Mappers\Konami\VRC6.h" />
+    <ClInclude Include="NES\Mappers\Konami\VRC7.h" />
+    <ClInclude Include="NES\Mappers\Konami\VrcIrq.h" />
+    <ClInclude Include="NES\Mappers\Waixing\Bs5.h" />
+    <ClInclude Include="NES\Mappers\Waixing\Fk23C.h" />
+    <ClInclude Include="NES\Mappers\Waixing\Mapper242.h" />
+    <ClInclude Include="NES\Mappers\Waixing\Mapper253.h" />
+    <ClInclude Include="NES\Mappers\Waixing\Waixing162.h" />
+    <ClInclude Include="NES\Mappers\Waixing\Waixing164.h" />
+    <ClInclude Include="NES\Mappers\Waixing\Waixing178.h" />
+    <ClInclude Include="NES\Mappers\Waixing\Waixing252.h" />
+    <ClInclude Include="NES\Mappers\Whirlwind\Lh10.h" />
+    <ClInclude Include="NES\Mappers\Whirlwind\Lh32.h" />
+    <ClInclude Include="NES\Mappers\Whirlwind\Lh51.h" />
+    <ClInclude Include="NES\Mappers\Whirlwind\Mapper40.h" />
+    <ClInclude Include="NES\Mappers\Whirlwind\Smb2j.h" />
+    <ClInclude Include="Netplay\NetplayTypes.h" />
+    <ClInclude Include="PCE\Debugger\PceAssembler.h" />
+    <ClInclude Include="PCE\HesFileData.h" />
+    <ClInclude Include="PCE\IPceMapper.h" />
+    <ClInclude Include="PCE\CdRom\PceArcadeCard.h" />
+    <ClInclude Include="PCE\CdRom\PceAudioFader.h" />
+    <ClInclude Include="PCE\PceVpc.h" />
+    <ClInclude Include="PCE\Input\PceAvenuePad6.h" />
+    <ClInclude Include="PCE\Input\PceTurboTap.h" />
+    <ClInclude Include="PCE\Debugger\DummyPceCpu.h" />
+    <ClInclude Include="PCE\Debugger\PceEventManager.h" />
+    <ClInclude Include="PCE\Input\PceController.h" />
+    <ClInclude Include="PCE\CdRom\PceAdpcm.h" />
+    <ClInclude Include="PCE\CdRom\PceCdAudioPlayer.h" />
+    <ClInclude Include="PCE\CdRom\PceCdRom.h" />
+    <ClInclude Include="PCE\PceConstants.h" />
+    <ClInclude Include="PCE\PceNtscFilter.h" />
+    <ClInclude Include="PCE\PceVdc.h" />
+    <ClInclude Include="PCE\Debugger\PceDebugger.h" />
+    <ClInclude Include="PCE\Debugger\PceDisUtils.h" />
+    <ClInclude Include="PCE\Debugger\PceVdcTools.h" />
+    <ClInclude Include="PCE\Debugger\PceTraceLogger.h" />
+    <ClInclude Include="PCE\PceConsole.h" />
+    <ClInclude Include="PCE\PceControlManager.h" />
+    <ClInclude Include="PCE\PceCpu.h" />
+    <ClInclude Include="PCE\PceDefaultVideoFilter.h" />
+    <ClInclude Include="PCE\PceMemoryManager.h" />
+    <ClInclude Include="PCE\PcePsg.h" />
+    <ClInclude Include="PCE\PcePsgChannel.h" />
+    <ClInclude Include="PCE\CdRom\PceScsiBus.h" />
+    <ClInclude Include="PCE\PceSf2RomMapper.h" />
+    <ClInclude Include="PCE\PceTimer.h" />
+    <ClInclude Include="PCE\PceTypes.h" />
+    <ClInclude Include="PCE\PceVce.h" />
+    <ClInclude Include="Shared\CdReader.h" />
+    <ClInclude Include="Shared\CpuType.h" />
+    <ClInclude Include="Debugger\BaseTraceLogger.h" />
+    <ClInclude Include="Debugger\DebuggerFeatures.h" />
+    <ClInclude Include="Debugger\ITraceLogger.h" />
+    <ClInclude Include="Debugger\TraceLogFileSaver.h" />
+    <ClInclude Include="Gameboy\Carts\GbsCart.h" />
+    <ClInclude Include="Gameboy\Debugger\DummyGbCpu.h" />
+    <ClInclude Include="Gameboy\Debugger\GbTraceLogger.h" />
+    <ClInclude Include="Gameboy\Debugger\GbPpuTools.h" />
+    <ClInclude Include="Gameboy\GbConstants.h" />
+    <ClInclude Include="Gameboy\GbDefaultVideoFilter.h" />
+    <ClInclude Include="Gameboy\GbsHeader.h" />
+    <ClInclude Include="Gameboy\Input\GbController.h" />
+    <ClInclude Include="NES\BaseNesPpu.h" />
+    <ClInclude Include="NES\BisqwitNtscFilter.h" />
+    <ClInclude Include="NES\Debugger\DummyNesCpu.h" />
+    <ClInclude Include="NES\Debugger\NesPpuTools.h" />
+    <ClInclude Include="NES\Debugger\NesAssembler.h" />
+    <ClInclude Include="NES\Debugger\NesEventManager.h" />
+    <ClInclude Include="NES\Debugger\NesTraceLogger.h" />
+    <ClInclude Include="NES\DefaultNesPpu.h" />
+    <ClInclude Include="NES\HdPacks\HdAudioDevice.h" />
+    <ClInclude Include="NES\HdPacks\HdData.h" />
+    <ClInclude Include="NES\HdPacks\HdNesPack.h" />
+    <ClInclude Include="NES\HdPacks\HdNesPpu.h" />
+    <ClInclude Include="NES\HdPacks\HdPackConditions.h" />
+    <ClInclude Include="NES\HdPacks\HdPackLoader.h" />
+    <ClInclude Include="NES\HdPacks\HdVideoFilter.h" />
+    <ClInclude Include="NES\HdPacks\OggMixer.h" />
+    <ClInclude Include="NES\HdPacks\OggReader.h" />
+    <ClInclude Include="NES\Input\ArkanoidController.h" />
+    <ClInclude Include="NES\Input\AsciiTurboFile.h" />
+    <ClInclude Include="NES\Input\BandaiHyperShot.h" />
+    <ClInclude Include="NES\Input\BarcodeBattlerReader.h" />
+    <ClInclude Include="NES\Input\BattleBox.h" />
+    <ClInclude Include="NES\Input\ExcitingBoxingController.h" />
+    <ClInclude Include="NES\Input\FamilyBasicDataRecorder.h" />
+    <ClInclude Include="NES\Input\FamilyBasicKeyboard.h" />
+    <ClInclude Include="NES\Input\FamilyMatTrainer.h" />
+    <ClInclude Include="NES\Input\FourScore.h" />
+    <ClInclude Include="NES\Input\HoriTrack.h" />
+    <ClInclude Include="Shared\DebuggerRequest.h" />
+    <ClInclude Include="Shared\HistoryViewer.h" />
+    <ClInclude Include="Shared\IControllerHub.h" />
+    <ClInclude Include="Shared\Interfaces\IBarcodeReader.h" />
+    <ClInclude Include="NES\Input\JissenMahjongController.h" />
+    <ClInclude Include="NES\Input\KonamiHyperShot.h" />
+    <ClInclude Include="NES\Input\OekaKidsTablet.h" />
+    <ClInclude Include="NES\Input\PachinkoController.h" />
+    <ClInclude Include="NES\Input\PartyTap.h" />
+    <ClInclude Include="NES\Input\PowerPad.h" />
+    <ClInclude Include="NES\Input\SuborKeyboard.h" />
+    <ClInclude Include="NES\Input\SuborMouse.h" />
+    <ClInclude Include="NES\Input\TwoPlayerAdapter.h" />
+    <ClInclude Include="NES\Input\VirtualBoyController.h" />
+    <ClInclude Include="NES\Input\VsZapper.h" />
+    <ClInclude Include="NES\Input\Zapper.h" />
+    <ClInclude Include="NES\Loaders\BaseLoader.h" />
+    <ClInclude Include="NES\Loaders\FdsLoader.h" />
+    <ClInclude Include="NES\Loaders\iNesLoader.h" />
+    <ClInclude Include="NES\Loaders\NsfeLoader.h" />
+    <ClInclude Include="NES\Loaders\NsfLoader.h" />
+    <ClInclude Include="NES\Loaders\RomLoader.h" />
+    <ClInclude Include="NES\APU\BaseExpansionAudio.h" />
+    <ClInclude Include="NES\Mappers\A12Watcher.h" />
+    <ClInclude Include="NES\Mappers\Audio\Mmc5Audio.h" />
+    <ClInclude Include="NES\Mappers\Audio\Namco163Audio.h" />
+    <ClInclude Include="NES\Mappers\Audio\Sunsoft5bAudio.h" />
+    <ClInclude Include="NES\Mappers\Audio\Vrc6Audio.h" />
+    <ClInclude Include="NES\Mappers\Audio\Vrc6Pulse.h" />
+    <ClInclude Include="NES\Mappers\Audio\Vrc6Saw.h" />
+    <ClInclude Include="NES\Mappers\Audio\Vrc7Audio.h" />
+    <ClInclude Include="NES\Mappers\Nintendo\AXROM.h" />
+    <ClInclude Include="NES\Mappers\FDS\BaseFdsChannel.h" />
+    <ClInclude Include="NES\Mappers\FDS\Fds.h" />
+    <ClInclude Include="NES\Mappers\FDS\FdsAudio.h" />
+    <ClInclude Include="NES\Mappers\FDS\FdsInputButtons.h" />
+    <ClInclude Include="NES\Mappers\FDS\ModChannel.h" />
+    <ClInclude Include="NES\Mappers\NSF\NsfMapper.h" />
+    <ClInclude Include="NES\Mappers\Bandai\OekaKids.h" />
+    <ClInclude Include="NES\Mappers\VsSystem\VsControlManager.h" />
+    <ClInclude Include="NES\Mappers\VsSystem\VsSystem.h" />
+    <ClInclude Include="NES\Mappers\VsSystem\VsInputButtons.h" />
+    <ClInclude Include="NES\NesConstants.h" />
+    <ClInclude Include="NES\NesNtscFilter.h" />
+    <ClInclude Include="NES\NsfPpu.h" />
+    <ClInclude Include="Shared\Audio\AudioPlayerTypes.h" />
+    <ClInclude Include="Shared\BaseControlManager.h" />
+    <ClInclude Include="Shared\BaseState.h" />
+    <ClInclude Include="Gameboy\GbControlManager.h" />
+    <ClInclude Include="Shared\ControllerHub.h" />
+    <ClInclude Include="Shared\Interfaces\IAudioProvider.h" />
+    <ClInclude Include="Shared\Interfaces\IBattery.h" />
+    <ClInclude Include="Shared\MemoryOperationType.h" />
+    <ClInclude Include="Shared\Interfaces\ITapeRecorder.h" />
+    <ClInclude Include="Shared\KeyDefinitions.h" />
+    <ClInclude Include="Shared\RenderedFrame.h" />
+    <ClInclude Include="Shared\RomInfo.h" />
+    <ClInclude Include="NES\NesDefaultVideoFilter.h" />
+    <ClInclude Include="NES\APU\ApuEnvelope.h" />
+    <ClInclude Include="NES\APU\ApuFrameCounter.h" />
+    <ClInclude Include="NES\APU\ApuLengthCounter.h" />
+    <ClInclude Include="NES\APU\ApuTimer.h" />
+    <ClInclude Include="NES\BaseMapper.h" />
+    <ClInclude Include="NES\NesControlManager.h" />
+    <ClInclude Include="NES\APU\DeltaModulationChannel.h" />
+    <ClInclude Include="NES\GameDatabase.h" />
+    <ClInclude Include="NES\INesMemoryHandler.h" />
+    <ClInclude Include="NES\InternalRamHandler.h" />
+    <ClInclude Include="NES\MapperFactory.h" />
+    <ClInclude Include="NES\APU\NesApu.h" />
+    <ClInclude Include="NES\NesConsole.h" />
+    <ClInclude Include="NES\NesCpu.h" />
+    <ClInclude Include="NES\Debugger\NesDisUtils.h" />
+    <ClInclude Include="NES\Debugger\NesDebugger.h" />
+    <ClInclude Include="NES\NesHeader.h" />
+    <ClInclude Include="NES\NesMemoryManager.h" />
+    <ClInclude Include="NES\NesPpu.h" />
+    <ClInclude Include="NES\NesSoundMixer.h" />
+    <ClInclude Include="NES\NesTypes.h" />
+    <ClInclude Include="NES\APU\NoiseChannel.h" />
+    <ClInclude Include="NES\OpenBusHandler.h" />
+    <ClInclude Include="NES\RomData.h" />
+    <ClInclude Include="NES\APU\SquareChannel.h" />
+    <ClInclude Include="NES\Input\NesController.h" />
+    <ClInclude Include="NES\APU\TriangleChannel.h" />
+    <ClInclude Include="Shared\TimingInfo.h" />
+    <ClInclude Include="Shared\Video\RotateFilter.h" />
+    <ClInclude Include="Shared\Video\ScanlineFilter.h" />
+    <ClInclude Include="Shared\Video\SystemHud.h" />
+    <ClInclude Include="SNES\Debugger\SnesCodeDataLogger.h" />
+    <ClInclude Include="SNES\AluMulDiv.h" />
+    <ClInclude Include="SNES\Debugger\SnesPpuTools.h" />
+    <ClInclude Include="SNES\Debugger\SnesAssembler.h" />
+    <ClInclude Include="SNES\BaseCartridge.h" />
+    <ClInclude Include="Shared\BaseControlDevice.h" />
+    <ClInclude Include="SNES\Coprocessors\BaseCoprocessor.h" />
+    <ClInclude Include="Debugger\BaseEventManager.h" />
+    <ClInclude Include="Shared\BatteryManager.h" />
+    <ClInclude Include="SNES\Coprocessors\BSX\BsxCart.h" />
+    <ClInclude Include="SNES\Coprocessors\BSX\BsxMemoryPack.h" />
+    <ClInclude Include="SNES\Coprocessors\BSX\BsxSatellaview.h" />
+    <ClInclude Include="SNES\Coprocessors\BSX\BsxStream.h" />
+    <ClInclude Include="Shared\CheatManager.h" />
+    <ClInclude Include="Netplay\ClientConnectionData.h" />
+    <ClInclude Include="SNES\DSP\DspTypes.h" />
+    <ClInclude Include="SNES\DSP\DspVoice.h" />
+    <ClInclude Include="SNES\Input\SnesRumbleController.h" />
+    <ClInclude Include="SNES\SnesCpu.Shared.h" />
+    <ClInclude Include="SNES\Coprocessors\SA1\CpuBwRamHandler.h" />
+    <ClInclude Include="SNES\Debugger\SnesDebugger.h" />
+    <ClInclude Include="SNES\Coprocessors\CX4\Cx4.h" />
+    <ClInclude Include="SNES\Debugger\Cx4Debugger.h" />
+    <ClInclude Include="SNES\Debugger\Cx4DisUtils.h" />
+    <ClInclude Include="SNES\Coprocessors\CX4\Cx4Types.h" />
+    <ClInclude Include="Debugger\DebugUtilities.h" />
+    <ClInclude Include="SNES\Debugger\TraceLogger\Cx4TraceLogger.h" />
+    <ClInclude Include="SNES\Debugger\TraceLogger\NecDspTraceLogger.h" />
+    <ClInclude Include="SNES\Debugger\TraceLogger\GsuTraceLogger.h" />
+    <ClInclude Include="SNES\Debugger\TraceLogger\SpcTraceLogger.h" />
+    <ClInclude Include="SNES\Debugger\TraceLogger\SnesCpuTraceLogger.h" />
+    <ClInclude Include="SNES\DmaControllerTypes.h" />
+    <ClInclude Include="Shared\Emulator.h" />
+    <ClInclude Include="Gameboy\Gameboy.h" />
+    <ClInclude Include="Gameboy\Debugger\GameboyDisUtils.h" />
+    <ClInclude Include="Gameboy\GameboyHeader.h" />
+    <ClInclude Include="Gameboy\APU\GbApu.h" />
+    <ClInclude Include="Gameboy\Debugger\GbAssembler.h" />
+    <ClInclude Include="Gameboy\GbBootRom.h" />
+    <ClInclude Include="Gameboy\Carts\GbCart.h" />
+    <ClInclude Include="Gameboy\GbCartFactory.h" />
+    <ClInclude Include="Gameboy\GbCpu.h" />
+    <ClInclude Include="Gameboy\Debugger\GbDebugger.h" />
+    <ClInclude Include="Gameboy\GbDmaController.h" />
+    <ClInclude Include="Gameboy\Debugger\GbEventManager.h" />
+    <ClInclude Include="Gameboy\Carts\GbMbc1.h" />
+    <ClInclude Include="Gameboy\Carts\GbMbc2.h" />
+    <ClInclude Include="Gameboy\Carts\GbMbc3.h" />
+    <ClInclude Include="Gameboy\Carts\GbMbc5.h" />
+    <ClInclude Include="Gameboy\GbMemoryManager.h" />
+    <ClInclude Include="Gameboy\APU\GbNoiseChannel.h" />
+    <ClInclude Include="Gameboy\GbPpu.h" />
+    <ClInclude Include="Gameboy\APU\GbSquareChannel.h" />
+    <ClInclude Include="Gameboy\GbTimer.h" />
+    <ClInclude Include="Gameboy\GbTypes.h" />
+    <ClInclude Include="Gameboy\APU\GbWaveChannel.h" />
+    <ClInclude Include="Debugger\IAssembler.h" />
+    <ClInclude Include="Shared\Interfaces\IConsole.h" />
+    <ClInclude Include="SNES\Debugger\NecDspDebugger.h" />
+    <ClInclude Include="Netplay\ForceDisconnectMessage.h" />
+    <ClInclude Include="Netplay\GameClient.h" />
+    <ClInclude Include="Netplay\GameClientConnection.h" />
+    <ClInclude Include="Netplay\GameConnection.h" />
+    <ClInclude Include="Netplay\GameInformationMessage.h" />
+    <ClInclude Include="Netplay\GameServer.h" />
+    <ClInclude Include="Netplay\GameServerConnection.h" />
+    <ClInclude Include="SNES\Coprocessors\GSU\Gsu.h" />
+    <ClInclude Include="SNES\Debugger\GsuDebugger.h" />
+    <ClInclude Include="SNES\Debugger\GsuDisUtils.h" />
+    <ClInclude Include="SNES\Coprocessors\GSU\GsuRamHandler.h" />
+    <ClInclude Include="SNES\Coprocessors\GSU\GsuRomHandler.h" />
+    <ClInclude Include="SNES\Coprocessors\GSU\GsuTypes.h" />
+    <ClInclude Include="Netplay\HandShakeMessage.h" />
+    <ClInclude Include="Debugger\IDebugger.h" />
+    <ClInclude Include="Netplay\InputDataMessage.h" />
+    <ClInclude Include="Shared\InputHud.h" />
+    <ClInclude Include="SNES\InternalRegisterTypes.h" />
+    <ClInclude Include="SNES\MemoryMappings.h" />
+    <ClInclude Include="Shared\Audio\BaseSoundManager.h" />
+    <ClInclude Include="Shared\Video\BaseVideoFilter.h" />
+    <ClInclude Include="Shared\FirmwareHelper.h" />
+    <ClInclude Include="Debugger\Breakpoint.h" />
+    <ClInclude Include="Debugger\BreakpointManager.h" />
+    <ClInclude Include="Debugger\CallstackManager.h" />
+    <ClInclude Include="SNES\CartTypes.h" />
+    <ClInclude Include="Debugger\CodeDataLogger.h" />
+    <ClInclude Include="SNES\SnesConsole.h" />
+    <ClInclude Include="Shared\EmulatorLock.h" />
+    <ClInclude Include="Shared\ControlDeviceState.h" />
+    <ClInclude Include="SNES\SnesControlManager.h" />
+    <ClInclude Include="SNES\SnesCpu.h" />
+    <ClInclude Include="SNES\SnesCpu.Instructions.h" />
+    <ClInclude Include="SNES\Debugger\SnesDisUtils.h" />
+    <ClInclude Include="Debugger\DebugBreakHelper.h" />
+    <ClInclude Include="Shared\Video\DebugStats.h" />
+    <ClInclude Include="SNES\Debugger\DummySnesCpu.h" />
+    <ClInclude Include="SNES\Debugger\DummySpc.h" />
+    <ClInclude Include="Shared\EmuSettings.h" />
+    <ClInclude Include="SNES\Debugger\SnesEventManager.h" />
+    <ClInclude Include="Shared\EventType.h" />
+    <ClInclude Include="Debugger\ExpressionEvaluator.h" />
+    <ClInclude Include="Debugger\LabelManager.h" />
+    <ClInclude Include="Debugger\LuaApi.h" />
+    <ClInclude Include="Debugger\LuaCallHelper.h" />
+    <ClInclude Include="Debugger\MemoryAccessCounter.h" />
+    <ClInclude Include="Netplay\MessageType.h" />
+    <ClInclude Include="Netplay\MovieDataMessage.h" />
+    <ClInclude Include="Shared\Movies\MovieTypes.h" />
+    <ClInclude Include="SNES\Coprocessors\MSU1\Msu1.h" />
+    <ClInclude Include="SNES\Input\Multitap.h" />
+    <ClInclude Include="Shared\Movies\MesenMovie.h" />
+    <ClInclude Include="Shared\Movies\MovieManager.h" />
+    <ClInclude Include="Shared\Movies\MovieRecorder.h" />
+    <ClInclude Include="SNES\Coprocessors\DSP\NecDsp.h" />
+    <ClInclude Include="SNES\Debugger\NecDspDisUtils.h" />
+    <ClInclude Include="SNES\Coprocessors\DSP\NecDspTypes.h" />
+    <ClInclude Include="Netplay\NetMessage.h" />
+    <ClInclude Include="SNES\SnesNtscFilter.h" />
+    <ClInclude Include="SNES\Coprocessors\OBC1\Obc1.h" />
+    <ClInclude Include="Shared\Audio\PcmReader.h" />
+    <ClInclude Include="Netplay\PlayerListMessage.h" />
+    <ClInclude Include="Debugger\PpuTools.h" />
+    <ClInclude Include="Debugger\Profiler.h" />
+    <ClInclude Include="Shared\RecordedRomTest.h" />
+    <ClInclude Include="SNES\RegisterHandlerB.h" />
+    <ClInclude Include="SNES\SnesCpuTypes.h" />
+    <ClInclude Include="Debugger\Debugger.h" />
+    <ClInclude Include="Shared\Video\DebugHud.h" />
+    <ClInclude Include="Debugger\DebugTypes.h" />
+    <ClInclude Include="SNES\SnesDefaultVideoFilter.h" />
+    <ClInclude Include="Debugger\Disassembler.h" />
+    <ClInclude Include="Debugger\DisassemblyInfo.h" />
+    <ClInclude Include="SNES\SnesDmaController.h" />
+    <ClInclude Include="Shared\Video\DrawCommand.h" />
+    <ClInclude Include="Shared\Video\DrawLineCommand.h" />
+    <ClInclude Include="Shared\Video\DrawPixelCommand.h" />
+    <ClInclude Include="Shared\Video\DrawRectangleCommand.h" />
+    <ClInclude Include="Shared\Video\DrawScreenBufferCommand.h" />
+    <ClInclude Include="Shared\Video\DrawStringCommand.h" />
+    <ClInclude Include="Shared\FrameLimiter.h" />
+    <ClInclude Include="Shared\Interfaces\IAudioDevice.h" />
+    <ClInclude Include="Shared\Interfaces\IInputProvider.h" />
+    <ClInclude Include="Shared\Interfaces\IInputRecorder.h" />
+    <ClInclude Include="Shared\Interfaces\IKeyManager.h" />
+    <ClInclude Include="SNES\IMemoryHandler.h" />
+    <ClInclude Include="Shared\Interfaces\IMessageManager.h" />
+    <ClInclude Include="Shared\Interfaces\INotificationListener.h" />
+    <ClInclude Include="SNES\InternalRegisters.h" />
+    <ClInclude Include="Shared\Interfaces\IRenderingDevice.h" />
+    <ClInclude Include="Shared\KeyManager.h" />
+    <ClInclude Include="Debugger\MemoryDumper.h" />
+    <ClInclude Include="SNES\SnesMemoryManager.h" />
+    <ClInclude Include="Shared\MessageManager.h" />
+    <ClInclude Include="Shared\NotificationManager.h" />
+    <ClInclude Include="SNES\SnesPpu.h" />
+    <ClInclude Include="SNES\SnesPpuTypes.h" />
+    <ClInclude Include="SNES\RamHandler.h" />
+    <ClInclude Include="SNES\RegisterHandlerA.h" />
+    <ClInclude Include="Shared\RewindData.h" />
+    <ClInclude Include="Shared\RewindManager.h" />
+    <ClInclude Include="Shared\RomFinder.h" />
+    <ClInclude Include="SNES\RomHandler.h" />
+    <ClInclude Include="SNES\Coprocessors\SPC7110\Rtc4513.h" />
+    <ClInclude Include="SNES\Coprocessors\SA1\Sa1.h" />
+    <ClInclude Include="SNES\Coprocessors\SA1\Sa1BwRamHandler.h" />
+    <ClInclude Include="SNES\Coprocessors\SA1\Sa1Cpu.h" />
+    <ClInclude Include="SNES\Coprocessors\SA1\Sa1IRamHandler.h" />
+    <ClInclude Include="SNES\Coprocessors\SA1\Sa1Types.h" />
+    <ClInclude Include="SNES\Coprocessors\SA1\Sa1VectorHandler.h" />
+    <ClInclude Include="Shared\SaveStateManager.h" />
+    <ClInclude Include="Netplay\SaveStateMessage.h" />
+    <ClInclude Include="Shared\Video\ScaleFilter.h" />
+    <ClInclude Include="Debugger\ScriptHost.h" />
+    <ClInclude Include="Debugger\ScriptingContext.h" />
+    <ClInclude Include="Debugger\ScriptManager.h" />
+    <ClInclude Include="SNES\Coprocessors\SDD1\Sdd1.h" />
+    <ClInclude Include="SNES\Coprocessors\SDD1\Sdd1Decomp.h" />
+    <ClInclude Include="SNES\Coprocessors\SDD1\Sdd1Mmc.h" />
+    <ClInclude Include="SNES\Coprocessors\SDD1\Sdd1Types.h" />
+    <ClInclude Include="Netplay\SelectControllerMessage.h" />
+    <ClInclude Include="Netplay\ServerInformationMessage.h" />
+    <ClInclude Include="Shared\SettingTypes.h" />
+    <ClInclude Include="Shared\ShortcutKeyHandler.h" />
+    <ClInclude Include="SNES\Input\SnesController.h" />
+    <ClInclude Include="Shared\MemoryType.h" />
+    <ClInclude Include="SNES\Input\SnesMouse.h" />
+    <ClInclude Include="Shared\Audio\SoundMixer.h" />
+    <ClInclude Include="Shared\Audio\SoundResampler.h" />
+    <ClInclude Include="SNES\SnesState.h" />
+    <ClInclude Include="SNES\Spc.h" />
+    <ClInclude Include="SNES\Coprocessors\SPC7110\Spc7110.h" />
+    <ClInclude Include="SNES\Coprocessors\SPC7110\Spc7110Decomp.h" />
+    <ClInclude Include="SNES\Debugger\SpcDebugger.h" />
+    <ClInclude Include="SNES\Debugger\SpcDisUtils.h" />
+    <ClInclude Include="Shared\Audio\AudioPlayerHud.h" />
+    <ClInclude Include="SNES\SpcFileData.h" />
+    <ClInclude Include="SNES\SpcTimer.h" />
+    <ClInclude Include="SNES\SpcTypes.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="SNES\Coprocessors\SGB\SuperGameboy.h" />
+    <ClInclude Include="SNES\Input\SuperScope.h" />
+    <ClInclude Include="Shared\SystemActionManager.h" />
+    <ClInclude Include="Shared\Video\VideoDecoder.h" />
+    <ClInclude Include="Shared\Video\VideoRenderer.h" />
+    <ClInclude Include="Shared\Audio\WaveRecorder.h" />
+    <ClInclude Include="Shared\Interfaces\IMouseManager.h" />
+    <ClInclude Include="WS\APU\WsApuCh1.h" />
+    <ClInclude Include="WS\APU\WsApuCh2.h" />
+    <ClInclude Include="WS\APU\WsApuCh3.h" />
+    <ClInclude Include="WS\APU\WsApuCh4.h" />
+    <ClInclude Include="WS\APU\WsHyperVoice.h" />
+    <ClInclude Include="WS\Carts\WsCart.h" />
+    <ClInclude Include="WS\Debugger\DummyWsCpu.h" />
+    <ClInclude Include="WS\Debugger\WsAssembler.h" />
+    <ClInclude Include="WS\Debugger\WsDebugger.h" />
+    <ClInclude Include="WS\Debugger\WsDisUtils.h" />
+    <ClInclude Include="WS\Debugger\WsEventManager.h" />
+    <ClInclude Include="WS\Debugger\WsPpuTools.h" />
+    <ClInclude Include="WS\Debugger\WsTraceLogger.h" />
+    <ClInclude Include="WS\APU\WsApu.h" />
+    <ClInclude Include="WS\WsConsole.h" />
+    <ClInclude Include="WS\WsController.h" />
+    <ClInclude Include="WS\WsControlManager.h" />
+    <ClInclude Include="WS\WsCpu.h" />
+    <ClInclude Include="WS\WsCpuPrefetch.h" />
+    <ClInclude Include="WS\WsDefaultVideoFilter.h" />
+    <ClInclude Include="WS\WsDmaController.h" />
+    <ClInclude Include="WS\WsEeprom.h" />
+    <ClInclude Include="WS\WsMemoryManager.h" />
+    <ClInclude Include="WS\WsPpu.h" />
+    <ClInclude Include="WS\WsSerial.h" />
+    <ClInclude Include="WS\WsTimer.h" />
+    <ClInclude Include="WS\WsTypes.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Debugger\Base6502Assembler.cpp" />
+    <ClCompile Include="Debugger\BaseEventManager.cpp" />
+    <ClCompile Include="Debugger\CdlManager.cpp" />
+    <ClCompile Include="Debugger\DisassemblySearch.cpp" />
+    <ClCompile Include="Debugger\ExpressionEvaluator.St018.cpp" />
+    <ClCompile Include="Debugger\ExpressionEvaluator.Ws.cpp" />
+    <ClCompile Include="Debugger\ExpressionEvaluator.Cx4.cpp" />
+    <ClCompile Include="Debugger\ExpressionEvaluator.Gameboy.cpp" />
+    <ClCompile Include="Debugger\ExpressionEvaluator.Gba.cpp" />
+    <ClCompile Include="Debugger\ExpressionEvaluator.Gsu.cpp" />
+    <ClCompile Include="Debugger\ExpressionEvaluator.NecDsp.cpp" />
+    <ClCompile Include="Debugger\ExpressionEvaluator.Nes.cpp" />
+    <ClCompile Include="Debugger\ExpressionEvaluator.Pce.cpp" />
+    <ClCompile Include="Debugger\ExpressionEvaluator.Sms.cpp" />
+    <ClCompile Include="Debugger\ExpressionEvaluator.Snes.cpp" />
+    <ClCompile Include="Debugger\ExpressionEvaluator.Spc.cpp" />
+    <ClCompile Include="Debugger\StepBackManager.cpp" />
+    <ClCompile Include="Gameboy\Debugger\DummyGbCpu.cpp" />
+    <ClCompile Include="Gameboy\Debugger\GbTraceLogger.cpp" />
+    <ClCompile Include="Gameboy\Debugger\GbPpuTools.cpp" />
+    <ClCompile Include="Gameboy\GbControlManager.cpp" />
+    <ClCompile Include="Gameboy\GbDefaultVideoFilter.cpp" />
+    <ClCompile Include="GBA\APU\GbaApu.cpp" />
+    <ClCompile Include="GBA\APU\GbaNoiseChannel.cpp" />
+    <ClCompile Include="GBA\APU\GbaSquareChannel.cpp" />
+    <ClCompile Include="GBA\APU\GbaWaveChannel.cpp" />
+    <ClCompile Include="GBA\Cart\GbaCart.cpp" />
+    <ClCompile Include="GBA\Cart\GbaGpio.cpp" />
+    <ClCompile Include="GBA\Cart\GbaRtc.cpp" />
+    <ClCompile Include="GBA\Debugger\DummyGbaCpu.cpp" />
+    <ClCompile Include="GBA\Debugger\GbaDebugger.cpp" />
+    <ClCompile Include="GBA\Debugger\GbaDisUtils.cpp" />
+    <ClCompile Include="GBA\Debugger\GbaEventManager.cpp" />
+    <ClCompile Include="GBA\Debugger\GbaPpuTools.cpp" />
+    <ClCompile Include="GBA\Debugger\GbaTraceLogger.cpp" />
+    <ClCompile Include="GBA\GbaConsole.cpp" />
+    <ClCompile Include="GBA\GbaControlManager.cpp" />
+    <ClCompile Include="GBA\GbaCpu.Arm.cpp" />
+    <ClCompile Include="GBA\GbaCpu.cpp" />
+    <ClCompile Include="GBA\GbaCpu.Thumb.cpp" />
+    <ClCompile Include="GBA\GbaDefaultVideoFilter.cpp" />
+    <ClCompile Include="GBA\GbaDmaController.cpp" />
+    <ClCompile Include="GBA\GbaMemoryManager.cpp" />
+    <ClCompile Include="GBA\GbaPpu.cpp" />
+    <ClCompile Include="GBA\GbaTimer.cpp" />
+    <ClCompile Include="NES\BaseNesPpu.cpp" />
+    <ClCompile Include="NES\BisqwitNtscFilter.cpp" />
+    <ClCompile Include="NES\Debugger\DummyNesCpu.cpp" />
+    <ClCompile Include="NES\Debugger\NesPpuTools.cpp" />
+    <ClCompile Include="NES\Debugger\NesAssembler.cpp" />
+    <ClCompile Include="NES\Debugger\NesEventManager.cpp" />
+    <ClCompile Include="NES\Debugger\NesTraceLogger.cpp" />
+    <ClCompile Include="NES\Epsm.cpp" />
+    <ClCompile Include="NES\HdPacks\HdAudioDevice.cpp" />
+    <ClCompile Include="NES\HdPacks\HdNesPack.cpp" />
+    <ClCompile Include="NES\HdPacks\HdNesPpu.cpp" />
+    <ClCompile Include="NES\HdPacks\HdPackBuilder.cpp" />
+    <ClCompile Include="NES\HdPacks\HdPackLoader.cpp" />
+    <ClCompile Include="NES\HdPacks\HdVideoFilter.cpp" />
+    <ClCompile Include="NES\HdPacks\OggMixer.cpp" />
+    <ClCompile Include="NES\HdPacks\OggReader.cpp" />
+    <ClCompile Include="NES\Loaders\FdsLoader.cpp" />
+    <ClCompile Include="NES\Loaders\iNesLoader.cpp" />
+    <ClCompile Include="NES\Loaders\NsfLoader.cpp" />
+    <ClCompile Include="NES\Loaders\RomLoader.cpp" />
+    <ClCompile Include="NES\APU\BaseExpansionAudio.cpp" />
+    <ClCompile Include="NES\Loaders\StudyBoxLoader.cpp" />
+    <ClCompile Include="NES\Loaders\UnifLoader.cpp" />
+    <ClCompile Include="NES\Mappers\Homebrew\Rainbow.cpp" />
+    <ClCompile Include="Shared\Utilities\emu2413.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="NES\Mappers\FDS\Fds.cpp" />
+    <ClCompile Include="NES\Mappers\FDS\FdsAudio.cpp" />
+    <ClCompile Include="NES\Mappers\FDS\FdsInputButtons.cpp" />
+    <ClCompile Include="NES\Mappers\NSF\NsfMapper.cpp" />
+    <ClCompile Include="NES\Mappers\VsSystem\VsControlManager.cpp" />
+    <ClCompile Include="NES\NesNtscFilter.cpp" />
+    <ClCompile Include="PCE\Debugger\PceAssembler.cpp" />
+    <ClCompile Include="PCE\Input\PceTurboTap.cpp" />
+    <ClCompile Include="PCE\Debugger\DummyPceCpu.cpp" />
+    <ClCompile Include="PCE\Debugger\PceDebugger.cpp" />
+    <ClCompile Include="PCE\Debugger\PceDisUtils.cpp" />
+    <ClCompile Include="PCE\Debugger\PceEventManager.cpp" />
+    <ClCompile Include="PCE\Debugger\PceVdcTools.cpp" />
+    <ClCompile Include="PCE\Debugger\PceTraceLogger.cpp" />
+    <ClCompile Include="PCE\CdRom\PceAdpcm.cpp" />
+    <ClCompile Include="PCE\CdRom\PceArcadeCard.cpp" />
+    <ClCompile Include="PCE\CdRom\PceAudioFader.cpp" />
+    <ClCompile Include="PCE\CdRom\PceCdAudioPlayer.cpp" />
+    <ClCompile Include="PCE\CdRom\PceCdRom.cpp" />
+    <ClCompile Include="PCE\PceConsole.cpp" />
+    <ClCompile Include="PCE\PceControlManager.cpp" />
+    <ClCompile Include="PCE\PceCpu.cpp" />
+    <ClCompile Include="PCE\PceCpu.Instructions.cpp" />
+    <ClCompile Include="PCE\PceMemoryManager.cpp" />
+    <ClCompile Include="PCE\PceNtscFilter.cpp" />
+    <ClCompile Include="PCE\PceVdc.cpp" />
+    <ClCompile Include="PCE\PcePsg.cpp" />
+    <ClCompile Include="PCE\PcePsgChannel.cpp" />
+    <ClCompile Include="PCE\CdRom\PceScsiBus.cpp" />
+    <ClCompile Include="PCE\PceSf2RomMapper.cpp" />
+    <ClCompile Include="PCE\PceTimer.cpp" />
+    <ClCompile Include="PCE\PceVce.cpp" />
+    <ClCompile Include="PCE\PceVpc.cpp" />
+    <ClCompile Include="Shared\BaseControlManager.cpp" />
+    <ClCompile Include="NES\NesDefaultVideoFilter.cpp" />
+    <ClCompile Include="NES\BaseMapper.cpp" />
+    <ClCompile Include="NES\NesControlManager.cpp" />
+    <ClCompile Include="NES\APU\DeltaModulationChannel.cpp" />
+    <ClCompile Include="NES\GameDatabase.cpp" />
+    <ClCompile Include="NES\MapperFactory.cpp" />
+    <ClCompile Include="NES\APU\NesApu.cpp" />
+    <ClCompile Include="NES\NesConsole.cpp" />
+    <ClCompile Include="NES\NesCpu.cpp" />
+    <ClCompile Include="NES\Debugger\NesDisUtils.cpp" />
+    <ClCompile Include="NES\Debugger\NesDebugger.cpp" />
+    <ClCompile Include="NES\NesHeader.cpp" />
+    <ClCompile Include="NES\NesMemoryManager.cpp" />
+    <ClCompile Include="NES\NesPpu.cpp" />
+    <ClCompile Include="NES\NesSoundMixer.cpp" />
+    <ClCompile Include="Shared\CdReader.cpp" />
+    <ClCompile Include="Shared\DebuggerRequest.cpp" />
+    <ClCompile Include="Shared\HistoryViewer.cpp" />
+    <ClCompile Include="Shared\Video\DrawStringCommand.cpp" />
+    <ClCompile Include="Shared\Video\RotateFilter.cpp" />
+    <ClCompile Include="Shared\Video\SoftwareRenderer.cpp" />
+    <ClCompile Include="Shared\Video\SystemHud.cpp" />
+    <ClCompile Include="Genesis\Ares\libco\libco.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="Genesis\Ares\nall\nall\nall.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
+    <!-- sljit JIT compiler (C file, custom allocator via sljitConfigPre/Post.h) -->
+    <ClCompile Include="Genesis\Ares\thirdparty\sljit\sljit_src\sljitLir.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SLJIT_HAVE_CONFIG_PRE=1;SLJIT_HAVE_CONFIG_POST=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CompileAs>CompileAsC</CompileAs>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
+    <!-- sljit allocator: bridges nall::bump_allocator to sljit's memory API -->
+    <ClCompile Include="Genesis\Ares\thirdparty\sljitAllocator.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\thirdparty;$(ProjectDir)\Genesis\Ares\nall;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SLJIT_HAVE_CONFIG_PRE=1;SLJIT_HAVE_CONFIG_POST=1;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
+    <!-- Ares component implementations: compiled as separate TUs to avoid
+         macro-pollution issues (sh2.cpp etc. define global #defines).
+         Each needs NotUsing PCH, extensions enabled, and ares include dirs. -->
+    <ClCompile Include="Genesis\Ares\component\processor\m68000\m68000.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="Genesis\Ares\component\processor\z80\z80.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="Genesis\Ares\component\processor\sh2\sh2.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="Genesis\Ares\component\processor\ssp1601\ssp1601.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="Genesis\Ares\audio\sn76489\sn76489.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="Genesis\Ares\audio\ym2612\ym2612.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="Genesis\Ares\component\eeprom\m24c\m24c.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="Genesis\GenesisAresCore.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="Genesis\GenesisConsole.cpp" />
+    <ClCompile Include="Genesis\GenesisControlManager.cpp" />
+    <ClCompile Include="Genesis\Debugger\GenesisDebugger.cpp" />
+    <ClCompile Include="Genesis\Debugger\GenesisDisUtils.cpp" />
+    <ClCompile Include="Genesis\Debugger\GenesisEventManager.cpp" />
+    <ClCompile Include="Genesis\Debugger\GenesisTraceLogger.cpp" />
+    <ClCompile Include="SMS\Carts\SmsCart.cpp" />
+    <ClCompile Include="SMS\Debugger\DummySmsCpu.cpp" />
+    <ClCompile Include="SMS\Debugger\SmsAssembler.cpp" />
+    <ClCompile Include="SMS\Debugger\SmsDebugger.cpp" />
+    <ClCompile Include="SMS\Debugger\SmsDisUtils.cpp" />
+    <ClCompile Include="SMS\Debugger\SmsEventManager.cpp" />
+    <ClCompile Include="SMS\Debugger\SmsTraceLogger.cpp" />
+    <ClCompile Include="SMS\Debugger\SmsVdpTools.cpp" />
+    <ClCompile Include="SMS\SmsBiosMapper.cpp" />
+    <ClCompile Include="SMS\SmsConsole.cpp" />
+    <ClCompile Include="SMS\SmsControlManager.cpp" />
+    <ClCompile Include="SMS\SmsCpu.cpp" />
+    <ClCompile Include="SMS\SmsFmAudio.cpp" />
+    <ClCompile Include="SMS\SmsMemoryManager.cpp" />
+    <ClCompile Include="SMS\SmsNtscFilter.cpp" />
+    <ClCompile Include="SMS\SmsPsg.cpp" />
+    <ClCompile Include="SMS\SmsVdp.cpp" />
+    <ClCompile Include="SNES\AluMulDiv.cpp" />
+    <ClCompile Include="SNES\Coprocessors\ST018\ArmV3Cpu.cpp" />
+    <ClCompile Include="SNES\Coprocessors\ST018\St018.cpp" />
+    <ClCompile Include="SNES\Debugger\DummyArmV3Cpu.cpp" />
+    <ClCompile Include="SNES\Debugger\DummySnesCpu.cpp" />
+    <ClCompile Include="SNES\Debugger\DummySpc.cpp" />
+    <ClCompile Include="SNES\Debugger\SnesPpuTools.cpp" />
+    <ClCompile Include="SNES\Debugger\SnesAssembler.cpp" />
+    <ClCompile Include="SNES\BaseCartridge.cpp" />
+    <ClCompile Include="Shared\BaseControlDevice.cpp" />
+    <ClCompile Include="Shared\Audio\BaseSoundManager.cpp" />
+    <ClCompile Include="Shared\Video\BaseVideoFilter.cpp" />
+    <ClCompile Include="Shared\BatteryManager.cpp" />
+    <ClCompile Include="Debugger\Breakpoint.cpp" />
+    <ClCompile Include="Debugger\BreakpointManager.cpp" />
+    <ClCompile Include="SNES\Coprocessors\BSX\BsxCart.cpp" />
+    <ClCompile Include="SNES\Coprocessors\BSX\BsxMemoryPack.cpp" />
+    <ClCompile Include="SNES\Coprocessors\BSX\BsxSatellaview.cpp" />
+    <ClCompile Include="SNES\Coprocessors\BSX\BsxStream.cpp" />
+    <ClCompile Include="Debugger\CallstackManager.cpp" />
+    <ClCompile Include="Shared\CheatManager.cpp" />
+    <ClCompile Include="Debugger\CodeDataLogger.cpp" />
+    <ClCompile Include="SNES\Debugger\St018Debugger.cpp" />
+    <ClCompile Include="SNES\Debugger\St018DisUtils.cpp" />
+    <ClCompile Include="SNES\Debugger\TraceLogger\St018TraceLogger.cpp" />
+    <ClCompile Include="SNES\DSP\Dsp.cpp" />
+    <ClCompile Include="SNES\DSP\DspVoice.cpp" />
+    <ClCompile Include="SNES\Input\SnesRumbleController.cpp" />
+    <ClCompile Include="SNES\SnesConsole.cpp" />
+    <ClCompile Include="Shared\EmulatorLock.cpp" />
+    <ClCompile Include="SNES\SnesControlManager.cpp" />
+    <ClCompile Include="SNES\SnesCpu.cpp" />
+    <ClCompile Include="SNES\Debugger\SnesDebugger.cpp" />
+    <ClCompile Include="SNES\Debugger\SnesDisUtils.cpp" />
+    <ClCompile Include="SNES\Coprocessors\CX4\Cx4.cpp" />
+    <ClCompile Include="SNES\Coprocessors\CX4\Cx4.Instructions.cpp" />
+    <ClCompile Include="SNES\Debugger\Cx4Debugger.cpp" />
+    <ClCompile Include="SNES\Debugger\Cx4DisUtils.cpp" />
+    <ClCompile Include="Debugger\Debugger.cpp" />
+    <ClCompile Include="Shared\Video\DebugHud.cpp" />
+    <ClCompile Include="Shared\Video\DebugStats.cpp" />
+    <ClCompile Include="SNES\Debugger\TraceLogger\Cx4TraceLogger.cpp" />
+    <ClCompile Include="SNES\Debugger\TraceLogger\NecDspTraceLogger.cpp" />
+    <ClCompile Include="SNES\Debugger\TraceLogger\GsuTraceLogger.cpp" />
+    <ClCompile Include="SNES\Debugger\TraceLogger\SpcTraceLogger.cpp" />
+    <ClCompile Include="SNES\Debugger\TraceLogger\SnesCpuTraceLogger.cpp" />
+    <ClCompile Include="SNES\SnesDefaultVideoFilter.cpp" />
+    <ClCompile Include="Debugger\Disassembler.cpp" />
+    <ClCompile Include="Debugger\DisassemblyInfo.cpp" />
+    <ClCompile Include="SNES\SnesDmaController.cpp" />
+    <ClCompile Include="Shared\Emulator.cpp" />
+    <ClCompile Include="Gameboy\Gameboy.cpp" />
+    <ClCompile Include="Gameboy\Debugger\GameboyDisUtils.cpp" />
+    <ClCompile Include="Gameboy\APU\GbApu.cpp" />
+    <ClCompile Include="Gameboy\Debugger\GbAssembler.cpp" />
+    <ClCompile Include="Gameboy\GbCpu.cpp" />
+    <ClCompile Include="Gameboy\Debugger\GbDebugger.cpp" />
+    <ClCompile Include="Gameboy\GbDmaController.cpp" />
+    <ClCompile Include="Gameboy\Debugger\GbEventManager.cpp" />
+    <ClCompile Include="Gameboy\GbMemoryManager.cpp" />
+    <ClCompile Include="Gameboy\APU\GbNoiseChannel.cpp" />
+    <ClCompile Include="Gameboy\GbPpu.cpp" />
+    <ClCompile Include="Gameboy\APU\GbSquareChannel.cpp" />
+    <ClCompile Include="Gameboy\GbTimer.cpp" />
+    <ClCompile Include="Gameboy\APU\GbWaveChannel.cpp" />
+    <ClCompile Include="SNES\Debugger\NecDspDebugger.cpp" />
+    <ClCompile Include="Shared\EmuSettings.cpp" />
+    <ClCompile Include="SNES\Debugger\SnesEventManager.cpp" />
+    <ClCompile Include="Debugger\ExpressionEvaluator.cpp" />
+    <ClCompile Include="Netplay\GameClient.cpp" />
+    <ClCompile Include="Netplay\GameClientConnection.cpp" />
+    <ClCompile Include="Netplay\GameConnection.cpp" />
+    <ClCompile Include="Netplay\GameServer.cpp" />
+    <ClCompile Include="Netplay\GameServerConnection.cpp" />
+    <ClCompile Include="SNES\Coprocessors\GSU\Gsu.cpp" />
+    <ClCompile Include="SNES\Coprocessors\GSU\Gsu.Instructions.cpp" />
+    <ClCompile Include="SNES\Debugger\GsuDebugger.cpp" />
+    <ClCompile Include="SNES\Debugger\GsuDisUtils.cpp" />
+    <ClCompile Include="Shared\InputHud.cpp" />
+    <ClCompile Include="SNES\InternalRegisters.cpp" />
+    <ClCompile Include="Shared\KeyManager.cpp" />
+    <ClCompile Include="Debugger\LabelManager.cpp" />
+    <ClCompile Include="Debugger\LuaApi.cpp" />
+    <ClCompile Include="Debugger\LuaCallHelper.cpp" />
+    <ClCompile Include="Debugger\MemoryAccessCounter.cpp" />
+    <ClCompile Include="Debugger\MemoryDumper.cpp" />
+    <ClCompile Include="SNES\SnesMemoryManager.cpp" />
+    <ClCompile Include="SNES\MemoryMappings.cpp" />
+    <ClCompile Include="Shared\Movies\MesenMovie.cpp" />
+    <ClCompile Include="Shared\MessageManager.cpp" />
+    <ClCompile Include="Shared\Movies\MovieManager.cpp" />
+    <ClCompile Include="Shared\Movies\MovieRecorder.cpp" />
+    <ClCompile Include="SNES\Coprocessors\MSU1\Msu1.cpp" />
+    <ClCompile Include="SNES\Input\Multitap.cpp" />
+    <ClCompile Include="SNES\Coprocessors\DSP\NecDsp.cpp" />
+    <ClCompile Include="SNES\Debugger\NecDspDisUtils.cpp" />
+    <ClCompile Include="Shared\NotificationManager.cpp" />
+    <ClCompile Include="SNES\SnesNtscFilter.cpp" />
+    <ClCompile Include="SNES\Coprocessors\OBC1\Obc1.cpp" />
+    <ClCompile Include="Shared\Audio\PcmReader.cpp" />
+    <ClCompile Include="SNES\SnesPpu.cpp" />
+    <ClCompile Include="Debugger\PpuTools.cpp" />
+    <ClCompile Include="Debugger\Profiler.cpp" />
+    <ClCompile Include="Shared\RecordedRomTest.cpp" />
+    <ClCompile Include="SNES\RegisterHandlerB.cpp" />
+    <ClCompile Include="Shared\RewindData.cpp" />
+    <ClCompile Include="Shared\RewindManager.cpp" />
+    <ClCompile Include="SNES\Coprocessors\SPC7110\Rtc4513.cpp" />
+    <ClCompile Include="SNES\Coprocessors\SA1\Sa1.cpp" />
+    <ClCompile Include="SNES\Coprocessors\SA1\Sa1Cpu.cpp" />
+    <ClCompile Include="Shared\SaveStateManager.cpp" />
+    <ClCompile Include="Shared\Video\ScaleFilter.cpp" />
+    <ClCompile Include="Debugger\ScriptHost.cpp" />
+    <ClCompile Include="Debugger\ScriptingContext.cpp" />
+    <ClCompile Include="Debugger\ScriptManager.cpp" />
+    <ClCompile Include="SNES\Coprocessors\SDD1\Sdd1.cpp" />
+    <ClCompile Include="SNES\Coprocessors\SDD1\Sdd1Decomp.cpp" />
+    <ClCompile Include="SNES\Coprocessors\SDD1\Sdd1Mmc.cpp" />
+    <ClCompile Include="Shared\ShortcutKeyHandler.cpp" />
+    <ClCompile Include="SNES\Input\SnesController.cpp" />
+    <ClCompile Include="Shared\Audio\SoundMixer.cpp" />
+    <ClCompile Include="Shared\Audio\SoundResampler.cpp" />
+    <ClCompile Include="SNES\Spc.cpp" />
+    <ClCompile Include="SNES\Spc.Instructions.cpp" />
+    <ClCompile Include="SNES\Coprocessors\SPC7110\Spc7110.cpp" />
+    <ClCompile Include="SNES\Coprocessors\SPC7110\Spc7110Decomp.cpp" />
+    <ClCompile Include="SNES\Debugger\SpcDebugger.cpp" />
+    <ClCompile Include="SNES\Debugger\SpcDisUtils.cpp" />
+    <ClCompile Include="Shared\Audio\AudioPlayerHud.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">Create</PrecompiledHeader>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="SNES\Coprocessors\SGB\SuperGameboy.cpp" />
+    <ClCompile Include="Shared\Video\VideoDecoder.cpp" />
+    <ClCompile Include="Shared\Video\VideoRenderer.cpp" />
+    <ClCompile Include="Shared\Audio\WaveRecorder.cpp" />
+    <ClCompile Include="WS\APU\WsApu.cpp" />
+    <ClCompile Include="WS\Carts\WsCart.cpp" />
+    <ClCompile Include="WS\Debugger\DummyWsCpu.cpp" />
+    <ClCompile Include="WS\Debugger\WsDebugger.cpp" />
+    <ClCompile Include="WS\Debugger\WsDisUtils.cpp" />
+    <ClCompile Include="WS\Debugger\WsEventManager.cpp" />
+    <ClCompile Include="WS\Debugger\WsPpuTools.cpp" />
+    <ClCompile Include="WS\Debugger\WsTraceLogger.cpp" />
+    <ClCompile Include="WS\WsConsole.cpp" />
+    <ClCompile Include="WS\WsControlManager.cpp" />
+    <ClCompile Include="WS\WsCpu.cpp" />
+    <ClCompile Include="WS\WsCpuPrefetch.cpp" />
+    <ClCompile Include="WS\WsDefaultVideoFilter.cpp" />
+    <ClCompile Include="WS\WsDmaController.cpp" />
+    <ClCompile Include="WS\WsEeprom.cpp" />
+    <ClCompile Include="WS\WsMemoryManager.cpp" />
+    <ClCompile Include="WS\WsPpu.cpp" />
+    <ClCompile Include="WS\WsSerial.cpp" />
+    <ClCompile Include="WS\WsTimer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Core.ruleset" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{78FEF1A1-6DF1-4CBB-A373-AE6FA7CE5CE0}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Core</RootNamespace>
+    <ProjectName>Core</ProjectName>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(SolutionDir);$(ProjectDir);$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)\bin\win-$(PlatformTarget)\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
+    <CodeAnalysisRuleSet>Core.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)\bin\win-$(PlatformTarget)\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
+    <EnableMicrosoftCodeAnalysis>true</EnableMicrosoftCodeAnalysis>
+    <IncludePath>$(SolutionDir);$(ProjectDir);$(IncludePath)</IncludePath>
+    <CodeAnalysisRuleSet>Core.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)\bin\win-$(PlatformTarget)\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
+    <IncludePath>$(SolutionDir);$(ProjectDir);$(IncludePath)</IncludePath>
+    <CodeAnalysisRuleSet>Core.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)\bin\win-$(PlatformTarget)\PGO Profile\</OutDir>
+    <IntDir>obj\$(Platform)\PGO Profile\</IntDir>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
+    <IncludePath>$(SolutionDir);$(ProjectDir);$(IncludePath)</IncludePath>
+    <CodeAnalysisRuleSet>Core.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <InlineFunctionExpansion>
+      </InlineFunctionExpansion>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ProgramDataBaseFileName>$(IntDir)Core.compile.pdb</ProgramDataBaseFileName>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <CallingConvention>Cdecl</CallingConvention>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
+      <ShowIncludes>
+      </ShowIncludes>
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <Profile>
+      </Profile>
+      <OptimizeReferences>
+      </OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <OmitFramePointers>true</OmitFramePointers>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <ShowIncludes>
+      </ShowIncludes>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <RuntimeTypeInfo>
+      </RuntimeTypeInfo>
+      <ProgramDataBaseFileName>$(IntDir)Core.compile.pdb</ProgramDataBaseFileName>
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>MESENOPTIMIZE;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <OmitFramePointers>true</OmitFramePointers>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <ShowIncludes>
+      </ShowIncludes>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <ProgramDataBaseFileName>$(IntDir)Core.compile.pdb</ProgramDataBaseFileName>
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>MESENOPTIMIZE;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <OmitFramePointers>true</OmitFramePointers>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <ShowIncludes>
+      </ShowIncludes>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <ProgramDataBaseFileName>$(IntDir)Core.compile.pdb</ProgramDataBaseFileName>
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

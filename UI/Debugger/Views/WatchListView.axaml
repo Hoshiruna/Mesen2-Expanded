@@ -1,0 +1,92 @@
+<UserControl
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:c="using:Mesen.Debugger.Controls"
+	xmlns:v="using:Mesen.Debugger.Views"
+	xmlns:vm="using:Mesen.Debugger.ViewModels"
+	xmlns:md="using:Mesen.Debugger"
+	xmlns:l="using:Mesen.Localization"
+	mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="110"
+	VerticalAlignment="Stretch"
+	HorizontalAlignment="Stretch"
+	Focusable="True"
+	x:DataType="vm:WatchListViewModel"
+	x:Class="Mesen.Debugger.Views.WatchListView"
+>
+	<Design.DataContext>
+		<vm:WatchListViewModel />
+	</Design.DataContext>
+
+	<UserControl.Styles>
+		<Style Selector="TextBox">
+			<Setter Property="Margin" Value="1 0 0 0" />
+			<Setter Property="Padding" Value="3 0 0 0" />
+			<Setter Property="MinHeight" Value="16" />
+			<Setter Property="Height" Value="16" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="Background" Value="Transparent" />
+		</Style>
+		<Style Selector="DataBoxRow TextBox:pointerover Border#PART_BorderElement">
+			<Setter Property="Background" Value="Transparent" />
+		</Style>
+		<Style Selector="DataBoxRow TextBox:pointerover:focus Border#PART_BorderElement">
+			<Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
+		</Style>
+		<Style Selector="DataBoxRow:selected TextBox">
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+		<Style Selector="DataBoxRow:selected TextBox:focus">
+			<Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
+			<Setter Property="Foreground" Value="{DynamicResource ThemeForegroundBrush}" />
+		</Style>
+		<Style Selector="TextBlock.changed">
+			<Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+		</Style>
+		<Style Selector="DataBoxRow:selected TextBlock.changed">
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+	</UserControl.Styles>
+
+	<Border BorderThickness="0 1 0 0" BorderBrush="{StaticResource MesenGrayBorderColor}">
+		<DataBox
+			Name="WatchList"
+			Items="{Binding WatchEntries}"
+			Selection="{Binding Selection}"
+			SelectionMode="Multiple"
+			GridLinesVisibility="All"
+			ColumnWidths="{Binding ColumnWidths}"
+			DisableSearch="True"
+		>
+			<DataBox.Columns>
+				<DataBoxTemplateColumn Header="{l:Translate colName}" CanUserResize="True" InitialWidth="200">
+					<DataTemplate>
+						<v:WatchListTextBox
+							Classes="PreventShortcuts"
+							Name="WatchTextBox"
+							ContextFlyout="{x:Null}"
+							ContextRequested="OnEntryContextRequested"
+							Text="{Binding Expression, DataType={x:Type md:WatchValueInfo}}"
+							LostFocus="OnEntryLostFocus"
+							KeyDown="OnEntryKeyDown"
+							Watermark="Click to add..."
+						/>
+					</DataTemplate>
+				</DataBoxTemplateColumn>
+				<DataBoxTemplateColumn Header="{l:Translate colValue}" CanUserResize="True" InitialWidth="100">
+					<DataTemplate>
+						<TextBlock
+							Padding="3 0 0 0"
+							VerticalAlignment="Center"
+							x:DataType="md:WatchValueInfo"
+							Text="{Binding Value}"
+							Classes.changed="{Binding IsChanged}"
+						/>
+					</DataTemplate>
+				</DataBoxTemplateColumn>
+			</DataBox.Columns>
+		</DataBox>
+	</Border>
+</UserControl>

@@ -1,0 +1,65 @@
+<UserControl
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:vm="using:Mesen.Debugger.ViewModels"
+	xmlns:c="using:Mesen.Debugger.Controls"
+	xmlns:du="using:Mesen.Debugger.Utilities"
+	xmlns:l="using:Mesen.Localization"
+	mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="110"
+	VerticalAlignment="Stretch"
+	HorizontalAlignment="Stretch"
+	Focusable="True"
+	x:DataType="vm:FunctionListViewModel"
+	x:Class="Mesen.Debugger.Views.FunctionListView"
+>
+	<Design.DataContext>
+		<vm:FunctionListViewModel />
+	</Design.DataContext>
+
+	<UserControl.Styles>
+		<Style Selector="DataBoxRow">
+			<Setter Property="Foreground" Value="{Binding RowBrush, DataType={x:Type vm:FunctionViewModel}}" />
+			<Setter Property="FontStyle" Value="{Binding RowStyle, DataType={x:Type vm:FunctionViewModel}}" />
+		</Style>
+	</UserControl.Styles>
+
+	<Border BorderThickness="0 1 0 0" BorderBrush="{StaticResource MesenGrayBorderColor}">
+		<DataBox
+			Items="{Binding Functions}"
+			Selection="{Binding Selection}"
+			GridLinesVisibility="All"
+			SelectionMode="Multiple"
+			SortMode="Multiple"
+			SortCommand="{Binding Sort}"
+			SortState="{Binding SortState}"
+			CellDoubleClick="OnCellDoubleClick"
+			ColumnWidths="{Binding ColumnWidths}"
+		>
+			<DataBox.Columns>
+				<DataBoxTextColumn
+					ColumnName="Function"
+					Header="{l:Translate colFunction}"
+					Binding="{Binding LabelName, DataType={x:Type vm:FunctionViewModel}}"
+					CanUserResize="True"
+					InitialWidth="100"
+				/>
+				<DataBoxTextColumn
+					ColumnName="RelAddr"
+					Header="{l:Translate colCpuAddr}"
+					Binding="{Binding RelAddressDisplay, DataType={x:Type vm:FunctionViewModel}}"
+					CanUserResize="True"
+					InitialWidth="80"
+				/>
+				<DataBoxTextColumn
+					ColumnName="AbsAddr"
+					Header="{l:Translate colRomAddr}"
+					Binding="{Binding AbsAddressDisplay, DataType={x:Type vm:FunctionViewModel}}"
+					CanUserResize="True"
+					InitialWidth="80"
+				/>
+			</DataBox.Columns>
+		</DataBox>
+	</Border>
+</UserControl>

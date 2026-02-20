@@ -1,0 +1,46 @@
+<UserControl 
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:dc="using:Mesen.Debugger.Controls"
+	xmlns:u="using:Mesen.Utilities"
+	mc:Ignorable="d"
+	x:Name="root"
+	x:Class="Mesen.Debugger.Controls.ScrollPictureViewer"
+>
+	<Border BorderBrush="Gray" BorderThickness="1">
+		<ScrollViewer
+			Name="scrollViewer"
+			VerticalScrollBarVisibility="{Binding ScrollBarVisibility, ElementName=root}"
+			HorizontalScrollBarVisibility="{Binding ScrollBarVisibility, ElementName=root}"
+			AllowAutoHide="False"
+			Offset="{Binding ScrollOffset, ElementName=root, Mode=TwoWay}"
+		>
+			<Border Background="{StaticResource ViewerBgBrush}" HorizontalAlignment="Left" VerticalAlignment="Top">
+				<dc:PictureViewer
+					x:Name="picViewer"
+					PointerPressed="Viewer_PointerPressed"
+					PointerMoved="Viewer_PointerMoved"
+					Source="{Binding Source, ElementName=root}"
+					Zoom="{Binding Zoom, ElementName=root}"
+					AllowSelection="{Binding AllowSelection, ElementName=root}"
+					ShowMousePosition="{Binding ShowMousePosition, ElementName=root}"
+					GridSizeX="{Binding GridSizeX, ElementName=root}"
+					GridSizeY="{Binding GridSizeY, ElementName=root}"
+					ShowGrid="{Binding ShowGrid, ElementName=root}"
+					CustomGrids="{Binding CustomGrids, ElementName=root}"
+					SelectionRect="{Binding SelectionRect, ElementName=root}"
+					OverlayRect="{Binding OverlayRect, ElementName=root}"
+					MouseOverRect="{Binding MouseOverRect, ElementName=root}"
+					OverlayLines="{Binding OverlayLines, ElementName=root}"
+					GridHighlight="{Binding GridHighlight, ElementName=root}"
+					TopClipSize="{Binding TopClipSize, ElementName=root}"
+					BottomClipSize="{Binding BottomClipSize, ElementName=root}"
+					LeftClipSize="{Binding LeftClipSize, ElementName=root}"
+					RightClipSize="{Binding RightClipSize, ElementName=root}"
+				/>
+			</Border>
+		</ScrollViewer>
+	</Border>
+</UserControl>

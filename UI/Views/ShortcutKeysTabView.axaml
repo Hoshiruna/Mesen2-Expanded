@@ -1,0 +1,48 @@
+<UserControl
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:vm="using:Mesen.ViewModels"
+	xmlns:c="using:Mesen.Controls"
+	xmlns:cfg="using:Mesen.Config"
+	xmlns:cs="using:Mesen.Config.Shortcuts"
+	xmlns:l="using:Mesen.Localization"
+	mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="450"
+	VerticalAlignment="Top"
+	HorizontalAlignment="Stretch"
+	x:Name="root"
+	x:Class="Mesen.Views.ShortcutKeysTabView"
+>
+	<UserControl.Resources>
+		<l:EnumConverter x:Key="EnumConverter" />
+	</UserControl.Resources>
+
+	<DockPanel>
+		<Border BorderThickness="0 0 0 1" BorderBrush="{StaticResource MesenGrayBorderColor}" DockPanel.Dock="Top">
+			<Grid ColumnDefinitions="3*, 1*, 1*" Margin="{Binding HeaderMargin, ElementName=root}">
+				<TextBlock Grid.Column="0" Text="{l:Translate colAction}"  />
+				<TextBlock Grid.Column="1" Text="{l:Translate colBinding1}" HorizontalAlignment="Center" />
+				<TextBlock Grid.Column="2" Text="{l:Translate colBinding2}" HorizontalAlignment="Center" />
+			</Grid>
+		</Border>
+		
+		<ScrollViewer AllowAutoHide="False">
+			<ItemsControl ItemsSource="{Binding ShortcutKeys, ElementName=root}">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate DataType="{x:Type cs:ShortcutKeyInfo}">
+						<StackPanel>
+							<Border BorderBrush="{StaticResource MesenGrayBorderColor}" BorderThickness="1" Margin="0 -1 0 0">
+								<Grid ColumnDefinitions="3*, 1*, 1*" Margin="5 0 0 0">
+									<TextBlock Grid.Column="0" Text="{Binding Shortcut, Converter={StaticResource EnumConverter}}" />
+									<c:MultiKeyBindingButton Grid.Column="1" KeyBinding="{Binding KeyCombination}" HorizontalAlignment="Stretch"  />
+									<c:MultiKeyBindingButton Grid.Column="2" KeyBinding="{Binding KeyCombination2}" HorizontalAlignment="Stretch" />
+								</Grid>
+							</Border>
+						</StackPanel>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</ScrollViewer>
+	</DockPanel>
+</UserControl>

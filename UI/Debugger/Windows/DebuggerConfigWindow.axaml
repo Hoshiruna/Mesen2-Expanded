@@ -1,0 +1,307 @@
+<Window
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:m="clr-namespace:Mesen"
+	xmlns:dvm="using:Mesen.Debugger.ViewModels"
+	xmlns:v="using:Mesen.Views"
+	xmlns:cfg="using:Mesen.Config"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:c="using:Mesen.Controls"
+	xmlns:dc="using:Mesen.Debugger.Controls"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d" d:DesignWidth="620" d:DesignHeight="500"
+	x:DataType="dvm:DebuggerConfigWindowViewModel"
+	x:Class="Mesen.Debugger.Windows.DebuggerConfigWindow"
+	Width="620" Height="500"
+	Title="{l:Translate wndTitle}"
+>
+	<Design.DataContext>
+		<dvm:DebuggerConfigWindowViewModel />
+	</Design.DataContext>
+
+	<DockPanel>
+		<Panel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Background="#2888">
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="5 3">
+				<Button MinWidth="70" HorizontalContentAlignment="Center" Click="Ok_OnClick" Content="{l:Translate btnOK}" />
+				<Button MinWidth="70" HorizontalContentAlignment="Center" Click="Cancel_OnClick" Content="{l:Translate btnCancel}" />
+			</StackPanel>
+		</Panel>
+		
+		<TabControl TabStripPlacement="Left" Background="#20888888" SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}" Padding="0">
+			<TabItem>
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/Debugger.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabDebugger}"/>
+					</StackPanel>
+				</TabItem.Header>
+
+				<StackPanel Margin="5">
+					<c:OptionSection Header="{l:Translate lblGeneralSettings}" Margin="0">
+						<CheckBox
+							IsChecked="{Binding Debugger.AutoResetCdl}"
+							Content="{l:Translate chkAutoResetCdl}"
+						/>
+						<CheckBox
+							IsChecked="{Binding Debugger.DisableDefaultLabels}"
+							Content="{l:Translate chkDisableDefaultLabels}"
+						/>
+					</c:OptionSection>
+					
+					<c:OptionSection Header="{l:Translate lblDisassemblySettings}">
+						<CheckBox
+							IsChecked="{Binding Debugger.KeepActiveStatementInCenter}"
+							Content="{l:Translate chkKeepActiveStatementInCenter}"
+						/>
+					</c:OptionSection>
+					
+					<c:OptionSection Header="{l:Translate lblCopyCodeSettings}">
+						<CheckBox
+							IsChecked="{Binding Debugger.CopyAddresses}"
+							Content="{l:Translate chkCopyAddresses}"
+						/>
+						<CheckBox
+							IsChecked="{Binding Debugger.CopyBlockHeaders}"
+							Content="{l:Translate chkCopyBlockHeaders}"
+						/>
+						<CheckBox
+							IsChecked="{Binding Debugger.CopyByteCode}"
+							Content="{l:Translate chkCopyByteCode}"
+						/>
+						<CheckBox
+							IsChecked="{Binding Debugger.CopyComments}"
+							Content="{l:Translate chkCopyComments}"
+						/>
+					</c:OptionSection>
+				</StackPanel>
+			</TabItem>
+			<TabItem>
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/Script.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabScriptWindow}" />
+					</StackPanel>
+				</TabItem.Header>
+
+				<StackPanel Margin="5">
+					<c:OptionSection Header="{l:Translate lblGeneralSettings}" Margin="0">
+						<WrapPanel>
+							<TextBlock Text="{l:Translate lblScriptStartupBehavior}" VerticalAlignment="Center" />
+							<c:EnumComboBox SelectedItem="{Binding Script.ScriptStartupBehavior}" />
+						</WrapPanel>
+						<CheckBox IsChecked="{Binding Script.SaveScriptBeforeRun}" Content="{l:Translate chkSaveScriptBeforeRun}" />
+						<CheckBox IsChecked="{Binding Script.AutoStartScriptOnLoad}" Content="{l:Translate chkAutoStartScriptOnLoad}" />
+						<CheckBox IsChecked="{Binding Script.AutoRestartScriptAfterPowerCycle}" Content="{l:Translate chkAutoRestartScriptAfterPowerCycle}" />
+						<CheckBox IsChecked="{Binding Script.AutoReloadScriptWhenFileChanges}" Content="{l:Translate chkAutoReloadScriptWhenFileChanges}" />
+					</c:OptionSection>
+
+					<c:OptionSection Header="{l:Translate lblDisplaySettings}">
+						<CheckBox IsChecked="{Binding Script.ShowLineNumbers}" Content="{l:Translate chkShowLineNumbers}" />
+					</c:OptionSection>
+					
+					<c:OptionSection Header="{l:Translate lblRestrictions}">
+						<StackPanel Orientation="Horizontal">
+							<TextBlock Text="{l:Translate lblMaxExecutionTime}" />
+							<c:MesenNumericUpDown Margin="3 0" Minimum="1" Maximum="100" Value="{Binding Script.ScriptTimeout}" />
+							<TextBlock Text="{l:Translate lblSeconds}" />
+						</StackPanel>
+						<CheckBox IsChecked="{Binding Script.AllowIoOsAccess}" Content="{l:Translate chkAllowIoOsAccess}" />
+						<CheckBox
+							IsChecked="{Binding Script.AllowNetworkAccess}"
+							IsVisible="{Binding Script.AllowIoOsAccess}"
+							Content="{l:Translate chkAllowNetworkAccess}"
+						/>
+						<CheckBox
+							IsEnabled="False"
+							IsVisible="{Binding !Script.AllowIoOsAccess}"
+							Content="{l:Translate chkAllowNetworkAccess}"
+						/>
+					</c:OptionSection>
+				</StackPanel>
+			</TabItem>
+
+			<TabItem IsEnabled="False" MinHeight="10">
+				<TabItem.Header>
+					<Rectangle Fill="{StaticResource MesenGrayBorderColor}" Height="1" />
+				</TabItem.Header>
+			</TabItem>
+			
+			<TabItem>
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/Font.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabFonts}" />
+					</StackPanel>
+				</TabItem.Header>
+
+				<StackPanel Margin="5">
+					<c:OptionSection Header="{l:Translate lblFontSettings}" Margin="0">
+						<Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+							<TextBlock Text="{l:Translate lblDisassemblyFont}" />
+							<v:FontOptionsView Grid.Column="1" Grid.Row="0" DataContext="{Binding Fonts.DisassemblyFont}" PreferMonospace="True" />
+
+							<TextBlock Text="{l:Translate lblMemoryViewerFont}" Grid.Row="1" />
+							<v:FontOptionsView Grid.Column="1" Grid.Row="1" DataContext="{Binding Fonts.MemoryViewerFont}" PreferMonospace="True" />
+
+							<TextBlock Text="{l:Translate lblAssemblerFont}" Grid.Row="2" />
+							<v:FontOptionsView Grid.Column="1" Grid.Row="2" DataContext="{Binding Fonts.AssemblerFont}" />
+							
+							<TextBlock Text="{l:Translate lblScriptWindowFont}" Grid.Row="3" />
+							<v:FontOptionsView Grid.Column="1" Grid.Row="3" DataContext="{Binding Fonts.ScriptWindowFont}" />
+
+							<TextBlock Text="{l:Translate lblOtherMonoFont}" Grid.Row="4" />
+							<v:FontOptionsView Grid.Column="1" Grid.Row="4" DataContext="{Binding Fonts.OtherMonoFont}" PreferMonospace="True" />
+						</Grid>
+					</c:OptionSection>
+
+					<c:OptionSection Header="{l:Translate lblSyntaxHighlighting}">
+						<StackPanel Orientation="Horizontal">
+							<StackPanel Margin="0 0 20 0">
+								<dc:ColorPickerField Color="{Binding Debugger.CodeOpcodeColor}" Text="{l:Translate lblCodeOpcodeColor}" />
+								<dc:ColorPickerField Color="{Binding Debugger.CodeLabelDefinitionColor}" Text="{l:Translate lblCodeLabelDefinitionColor}" />
+								<dc:ColorPickerField Color="{Binding Debugger.CodeImmediateColor}" Text="{l:Translate lblCodeImmediateColor}" />
+								<dc:ColorPickerField Color="{Binding Debugger.CodeAddressColor}" Text="{l:Translate lblCodeAddressColor}" />
+								<dc:ColorPickerField Color="{Binding Debugger.CodeCommentColor}" Text="{l:Translate lblCodeCommentColor}" />
+								<dc:ColorPickerField Color="{Binding Debugger.CodeEffectiveAddressColor}" Text="{l:Translate lblCodeEffectiveAddressColor}" />
+							</StackPanel>
+							<StackPanel>
+								<StackPanel>
+									<dc:ColorPickerField Color="{Binding Debugger.CodeVerifiedDataColor}" Text="{l:Translate lblCodeVerifiedDataColor}" />
+									<dc:ColorPickerField Color="{Binding Debugger.CodeUnidentifiedDataColor}" Text="{l:Translate lblCodeUnidentifiedDataColor}" />
+									<dc:ColorPickerField Color="{Binding Debugger.CodeUnexecutedCodeColor}" Text="{l:Translate lblCodeUnexecutedCodeColor}" />
+								</StackPanel>
+								<StackPanel Margin="0 10">
+									<dc:ColorPickerField Color="{Binding Debugger.CodeExecBreakpointColor}" Text="{l:Translate lblCodeExecBreakpointColor}" />
+									<dc:ColorPickerField Color="{Binding Debugger.CodeWriteBreakpointColor}" Text="{l:Translate lblCodeWriteBreakpointColor}" />
+									<dc:ColorPickerField Color="{Binding Debugger.CodeReadBreakpointColor}" Text="{l:Translate lblCodeReadBreakpointColor}" />
+									<dc:ColorPickerField Color="{Binding Debugger.ForbidBreakpointColor}" Text="{l:Translate lblForbidBreakpointColor}" />
+								</StackPanel>
+								<StackPanel>
+									<dc:ColorPickerField Color="{Binding Debugger.CodeActiveStatementColor}" Text="{l:Translate lblCodeActiveStatementColor}" />
+									<dc:ColorPickerField Color="{Binding Debugger.CodeActiveMidInstructionColor}" Text="{l:Translate lblCodeActiveMidInstructionColor}" />
+								</StackPanel>
+							</StackPanel>
+						</StackPanel>
+					</c:OptionSection>
+				</StackPanel>
+			</TabItem>
+
+			<TabItem>
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/SwitchView.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabIntegration}" />
+					</StackPanel>
+				</TabItem.Header>
+
+				<StackPanel Margin="5">
+					<c:OptionSection Header="{l:Translate lblIntegrationSettings}" Margin="0">
+						<CheckBox
+							IsChecked="{Binding Integration.ResetLabelsOnImport}"
+							Content="{l:Translate chkResetLabelsOnImport}"
+						/>
+					</c:OptionSection>
+					<c:OptionSection Header="{l:Translate lblAutoLoadSettings}">
+						<TextBlock Text="{l:Translate lblAutoLoadHint}" TextWrapping="Wrap" Margin="0 5 0 0" />
+						<StackPanel Margin="10 5 0 0">
+							<CheckBox
+								IsChecked="{Binding Integration.AutoLoadDbgFiles}"
+								Content="{l:Translate chkAutoLoadDbgFiles}"
+							/>
+							<CheckBox
+								IsChecked="{Binding Integration.AutoLoadSymFiles}"
+								Content="{l:Translate chkAutoLoadSymFiles}"
+							/>
+							<CheckBox
+								IsChecked="{Binding Integration.AutoLoadElfFiles}"
+								Content="{l:Translate chkAutoLoadElfFiles}"
+							/>
+							<CheckBox
+								IsChecked="{Binding Integration.AutoLoadCdbFiles}"
+								Content="{l:Translate chkAutoLoadCdbFiles}"
+							/>
+							<CheckBox
+								IsChecked="{Binding Integration.AutoLoadMlbFiles}"
+								Content="{l:Translate chkAutoLoadMlbFiles}"
+							/>
+							<CheckBox
+								IsChecked="{Binding Integration.AutoLoadFnsFiles}"
+								Content="{l:Translate chkAutoLoadFnsFiles}"
+							/>
+							<CheckBox
+								IsChecked="{Binding Integration.AutoLoadCdlFiles}"
+								Content="{l:Translate chkAutoLoadCdlFiles}"
+							/>
+						</StackPanel>
+					</c:OptionSection>
+					<c:OptionSection Header="{l:Translate lblImportFilters}">
+						<TextBlock Text="{l:Translate lblImportFiltersHint}" TextWrapping="Wrap" Margin="0 5 0 0" />
+						<StackPanel Margin="10 5 0 0">
+							<CheckBox
+								IsChecked="{Binding Integration.ImportPrgRomLabels}"
+								Content="{l:Translate chkImportPrgRomLabels}"
+							/>
+							<CheckBox
+								IsChecked="{Binding Integration.ImportWorkRamLabels}"
+								Content="{l:Translate chkImportWorkRamLabels}"
+							/>
+							<CheckBox
+								IsChecked="{Binding Integration.ImportSaveRamLabels}"
+								Content="{l:Translate chkImportSaveRamLabels}"
+							/>
+							<CheckBox
+								IsChecked="{Binding Integration.ImportOtherLabels}"
+								Content="{l:Translate chkImportOtherLabels}"
+							/>
+						</StackPanel>
+						<CheckBox
+							IsChecked="{Binding Integration.ImportComments}"
+							Content="{l:Translate chkImportComments}"
+							Margin="0 5 0 0"
+						/>
+					</c:OptionSection>
+					<c:OptionSection Header="{l:Translate lblSourceView}">
+						<StackPanel Orientation="Horizontal">
+							<TextBlock VerticalAlignment="Center" Text="{l:Translate lblTabSize}" />
+							<c:MesenNumericUpDown Value="{Binding Integration.TabSize}" Minimum="1" Maximum="16" />
+						</StackPanel>
+					</c:OptionSection>
+				</StackPanel>
+			</TabItem>
+
+			<TabItem IsEnabled="False" MinHeight="10">
+				<TabItem.Header>
+					<Rectangle Fill="{StaticResource MesenGrayBorderColor}" Height="1" />
+				</TabItem.Header>
+			</TabItem>
+
+			<TabItem>
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/Keyboard.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabShortcuts}" />
+					</StackPanel>
+				</TabItem.Header>
+
+				<TabControl>
+					<TabItem Header="{l:Translate tabShared}">
+						<dc:DebuggerShortcutKeyGrid Shortcuts="{Binding SharedShortcuts}" />
+					</TabItem>
+					<TabItem Header="{l:Translate tabDebugger}">
+						<dc:DebuggerShortcutKeyGrid Shortcuts="{Binding DebuggerShortcuts}" />
+					</TabItem>
+					<TabItem Header="{l:Translate tabMemoryTools}">
+						<dc:DebuggerShortcutKeyGrid Shortcuts="{Binding MemoryToolsShortcuts}" />
+					</TabItem>
+					<TabItem Header="{l:Translate tabMisc}">
+						<dc:DebuggerShortcutKeyGrid Shortcuts="{Binding MiscShortcuts}" />
+					</TabItem>
+					<TabItem Header="{l:Translate tabScriptWindow}">
+						<dc:DebuggerShortcutKeyGrid Shortcuts="{Binding ScriptShortcuts}" />
+					</TabItem>
+				</TabControl>
+			</TabItem>
+		</TabControl>
+	</DockPanel>
+</Window>

@@ -1,0 +1,34 @@
+<UserControl 
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:l="using:Mesen.Localization"
+	mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="50"
+	x:Name="root"
+	HorizontalAlignment="Stretch"
+	x:Class="Mesen.Controls.CheckBoxWarning"
+>
+	<UserControl.Styles>
+		<Style Selector="TextBlock.red">
+			<Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+		</Style>
+		<Style Selector="TextBlock.gray">
+			<Setter Property="Foreground" Value="{DynamicResource MesenNotRecommendedInactiveBrush}" />
+		</Style>
+	</UserControl.Styles>
+	<StackPanel Orientation="Horizontal">
+		<CheckBox
+			Content="{Binding Text, ElementName=root}"
+			IsChecked="{Binding IsChecked, ElementName=root}"
+			MinWidth="0"
+		/>
+		<TextBlock
+			VerticalAlignment="Center"
+			Margin="5 0 0 0"
+			Classes.red="{Binding IsChecked, ElementName=root}"
+			Classes.gray="{Binding !IsChecked, ElementName=root}"
+			Text="{l:Translate Hint}"
+		/>
+	</StackPanel>
+</UserControl>

@@ -1,0 +1,27 @@
+<Window
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:m="clr-namespace:Mesen"
+	xmlns:vm="using:Mesen.ViewModels"
+	xmlns:v="using:Mesen.Views"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+	x:Class="Mesen.Windows.ColorPickerWindow"
+	Width="400" Height="450"
+	x:DataType="vm:ColorPickerViewModel"
+	Title="{l:Translate wndTitle}"
+>
+	<DockPanel Margin="0">
+		<StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right">
+			<Button MinWidth="70" HorizontalContentAlignment="Center" Click="Ok_OnClick" Content="{l:Translate btnOk}" />
+			<Button MinWidth="70" HorizontalContentAlignment="Center" IsCancel="True" Click="Cancel_OnClick" Content="{l:Translate btnCancel}" />
+		</StackPanel>
+		<ColorView
+			Color="{Binding Color, Mode=TwoWay}"
+			IsAlphaEnabled="False"
+			IsAlphaVisible="False"
+		/>
+	</DockPanel>
+</Window>

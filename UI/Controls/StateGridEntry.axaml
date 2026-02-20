@@ -1,0 +1,70 @@
+<UserControl
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="100"
+	xmlns:c="using:Mesen.Controls"
+	x:Name="root"
+	HorizontalAlignment="Stretch"
+	x:Class="Mesen.Controls.StateGridEntry"
+>
+	<UserControl.Resources>
+		<Color x:Key="ButtonBorderBrushDisabled">Gray</Color>
+		<Color x:Key="ButtonBackgroundDisabled">Black</Color>
+		<Color x:Key="ButtonBorderBrushPointerOver">#00C0FF</Color>
+	</UserControl.Resources>
+	<UserControl.Styles>
+		<Style Selector="TextBlock">
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+		<Style Selector="TextBlock:disabled">
+			<Setter Property="Foreground" Value="Gray" />
+		</Style>
+		<Style Selector="Button">
+			<Setter Property="BorderBrush" Value="SlateGray" />
+			<Setter Property="Background" Value="Black" />
+		</Style>
+		<Style Selector="Button.activeEntry">
+			<Setter Property="BorderBrush" Value="#0088E7" />
+			<Setter Property="Background" Value="#FF3A3A3A" />
+		</Style>
+	</UserControl.Styles>
+	
+	<DockPanel Margin="2 2 2 7">
+		<TextBlock
+			DockPanel.Dock="Bottom"
+			Text="{Binding SubTitle, ElementName=root}"
+			TextAlignment="Center"
+			TextWrapping="Wrap"
+			IsEnabled="{Binding Enabled, ElementName=root}"
+		/>
+		<TextBlock
+			DockPanel.Dock="Bottom"
+			Text="{Binding Title, ElementName=root}"
+			TextAlignment="Center"
+			TextWrapping="NoWrap"
+			TextTrimming="CharacterEllipsis"
+			IsEnabled="{Binding Enabled, ElementName=root}"
+		/>
+		<Button
+			Classes.activeEntry="{Binding IsActiveEntry, ElementName=root}"
+			BorderThickness="2"
+			Height="NaN"
+			Click="OnImageClick"
+			IsEnabled="{Binding Enabled, ElementName=root}"
+			HorizontalAlignment="Center"
+			VerticalAlignment="Stretch"
+			Padding="0"
+		>
+			<c:ImageAspectRatio
+				Source="{Binding Image, ElementName=root}"
+				AspectRatio="{Binding AspectRatio, ElementName=root}"
+				RenderOptions.BitmapInterpolationMode="LowQuality"
+				Stretch="Fill"
+				StretchDirection="Both"
+				VerticalAlignment="Center"
+			/>
+		</Button>
+	</DockPanel>
+</UserControl>
