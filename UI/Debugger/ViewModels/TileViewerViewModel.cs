@@ -276,6 +276,7 @@ namespace Mesen.Debugger.ViewModels
 				CpuType.Sms => new Enum[] { TileFormat.SmsBpp4, TileFormat.SmsSgBpp1 },
 				CpuType.Gba => new Enum[] { TileFormat.GbaBpp4, TileFormat.GbaBpp8 },
 				CpuType.Ws => new Enum[] { TileFormat.Bpp2, TileFormat.SmsBpp4, TileFormat.WsBpp4Packed },
+				CpuType.GenesisMain => new Enum[] { TileFormat.GbaBpp4 },
 				_ => throw new Exception("Unsupported CPU type")
 			};
 
@@ -314,6 +315,7 @@ namespace Mesen.Debugger.ViewModels
 				case CpuType.Snes:
 				case CpuType.Nes:
 				case CpuType.Gameboy:
+				case CpuType.GenesisMain:
 					ApplyPpuPreset();
 					break;
 
@@ -821,6 +823,12 @@ namespace Mesen.Debugger.ViewModels
 						CreatePreset(1, "Bank 1", () => ApplyBgPreset(1)),
 					};
 
+				case CpuType.GenesisMain:
+					return new() {
+						CreatePreset(0, "VDP", () => ApplyPpuPreset()),
+						CreatePreset(0, "ROM", () => ApplyPrgPreset()),
+					};
+
 				default:
 					throw new Exception("Unsupported CPU type");
 			}
@@ -934,6 +942,16 @@ namespace Mesen.Debugger.ViewModels
 					preset.RowCount = 128;
 					preset.Layout = TileLayout.Normal;
 					preset.Format = ppu.Mode.ToTileFormat();
+					break;
+				}
+
+				case CpuType.GenesisMain: {
+					preset.Source = MemoryType.GenesisVideoRam;
+					preset.StartAddress = 0;
+					preset.ColumnCount = 16;
+					preset.RowCount = 128;
+					preset.Layout = TileLayout.Normal;
+					preset.Format = TileFormat.GbaBpp4;
 					break;
 				}
 			}

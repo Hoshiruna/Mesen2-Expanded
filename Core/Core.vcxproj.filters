@@ -2983,7 +2983,7 @@
     <ClInclude Include="SNES\Input\SnesRumbleController.h">
       <Filter>SNES\Input</Filter>
     </ClInclude>
-    <ClInclude Include="Genesis\GenesisAresCore.h">
+    <ClInclude Include="Genesis\GenesisI2cEeprom.h">
       <Filter>Genesis</Filter>
     </ClInclude>
     <ClInclude Include="Genesis\GenesisConsole.h">
@@ -2995,19 +2995,25 @@
     <ClInclude Include="Genesis\GenesisControlManager.h">
       <Filter>Genesis</Filter>
     </ClInclude>
-    <ClInclude Include="Genesis\Debugger\GenesisDebugger.h">
-      <Filter>Genesis</Filter>
-    </ClInclude>
     <ClInclude Include="Genesis\GenesisDefaultVideoFilter.h">
       <Filter>Genesis</Filter>
     </ClInclude>
-    <ClInclude Include="Genesis\Debugger\GenesisDisUtils.h">
+    <ClInclude Include="Genesis\GenesisNativeBackend.h">
       <Filter>Genesis</Filter>
     </ClInclude>
-    <ClInclude Include="Genesis\Debugger\GenesisEventManager.h">
+    <ClInclude Include="Genesis\GenesisVdp.h">
       <Filter>Genesis</Filter>
     </ClInclude>
-    <ClInclude Include="Genesis\Debugger\GenesisTraceLogger.h">
+    <ClInclude Include="Genesis\GenesisCpu68k.h">
+      <Filter>Genesis</Filter>
+    </ClInclude>
+    <ClInclude Include="Genesis\GenesisCpuZ80.h">
+      <Filter>Genesis</Filter>
+    </ClInclude>
+    <ClInclude Include="Genesis\IGenesisCoreBackend.h">
+      <Filter>Genesis</Filter>
+    </ClInclude>
+    <ClInclude Include="Genesis\IGenesisPlatformCallbacks.h">
       <Filter>Genesis</Filter>
     </ClInclude>
     <ClInclude Include="Genesis\GenesisTypes.h">
@@ -3015,6 +3021,36 @@
     </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>Genesis</Filter>
+    </ClInclude>
+    <ClInclude Include="Genesis\Debugger\GenesisDebugger.h">
+      <Filter>Genesis\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Genesis\Debugger\GenesisDisUtils.h">
+      <Filter>Genesis\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Genesis\Debugger\GenesisEventManager.h">
+      <Filter>Genesis\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Genesis\Debugger\GenesisTraceLogger.h">
+      <Filter>Genesis\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Genesis\Debugger\GenesisVdpTools.h">
+      <Filter>Genesis\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Genesis\Debugger\GenesisZ80Debugger.h">
+      <Filter>Genesis\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Genesis\APU\GenesisApu.h">
+      <Filter>Genesis\APU</Filter>
+    </ClInclude>
+    <ClInclude Include="Genesis\APU\GenesisDACchannel.h">
+      <Filter>Genesis\APU</Filter>
+    </ClInclude>
+    <ClInclude Include="Genesis\APU\GenesisFMchannel.h">
+      <Filter>Genesis\APU</Filter>
+    </ClInclude>
+    <ClInclude Include="Genesis\APU\GenesisPSGchannel.h">
+      <Filter>Genesis\APU</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -3381,62 +3417,56 @@
     <ClCompile Include="SNES\Input\SnesRumbleController.cpp">
       <Filter>SNES\Input</Filter>
     </ClCompile>
-    <ClCompile Include="Genesis\GenesisAresCore.cpp">
-      <Filter>Genesis</Filter>
-    </ClCompile>
     <ClCompile Include="Genesis\GenesisConsole.cpp">
       <Filter>Genesis</Filter>
     </ClCompile>
     <ClCompile Include="Genesis\GenesisControlManager.cpp">
       <Filter>Genesis</Filter>
     </ClCompile>
-    <ClCompile Include="Genesis\Debugger\GenesisDebugger.cpp">
+    <ClCompile Include="Genesis\GenesisNativeBackend.cpp">
       <Filter>Genesis</Filter>
     </ClCompile>
-    <ClCompile Include="Genesis\Debugger\GenesisDisUtils.cpp">
+    <ClCompile Include="Genesis\GenesisVdp.cpp">
       <Filter>Genesis</Filter>
     </ClCompile>
-    <ClCompile Include="Genesis\Debugger\GenesisEventManager.cpp">
+    <ClCompile Include="Genesis\GenesisCpu68k.cpp">
       <Filter>Genesis</Filter>
     </ClCompile>
-    <ClCompile Include="Genesis\Debugger\GenesisTraceLogger.cpp">
-      <Filter>Genesis</Filter>
-    </ClCompile>
-    <ClCompile Include="Genesis\Ares\libco\libco.c">
-      <Filter>Genesis</Filter>
-    </ClCompile>
-    <ClCompile Include="Genesis\Ares\component\eeprom\m24c\m24c.cpp">
-      <Filter>Genesis</Filter>
-    </ClCompile>
-    <ClCompile Include="Genesis\Ares\component\processor\m68000\m68000.cpp">
-      <Filter>Genesis</Filter>
-    </ClCompile>
-    <ClCompile Include="Genesis\Ares\nall\nall\nall.cpp">
+    <ClCompile Include="Genesis\GenesisCpuZ80.cpp">
       <Filter>Genesis</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>Genesis</Filter>
     </ClCompile>
-    <ClCompile Include="Genesis\Ares\component\processor\sh2\sh2.cpp">
-      <Filter>Genesis</Filter>
+    <ClCompile Include="Genesis\Debugger\GenesisDebugger.cpp">
+      <Filter>Genesis\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Genesis\Ares\thirdparty\sljitAllocator.cpp">
-      <Filter>Genesis</Filter>
+    <ClCompile Include="Genesis\Debugger\GenesisDisUtils.cpp">
+      <Filter>Genesis\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Genesis\Ares\thirdparty\sljit\sljit_src\sljitLir.c">
-      <Filter>Genesis</Filter>
+    <ClCompile Include="Genesis\Debugger\GenesisEventManager.cpp">
+      <Filter>Genesis\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Genesis\Ares\audio\sn76489\sn76489.cpp">
-      <Filter>Genesis</Filter>
+    <ClCompile Include="Genesis\Debugger\GenesisTraceLogger.cpp">
+      <Filter>Genesis\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Genesis\Ares\component\processor\ssp1601\ssp1601.cpp">
-      <Filter>Genesis</Filter>
+    <ClCompile Include="Genesis\Debugger\GenesisVdpTools.cpp">
+      <Filter>Genesis\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Genesis\Ares\audio\ym2612\ym2612.cpp">
-      <Filter>Genesis</Filter>
+    <ClCompile Include="Genesis\Debugger\GenesisZ80Debugger.cpp">
+      <Filter>Genesis\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Genesis\Ares\component\processor\z80\z80.cpp">
-      <Filter>Genesis</Filter>
+    <ClCompile Include="Genesis\APU\GenesisApu.cpp">
+      <Filter>Genesis\APU</Filter>
+    </ClCompile>
+    <ClCompile Include="Genesis\APU\GenesisDACchannel.cpp">
+      <Filter>Genesis\APU</Filter>
+    </ClCompile>
+    <ClCompile Include="Genesis\APU\GenesisFMchannel.cpp">
+      <Filter>Genesis\APU</Filter>
+    </ClCompile>
+    <ClCompile Include="Genesis\APU\GenesisPSGchannel.cpp">
+      <Filter>Genesis\APU</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3568,6 +3598,12 @@
     </Filter>
     <Filter Include="Genesis">
       <UniqueIdentifier>{2e48999d-33ae-4b56-a934-1662d27e10cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Genesis\APU">
+      <UniqueIdentifier>{fc92c350-2dbd-4abc-bd31-7bf773f194cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Genesis\Debugger">
+      <UniqueIdentifier>{6eae784e-410d-48e6-a1b4-0a5a589db250}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

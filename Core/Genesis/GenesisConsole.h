@@ -3,7 +3,8 @@
 #include "Shared/Interfaces/IConsole.h"
 #include "Shared/SettingTypes.h"
 #include "Genesis/GenesisTypes.h"
-#include "Genesis/GenesisAresCore.h"
+#include "Genesis/IGenesisPlatformCallbacks.h"
+#include "Genesis/IGenesisCoreBackend.h"
 
 class Emulator;
 class VirtualFile;
@@ -14,8 +15,7 @@ class BaseVideoFilter;
 // ---------------------------------------------------------------------------
 // GenesisConsole
 //
-// Wraps the Ares Mega Drive core via the GenesisAresCore.h bridge API.
-// This class never includes any ares/nall headers.
+// Genesis entry point for the native Genesis backend.
 // ---------------------------------------------------------------------------
 class GenesisConsole final : public IConsole, public IGenesisPlatformCallbacks
 {
@@ -23,7 +23,7 @@ private:
 	static GenesisConsole* _activeConsole;
 
 	Emulator*                    _emu = nullptr;
-	GenesisAresImpl*             _impl = nullptr;
+	unique_ptr<IGenesisCoreBackend> _backend;
 	unique_ptr<GenesisControlManager> _controlManager;
 
 	// Last rendered frame (ARGB8888)
@@ -40,6 +40,7 @@ private:
 
 	void DetermineRegion(const string& filename, const vector<uint8_t>& romData);
 	void RefreshDebuggerMemoryViews();
+	void CreateBackend(GenesisCoreType coreType);
 
 	// IGenesisPlatformCallbacks -----------------------------------------------
 	void OnVideoFrame(const uint32_t* pixels, uint32_t pitch,
@@ -47,6 +48,7 @@ private:
 	void OnAudioSamples(const int16_t* samples, uint32_t pairCount, uint32_t sourceRate) override;
 	uint32_t GetAudioSampleRate() override;
 	uint32_t GetControllerButtons(int port) override;
+	bool IsControllerConnected(int port) override;
 
 public:
 	static vector<string> GetSupportedExtensions() { return { ".md", ".bin", ".gen", ".smd" }; }
@@ -81,10 +83,24 @@ public:
 	AddressInfo GetAbsoluteAddress(AddressInfo& relAddress) override;
 	AddressInfo GetRelativeAddress(AddressInfo& absAddress, CpuType cpuType) override;
 	void GetConsoleState(BaseState& state, ConsoleType consoleType) override;
+	SaveStateCompatInfo ValidateSaveStateCompatibility(ConsoleType stateConsoleType) override;
 
 	void Serialize(Serializer& s) override;
 
+	// Backend-agnostic Genesis debug accessors.
+	uint8_t ReadMemory(MemoryType type, uint32_t address);
+	void WriteMemory(MemoryType type, uint32_t address, uint8_t value);
+	bool SetProgramCounter(uint32_t address);
+	uint32_t GetInstructionSize(uint32_t address);
+	const char* DisassembleInstruction(uint32_t address);
+
 	// Accessor for debugger ---------------------------------------------------
-	GenesisAresImpl* GetAresImpl() { return _impl; }
 	GenesisState GetState();
+
+	// Z80/VDP debug accessors (native backend only)
+	GenesisZ80State GetZ80DebugState();
+	void            SetZ80ProgramCounter(uint16_t addr);
+	uint8_t         GetVdpRegister(uint8_t index) const;
+
+	ShortcutState IsShortcutAllowed(EmulatorShortcut shortcut, uint32_t shortcutParam) override;
 };

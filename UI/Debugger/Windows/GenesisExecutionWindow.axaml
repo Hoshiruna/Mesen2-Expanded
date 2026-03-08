@@ -1,0 +1,83 @@
+<Window
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	x:Class="Mesen.Debugger.Windows.GenesisExecutionWindow"
+	Title="Execution"
+	Width="480"
+	SizeToContent="Height"
+	CanResize="False"
+>
+	<StackPanel Margin="8" Spacing="5">
+
+		<!-- Status / Cycle count -->
+		<Grid ColumnDefinitions="60,*,60,*">
+			<TextBlock Grid.Column="0" Text="Status:" FontWeight="Bold" VerticalAlignment="Center"/>
+			<TextBlock Grid.Column="1" x:Name="StatusText" FontFamily="Consolas,Monospace" VerticalAlignment="Center"/>
+			<TextBlock Grid.Column="2" Text="Cycles:" FontWeight="Bold" VerticalAlignment="Center"/>
+			<TextBlock Grid.Column="3" x:Name="CyclesText" FontFamily="Consolas,Monospace" VerticalAlignment="Center"/>
+		</Grid>
+
+		<Separator/>
+
+		<!-- Current instruction (PC + disassembly) -->
+		<Grid ColumnDefinitions="80,*">
+			<TextBlock Grid.Column="0" Text="Instruction:" FontWeight="Bold" VerticalAlignment="Center"/>
+			<TextBlock Grid.Column="1" x:Name="InstructionText" FontFamily="Consolas,Monospace" VerticalAlignment="Center" TextWrapping="NoWrap"/>
+		</Grid>
+
+		<Separator/>
+
+		<!-- Data registers D0-D7  |  Address registers A0-A6 -->
+		<Grid ColumnDefinitions="*,12,*">
+
+			<!-- D0-D7: two columns of 4 -->
+			<Grid Grid.Column="0" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto">
+				<TextBlock Grid.Row="0" Grid.Column="0" x:Name="D0" FontFamily="Consolas,Monospace"/>
+				<TextBlock Grid.Row="0" Grid.Column="1" x:Name="D4" FontFamily="Consolas,Monospace"/>
+				<TextBlock Grid.Row="1" Grid.Column="0" x:Name="D1" FontFamily="Consolas,Monospace"/>
+				<TextBlock Grid.Row="1" Grid.Column="1" x:Name="D5" FontFamily="Consolas,Monospace"/>
+				<TextBlock Grid.Row="2" Grid.Column="0" x:Name="D2" FontFamily="Consolas,Monospace"/>
+				<TextBlock Grid.Row="2" Grid.Column="1" x:Name="D6" FontFamily="Consolas,Monospace"/>
+				<TextBlock Grid.Row="3" Grid.Column="0" x:Name="D3" FontFamily="Consolas,Monospace"/>
+				<TextBlock Grid.Row="3" Grid.Column="1" x:Name="D7" FontFamily="Consolas,Monospace"/>
+			</Grid>
+
+			<!-- A0-A6: two columns (4 + 3) -->
+			<Grid Grid.Column="2" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto">
+				<TextBlock Grid.Row="0" Grid.Column="0" x:Name="A0" FontFamily="Consolas,Monospace"/>
+				<TextBlock Grid.Row="0" Grid.Column="1" x:Name="A4" FontFamily="Consolas,Monospace"/>
+				<TextBlock Grid.Row="1" Grid.Column="0" x:Name="A1" FontFamily="Consolas,Monospace"/>
+				<TextBlock Grid.Row="1" Grid.Column="1" x:Name="A5" FontFamily="Consolas,Monospace"/>
+				<TextBlock Grid.Row="2" Grid.Column="0" x:Name="A2" FontFamily="Consolas,Monospace"/>
+				<TextBlock Grid.Row="2" Grid.Column="1" x:Name="A6" FontFamily="Consolas,Monospace"/>
+				<TextBlock Grid.Row="3" Grid.Column="0" x:Name="A3" FontFamily="Consolas,Monospace"/>
+			</Grid>
+
+		</Grid>
+
+		<Separator/>
+
+		<!-- USP / SSP / PC / SR -->
+		<Grid ColumnDefinitions="*,*,*,*">
+			<TextBlock Grid.Column="0" x:Name="UspText" FontFamily="Consolas,Monospace"/>
+			<TextBlock Grid.Column="1" x:Name="SspText" FontFamily="Consolas,Monospace"/>
+			<TextBlock Grid.Column="2" x:Name="PcText"  FontFamily="Consolas,Monospace"/>
+			<TextBlock Grid.Column="3" x:Name="SrText"  FontFamily="Consolas,Monospace"/>
+		</Grid>
+
+		<Separator/>
+
+		<!-- SR flag decode -->
+		<TextBlock x:Name="SrFlagsText" FontFamily="Consolas,Monospace" HorizontalAlignment="Center"/>
+
+		<Separator/>
+
+		<!-- Control buttons -->
+		<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+			<Button x:Name="PauseBtn"  Content="Pause"  Click="OnPauseClick"  Width="80"/>
+			<Button x:Name="StepBtn"   Content="Step"   Click="OnStepClick"   Width="80"/>
+			<Button x:Name="ResumeBtn" Content="Resume" Click="OnResumeClick" Width="80"/>
+		</StackPanel>
+
+	</StackPanel>
+</Window>

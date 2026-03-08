@@ -24,7 +24,7 @@ public:
 			case CpuType::Gba: return MemoryType::GbaMemory;
 			case CpuType::Ws: return MemoryType::WsMemory;
 			case CpuType::GenesisMain: return MemoryType::GenesisMemory;
-			case CpuType::GenesisZ80: return MemoryType::GenesisMemory;
+			case CpuType::GenesisZ80: return MemoryType::GenesisAudioRam;
 		}
 
 		throw std::runtime_error("Invalid CPU type");
@@ -181,6 +181,9 @@ public:
 			case MemoryType::GenesisVScrollRam:
 				return CpuType::GenesisMain;
 
+			case MemoryType::GenesisAudioRam:
+				return CpuType::GenesisZ80;
+
 			default:
 				throw std::runtime_error("Invalid CPU type");
 		}
@@ -188,7 +191,7 @@ public:
 
 	static constexpr bool IsRelativeMemory(MemoryType memType)
 	{
-		return memType <= GetLastCpuMemoryType() || memType == MemoryType::GenesisMemory;
+		return memType <= GetLastCpuMemoryType() || memType == MemoryType::GenesisMemory || memType == MemoryType::GenesisAudioRam;
 	}
 
 	static constexpr MemoryType GetLastCpuMemoryType()
