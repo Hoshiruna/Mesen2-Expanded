@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Genesis/GenesisConsole.h"
+#include "Genesis/GenesisNativeBackend.h"
 #include "Genesis/GenesisControlManager.h"
 #include "Genesis/GenesisDefaultVideoFilter.h"
 #include "Shared/BatteryManager.h"
@@ -16,6 +17,8 @@ GenesisConsole* GenesisConsole::_activeConsole = nullptr;
 
 namespace
 {
+	constexpr uint32_t NativeStateFormatMarker = 0x54444D4E; // NMDT
+
 	bool HasSegaHeader(const vector<uint8_t>& romData)
 	{
 		if(romData.size() < 0x104) {
@@ -124,13 +127,20 @@ GenesisConsole::GenesisConsole(Emulator* emu)
 
 GenesisConsole::~GenesisConsole()
 {
-	if(_impl) {
-		GenesisAresDestroy(_impl);
-		_impl = nullptr;
-	}
+	_backend.reset();
 	if(_activeConsole == this) {
 		_activeConsole = nullptr;
 	}
+}
+
+void GenesisConsole::CreateBackend(GenesisCoreType coreType)
+{
+	(void)coreType;
+	if(_backend && _backend->GetCoreType() == GenesisCoreType::Native) {
+		return;
+	}
+
+	_backend.reset(new GenesisNativeBackend(_emu, this));
 }
 
 // ---------------------------------------------------------------------------
@@ -164,24 +174,20 @@ void GenesisConsole::DetermineRegion(const string& filename, const vector<uint8_
 
 void GenesisConsole::RefreshDebuggerMemoryViews()
 {
-	if(!_impl) {
+	if(!_backend) {
 		return;
 	}
 
-	uint32_t size = 0;
-	const uint8_t* ptr = nullptr;
+	auto registerMemory = [this](MemoryType type) {
+		uint32_t size = 0;
+		const uint8_t* ptr = _backend->GetMemoryPointer(type, size);
+		_emu->RegisterMemory(type, const_cast<uint8_t*>(ptr), ptr ? size : 0);
+	};
 
-	ptr = GenesisAresGetVRam(_impl, &size);
-	_emu->RegisterMemory(MemoryType::GenesisVideoRam, const_cast<uint8_t*>(ptr), ptr ? size : 0);
-
-	ptr = GenesisAresGetCRam(_impl, &size);
-	_emu->RegisterMemory(MemoryType::GenesisColorRam, const_cast<uint8_t*>(ptr), ptr ? size : 0);
-
-	ptr = GenesisAresGetVSRam(_impl, &size);
-	_emu->RegisterMemory(MemoryType::GenesisVScrollRam, const_cast<uint8_t*>(ptr), ptr ? size : 0);
-
-	ptr = GenesisAresGetSaveRam(_impl, &size);
-	_emu->RegisterMemory(MemoryType::GenesisSaveRam, const_cast<uint8_t*>(ptr), ptr ? size : 0);
+	registerMemory(MemoryType::GenesisVideoRam);
+	registerMemory(MemoryType::GenesisColorRam);
+	registerMemory(MemoryType::GenesisVScrollRam);
+	registerMemory(MemoryType::GenesisSaveRam);
 }
 
 LoadRomResult GenesisConsole::LoadRom(VirtualFile& romFile)
@@ -211,10 +217,14 @@ LoadRomResult GenesisConsole::LoadRom(VirtualFile& romFile)
 		regionStr = "NTSC-U";
 	}
 
-	// Create the Ares impl if not yet created
-	if(!_impl) {
-		_impl = GenesisAresCreate(this);
+	GenesisConfig& cfg = _emu->GetSettings()->GetGenesisConfig();
+	if(cfg.Port1.Type == ControllerType::None) {
+		cfg.Port1.Type = ControllerType::GenesisController;
 	}
+	if(cfg.Port2.Type == ControllerType::None) {
+		cfg.Port2.Type = ControllerType::GenesisController;
+	}
+	CreateBackend(cfg.CoreType);
 
 	// Create control manager
 	_controlManager.reset(new GenesisControlManager(_emu, this));
@@ -222,31 +232,39 @@ LoadRomResult GenesisConsole::LoadRom(VirtualFile& romFile)
 	vector<uint8_t> saveRamData = _emu->GetBatteryManager()->LoadBattery(".sav");
 	vector<uint8_t> saveEepromData = _emu->GetBatteryManager()->LoadBattery(".eeprom");
 
-	// Load into Ares
-	if(!GenesisAresLoadRom(
-		_impl, romData.data(), (uint32_t)romData.size(), regionStr,
+	if(!_backend || !_backend->LoadRom(
+		romData, regionStr,
 		saveRamData.empty() ? nullptr : saveRamData.data(), (uint32_t)saveRamData.size(),
 		saveEepromData.empty() ? nullptr : saveEepromData.data(), (uint32_t)saveEepromData.size()
 	)) {
 		return LoadRomResult::Failure;
 	}
 
-	_isPAL = GenesisAresIsPAL(_impl);
+	_isPAL = _backend->IsPAL();
 
 	// Allocate initial frame buffer
 	_frameBuffer.resize(512 * 240, 0xFF000000);
 
 	// Register physical memory regions for the debugger
 	uint32_t romSize = 0;
-	const uint8_t* romPtr = GenesisAresGetRom(_impl, &romSize);
+	const uint8_t* romPtr = _backend->GetMemoryPointer(MemoryType::GenesisPrgRom, romSize);
 	if(romPtr && romSize > 0) {
 		_emu->RegisterMemory(MemoryType::GenesisPrgRom, const_cast<uint8_t*>(romPtr), romSize);
 	}
 
 	uint32_t wramSize = 0;
-	const uint8_t* wramPtr = GenesisAresGetWorkRam(_impl, &wramSize);
+	const uint8_t* wramPtr = _backend->GetMemoryPointer(MemoryType::GenesisWorkRam, wramSize);
 	if(wramPtr && wramSize > 0) {
 		_emu->RegisterMemory(MemoryType::GenesisWorkRam, const_cast<uint8_t*>(wramPtr), wramSize);
+	}
+
+	// Register Z80 RAM if native backend
+	if(_backend && _backend->GetCoreType() == GenesisCoreType::Native) {
+		uint32_t audioRamSize = 0;
+		const uint8_t* audioRam = _backend->GetMemoryPointer(MemoryType::GenesisAudioRam, audioRamSize);
+		if(audioRam && audioRamSize > 0) {
+			_emu->RegisterMemory(MemoryType::GenesisAudioRam, const_cast<uint8_t*>(audioRam), audioRamSize);
+		}
 	}
 
 	RefreshDebuggerMemoryViews();
@@ -259,14 +277,14 @@ LoadRomResult GenesisConsole::LoadRom(VirtualFile& romFile)
 // ---------------------------------------------------------------------------
 
 void GenesisConsole::OnVideoFrame(const uint32_t* pixels, uint32_t pitch,
-                                   uint32_t width, uint32_t height)
+                                  uint32_t width, uint32_t height)
 {
 	uint32_t targetWidth = width;
 	uint32_t targetHeight = height;
-	if(_impl) {
+	if(_backend) {
 		uint32_t coreWidth = 0;
 		uint32_t coreHeight = 0;
-		GenesisAresGetFrameSize(_impl, &coreWidth, &coreHeight);
+		_backend->GetFrameSize(coreWidth, coreHeight);
 		if(coreWidth > 0 && coreHeight > 0) {
 			targetWidth = coreWidth;
 			targetHeight = coreHeight;
@@ -285,7 +303,7 @@ void GenesisConsole::OnVideoFrame(const uint32_t* pixels, uint32_t pitch,
 		yStep = 1;
 	}
 
-	_frameWidth  = targetWidth;
+	_frameWidth = targetWidth;
 	_frameHeight = targetHeight;
 	_frameCount++;
 
@@ -332,7 +350,13 @@ uint32_t GenesisConsole::GetAudioSampleRate()
 uint32_t GenesisConsole::GetControllerButtons(int port)
 {
 	if(!_controlManager) return 0;
-	return _controlManager->GetButtonsForAres(port);
+	return _controlManager->GetButtonsForPort(port);
+}
+
+bool GenesisConsole::IsControllerConnected(int port)
+{
+	if(!_controlManager) return false;
+	return _controlManager->IsPortConnected(port);
 }
 
 // ---------------------------------------------------------------------------
@@ -346,10 +370,14 @@ void GenesisConsole::Reset()
 
 void GenesisConsole::RunFrame()
 {
+	if(!_backend || !_controlManager) {
+		return;
+	}
+
 	_controlManager->UpdateControlDevices();
 	_controlManager->UpdateInputState();
 
-	GenesisAresRunFrame(_impl);
+	_backend->RunFrame();
 	RefreshDebuggerMemoryViews();
 
 	if(!_frameBuffer.empty() && _frameWidth > 0 && _frameHeight > 0) {
@@ -362,20 +390,20 @@ void GenesisConsole::RunFrame()
 
 void GenesisConsole::SaveBattery()
 {
-	if(!_impl) {
+	if(!_backend) {
 		return;
 	}
 
-	GenesisAresSyncSaveData(_impl);
+	_backend->SyncSaveData();
 
 	uint32_t saveRamSize = 0;
-	const uint8_t* saveRam = GenesisAresGetSaveRam(_impl, &saveRamSize);
+	const uint8_t* saveRam = _backend->GetMemoryPointer(MemoryType::GenesisSaveRam, saveRamSize);
 	if(saveRam && saveRamSize > 0) {
 		_emu->GetBatteryManager()->SaveBattery(".sav", const_cast<uint8_t*>(saveRam), saveRamSize);
 	}
 
 	uint32_t eepromSize = 0;
-	const uint8_t* eeprom = GenesisAresGetSaveEeprom(_impl, &eepromSize);
+	const uint8_t* eeprom = _backend->GetSaveEeprom(eepromSize);
 	if(eeprom && eepromSize > 0) {
 		_emu->GetBatteryManager()->SaveBattery(".eeprom", const_cast<uint8_t*>(eeprom), eepromSize);
 	}
@@ -398,6 +426,9 @@ ConsoleType GenesisConsole::GetConsoleType()
 
 vector<CpuType> GenesisConsole::GetCpuTypes()
 {
+	if(_backend && _backend->GetCoreType() == GenesisCoreType::Native) {
+		return { CpuType::GenesisMain, CpuType::GenesisZ80 };
+	}
 	return { CpuType::GenesisMain };
 }
 
@@ -408,39 +439,37 @@ RomFormat GenesisConsole::GetRomFormat()
 
 double GenesisConsole::GetFps()
 {
-	if(!_impl) return 60.0;
-	return GenesisAresGetFps(_impl);
+	return _backend ? _backend->GetFps() : 60.0;
 }
 
 PpuFrameInfo GenesisConsole::GetPpuFrame()
 {
 	PpuFrameInfo frame = {};
 	frame.FirstScanline = 0;
-	frame.FrameCount    = _frameCount;
-	frame.Width         = _frameWidth;
-	frame.Height        = _frameHeight;
+	frame.FrameCount = _frameCount;
+	frame.Width = _frameWidth;
+	frame.Height = _frameHeight;
 	frame.ScanlineCount = _isPAL ? 313 : 262;
-	frame.CycleCount    = 3420;  // Master clocks per scanline (approx)
+	frame.CycleCount = 3420;  // Master clocks per scanline (approx)
 	frame.FrameBufferSize = _frameWidth * _frameHeight * sizeof(uint32_t);
-	frame.FrameBuffer   = (uint8_t*)_frameBuffer.data();
+	frame.FrameBuffer = (uint8_t*)_frameBuffer.data();
 	return frame;
 }
 
 BaseVideoFilter* GenesisConsole::GetVideoFilter(bool getDefaultFilter)
 {
+	(void)getDefaultFilter;
 	return new GenesisDefaultVideoFilter(_emu);
 }
 
 uint64_t GenesisConsole::GetMasterClock()
 {
-	if(!_impl) return 0;
-	return GenesisAresGetMasterClock(_impl);
+	return _backend ? _backend->GetMasterClock() : 0;
 }
 
 uint32_t GenesisConsole::GetMasterClockRate()
 {
-	if(!_impl) return 53693175;
-	return GenesisAresGetMasterClockRate(_impl);
+	return _backend ? _backend->GetMasterClockRate() : 53693175;
 }
 
 AudioTrackInfo GenesisConsole::GetAudioTrackInfo()
@@ -450,6 +479,7 @@ AudioTrackInfo GenesisConsole::GetAudioTrackInfo()
 
 void GenesisConsole::ProcessAudioPlayerAction(AudioPlayerActionParams p)
 {
+	(void)p;
 }
 
 AddressInfo GenesisConsole::GetAbsoluteAddress(AddressInfo& relAddress)
@@ -464,6 +494,7 @@ AddressInfo GenesisConsole::GetAbsoluteAddress(AddressInfo& relAddress)
 		case MemoryType::GenesisVideoRam:
 		case MemoryType::GenesisColorRam:
 		case MemoryType::GenesisVScrollRam:
+		case MemoryType::GenesisAudioRam:
 			return relAddress;
 		default:
 			return { -1, MemoryType::None };
@@ -472,6 +503,7 @@ AddressInfo GenesisConsole::GetAbsoluteAddress(AddressInfo& relAddress)
 
 AddressInfo GenesisConsole::GetRelativeAddress(AddressInfo& absAddress, CpuType cpuType)
 {
+	(void)cpuType;
 	switch(absAddress.Type) {
 		case MemoryType::GenesisMemory:
 		case MemoryType::GenesisWorkRam:
@@ -480,6 +512,7 @@ AddressInfo GenesisConsole::GetRelativeAddress(AddressInfo& absAddress, CpuType 
 		case MemoryType::GenesisVideoRam:
 		case MemoryType::GenesisColorRam:
 		case MemoryType::GenesisVScrollRam:
+		case MemoryType::GenesisAudioRam:
 			return absAddress;
 		default:
 			return { -1, MemoryType::None };
@@ -490,52 +523,126 @@ GenesisState GenesisConsole::GetState()
 {
 	GenesisState state;
 
-	if(_impl) {
-		uint32_t d[8], a[8];
-		uint16_t sr;
-		GenesisAresGetCpuState(_impl,
-			&state.Cpu.PC, &state.Cpu.SP,
-			d, a, &sr, &state.Cpu.CycleCount);
-		for(int i = 0; i < 8; i++) {
-			state.Cpu.D[i] = d[i];
-			state.Cpu.A[i] = a[i];
-		}
-		state.Cpu.SR = sr;
+	if(_backend) {
+		_backend->GetCpuState(state.Cpu);
 
-		uint32_t w, h;
-		GenesisAresGetFrameSize(_impl, &w, &h);
-		state.Vdp.Width      = (uint16_t)w;
-		state.Vdp.Height     = (uint16_t)h;
+		uint32_t w = 0;
+		uint32_t h = 0;
+		_backend->GetFrameSize(w, h);
+		state.Vdp.Width = (uint16_t)w;
+		state.Vdp.Height = (uint16_t)h;
 		state.Vdp.FrameCount = _frameCount;
-		state.Vdp.PAL        = _isPAL;
+		state.Vdp.PAL = _isPAL;
 	}
 
 	return state;
 }
 
+uint8_t GenesisConsole::ReadMemory(MemoryType type, uint32_t address)
+{
+	return _backend ? _backend->ReadMemory(type, address) : 0;
+}
+
+void GenesisConsole::WriteMemory(MemoryType type, uint32_t address, uint8_t value)
+{
+	if(_backend) {
+		_backend->WriteMemory(type, address, value);
+	}
+}
+
+bool GenesisConsole::SetProgramCounter(uint32_t address)
+{
+	return _backend ? _backend->SetProgramCounter(address) : false;
+}
+
+uint32_t GenesisConsole::GetInstructionSize(uint32_t address)
+{
+	return _backend ? _backend->GetInstructionSize(address) : 2;
+}
+
+const char* GenesisConsole::DisassembleInstruction(uint32_t address)
+{
+	return _backend ? _backend->DisassembleInstruction(address) : "";
+}
+
 void GenesisConsole::GetConsoleState(BaseState& state, ConsoleType consoleType)
 {
+	(void)consoleType;
 	(GenesisState&)state = GetState();
+}
+
+SaveStateCompatInfo GenesisConsole::ValidateSaveStateCompatibility(ConsoleType stateConsoleType)
+{
+	if(stateConsoleType != ConsoleType::Genesis) {
+		return {};  // cross-console load: incompatible
+	}
+
+	// Same-console load: report compatible here; Serialize() enforces
+	// the native state format marker and rejects mismatches with SetErrorFlag.
+	return { true, "", "" };
 }
 
 void GenesisConsole::Serialize(Serializer& s)
 {
-	if(!_impl) return;
+	if(!_backend) {
+		return;
+	}
+
+	vector<uint8_t> stateVec;
+
+	if(_backend->GetCoreType() == GenesisCoreType::Native) {
+		uint32_t stateFormatMarker = s.IsSaving() ? NativeStateFormatMarker : 0;
+		SV(stateFormatMarker);
+		if(!s.IsSaving() && stateFormatMarker != NativeStateFormatMarker) {
+			// Reject legacy Genesis states that predate the native format marker.
+			s.SetErrorFlag();
+			return;
+		}
+	}
 
 	if(s.IsSaving()) {
-		uint32_t stateSize = 0;
-		uint8_t* stateData = GenesisAresSaveState(_impl, &stateSize);
-		vector<uint8_t> stateVec;
-		if(stateData && stateSize > 0) {
-			stateVec.assign(stateData, stateData + stateSize);
-			GenesisAresFreeStateData(stateData);
+		if(!_backend->SaveState(stateVec)) {
+			stateVec.clear();
 		}
 		SVVector(stateVec);
 	} else {
-		vector<uint8_t> stateVec;
 		SVVector(stateVec);
-		if(!stateVec.empty()) {
-			GenesisAresLoadState(_impl, stateVec.data(), (uint32_t)stateVec.size());
+		if(!stateVec.empty() && !_backend->LoadState(stateVec)) {
+			s.SetErrorFlag();
 		}
 	}
+}
+
+GenesisZ80State GenesisConsole::GetZ80DebugState()
+{
+	if(_backend && _backend->GetCoreType() == GenesisCoreType::Native) {
+		auto* nb = static_cast<GenesisNativeBackend*>(_backend.get());
+		return nb->GetZ80DebugState();
+	}
+	return {};
+}
+
+void GenesisConsole::SetZ80ProgramCounter(uint16_t addr)
+{
+	if(_backend && _backend->GetCoreType() == GenesisCoreType::Native) {
+		auto* nb = static_cast<GenesisNativeBackend*>(_backend.get());
+		nb->SetZ80ProgramCounter(addr);
+	}
+}
+
+uint8_t GenesisConsole::GetVdpRegister(uint8_t index) const
+{
+	if(_backend && _backend->GetCoreType() == GenesisCoreType::Native) {
+		auto* nb = static_cast<GenesisNativeBackend*>(_backend.get());
+		return nb->GetVdpRegister(index);
+	}
+
+	return 0;
+}
+
+ShortcutState GenesisConsole::IsShortcutAllowed(EmulatorShortcut shortcut, uint32_t shortcutParam)
+{
+	(void)shortcut;
+	(void)shortcutParam;
+	return ShortcutState::Default;
 }

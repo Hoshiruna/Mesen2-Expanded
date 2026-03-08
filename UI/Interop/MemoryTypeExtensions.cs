@@ -209,19 +209,22 @@ namespace Mesen.Interop
 
 				case MemoryType.PceSpriteRam:
 				case MemoryType.PceSpriteRamVdc2:
-				case MemoryType.PcePaletteRam:
-				
-				case MemoryType.SmsBootRom:
-				case MemoryType.SmsPaletteRam:
-				case MemoryType.SmsPort:
-				
-				case MemoryType.GbaBootRom:
-				case MemoryType.GbaPaletteRam:
-				case MemoryType.GbaSpriteRam:
+					case MemoryType.PcePaletteRam:
+					
+					case MemoryType.SmsBootRom:
+					case MemoryType.SmsPaletteRam:
+					case MemoryType.SmsPort:
+					
+					case MemoryType.GbaBootRom:
+					case MemoryType.GbaPaletteRam:
+					case MemoryType.GbaSpriteRam:
+					
+					case MemoryType.WsPort:
 
-				case MemoryType.WsPort:
-					return false;
-			}
+					case MemoryType.GenesisColorRam:
+					case MemoryType.GenesisVScrollRam:
+						return false;
+				}
 
 			return true;
 		}

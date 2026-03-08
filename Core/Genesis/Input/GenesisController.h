@@ -9,9 +9,11 @@
 class GenesisController : public BaseControlDevice
 {
 protected:
+	bool _sixButton = true;
+
 	string GetKeyNames() override
 	{
-		return "UDLRABCStXYZMd";
+		return _sixButton ? "UDLRABCStXYZMd" : "UDLRABCSt";
 	}
 
 	void InternalSetStateFromInput() override
@@ -25,10 +27,12 @@ protected:
 			SetPressedState(Buttons::B,     keyMapping.B);
 			SetPressedState(Buttons::C,     keyMapping.TurboA); // C mapped to TurboA slot
 			SetPressedState(Buttons::Start, keyMapping.Start);
-			SetPressedState(Buttons::X,     keyMapping.X);
-			SetPressedState(Buttons::Y,     keyMapping.Y);
-			SetPressedState(Buttons::Z,     keyMapping.TurboB); // Z mapped to TurboB slot
-			SetPressedState(Buttons::Mode,  keyMapping.Select);
+			if(_sixButton) {
+				SetPressedState(Buttons::X,     keyMapping.X);
+				SetPressedState(Buttons::Y,     keyMapping.Y);
+				SetPressedState(Buttons::Z,     keyMapping.TurboB); // Z mapped to TurboB slot
+				SetPressedState(Buttons::Mode,  keyMapping.Select);
+			}
 		}
 	}
 
@@ -37,11 +41,13 @@ protected:
 public:
 	enum Buttons { Up = 0, Down, Left, Right, A, B, C, Start, X, Y, Z, Mode };
 
-	GenesisController(Emulator* emu, uint8_t port, KeyMappingSet keyMappings)
-		: BaseControlDevice(emu, ControllerType::GenesisController, port, keyMappings)
-	{}
+	GenesisController(Emulator* emu, ControllerType type, uint8_t port, KeyMappingSet keyMappings, bool sixButton)
+		: BaseControlDevice(emu, type, port, keyMappings)
+	{
+		_sixButton = sixButton;
+	}
 
-	// Build a bitmask using GenesisButton flags for use by the Ares bridge
+	// Build a bitmask using GenesisButton flags.
 	uint32_t GetButtonMask()
 	{
 		uint32_t mask = 0;
@@ -53,10 +59,12 @@ public:
 		if(IsPressed(Buttons::B))     mask |= GenesisButton::B;
 		if(IsPressed(Buttons::C))     mask |= GenesisButton::C;
 		if(IsPressed(Buttons::Start)) mask |= GenesisButton::Start;
-		if(IsPressed(Buttons::X))     mask |= GenesisButton::X;
-		if(IsPressed(Buttons::Y))     mask |= GenesisButton::Y;
-		if(IsPressed(Buttons::Z))     mask |= GenesisButton::Z;
-		if(IsPressed(Buttons::Mode))  mask |= GenesisButton::Mode;
+		if(_sixButton) {
+			if(IsPressed(Buttons::X))     mask |= GenesisButton::X;
+			if(IsPressed(Buttons::Y))     mask |= GenesisButton::Y;
+			if(IsPressed(Buttons::Z))     mask |= GenesisButton::Z;
+			if(IsPressed(Buttons::Mode))  mask |= GenesisButton::Mode;
+		}
 		return mask;
 	}
 
@@ -75,20 +83,26 @@ public:
 
 		hud.DrawButton(15, 9, 5, 2, IsPressed(Buttons::Start));
 
-		hud.DrawButton(27, 5, 3, 3, IsPressed(Buttons::A));
-		hud.DrawButton(31, 5, 3, 3, IsPressed(Buttons::B));
-		hud.DrawButton(35, 5, 3, 3, IsPressed(Buttons::C));
+		if(_sixButton) {
+			hud.DrawButton(27, 5, 3, 3, IsPressed(Buttons::X));
+			hud.DrawButton(31, 5, 3, 3, IsPressed(Buttons::Y));
+			hud.DrawButton(35, 5, 3, 3, IsPressed(Buttons::Z));
 
-		hud.DrawButton(27, 9, 3, 3, IsPressed(Buttons::X));
-		hud.DrawButton(31, 9, 3, 3, IsPressed(Buttons::Y));
-		hud.DrawButton(35, 9, 3, 3, IsPressed(Buttons::Z));
+			hud.DrawButton(27, 9, 3, 3, IsPressed(Buttons::A));
+			hud.DrawButton(31, 9, 3, 3, IsPressed(Buttons::B));
+			hud.DrawButton(35, 9, 3, 3, IsPressed(Buttons::C));
+		} else {
+			hud.DrawButton(27, 7, 3, 3, IsPressed(Buttons::A));
+			hud.DrawButton(31, 7, 3, 3, IsPressed(Buttons::B));
+			hud.DrawButton(35, 7, 3, 3, IsPressed(Buttons::C));
+		}
 
 		hud.DrawNumber(_port + 1, 19, 2);
 	}
 
 	vector<DeviceButtonName> GetKeyNameAssociations() override
 	{
-		return {
+		vector<DeviceButtonName> names = {
 			{ "up",    Buttons::Up },
 			{ "down",  Buttons::Down },
 			{ "left",  Buttons::Left },
@@ -97,10 +111,15 @@ public:
 			{ "b",     Buttons::B },
 			{ "c",     Buttons::C },
 			{ "start", Buttons::Start },
-			{ "x",     Buttons::X },
-			{ "y",     Buttons::Y },
-			{ "z",     Buttons::Z },
-			{ "mode",  Buttons::Mode },
 		};
+
+		if(_sixButton) {
+			names.push_back({ "x", Buttons::X });
+			names.push_back({ "y", Buttons::Y });
+			names.push_back({ "z", Buttons::Z });
+			names.push_back({ "mode", Buttons::Mode });
+		}
+
+		return names;
 	}
 };

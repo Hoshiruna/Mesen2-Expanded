@@ -43,7 +43,7 @@ namespace Mesen.ViewModels
 			UpdateInfo? updateInfo = null;
 			try {
 				using(var client = new HttpClient()) {
-					string updateData = await client.GetStringAsync("https://www.mesen.ca/Services/v2/latestversion.json");
+					string updateData = await client.GetStringAsync("");
 					updateInfo = (UpdateInfo?)JsonSerializer.Deserialize(updateData, typeof(UpdateInfo), MesenSerializerContext.Default);
 
 					if(

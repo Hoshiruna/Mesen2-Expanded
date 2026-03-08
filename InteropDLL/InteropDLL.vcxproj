@@ -201,6 +201,7 @@
   <ItemGroup>
     <ClInclude Include="InteropNotificationListeners.h" />
     <ClInclude Include="InteropNotificationListener.h" />
+    <ClInclude Include="EmuApiWrapper.h" />
     <ClInclude Include="Common.h" />
   </ItemGroup>
   <ItemGroup>

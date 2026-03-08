@@ -410,6 +410,10 @@ namespace Mesen.Config
 		//WonderSwan
 		WsController,
 		WsControllerVertical,
+
+		//Genesis
+		GenesisController,
+		GenesisController3Buttons,
 	}
 
 	public static class ControllerTypeExtensions
@@ -432,6 +436,8 @@ namespace Mesen.Config
 				case ControllerType.ColecoVisionController:
 				case ControllerType.WsController:
 				case ControllerType.WsControllerVertical:
+				case ControllerType.GenesisController:
+				case ControllerType.GenesisController3Buttons:
 					return true;
 			}
 
@@ -500,6 +506,8 @@ namespace Mesen.Config
 				case ControllerType.ColecoVisionController:
 				case ControllerType.WsController:
 				case ControllerType.WsControllerVertical:
+				case ControllerType.GenesisController:
+				case ControllerType.GenesisController3Buttons:
 					return true;
 			}
 

@@ -3,12 +3,11 @@
 #include "Debugger/Breakpoint.h"
 #include "Debugger/DebugTypes.h"
 #include "Debugger/DebugUtilities.h"
+#include "Debugger/ExpressionEvaluator.h"
 
-class ExpressionEvaluator;
 class Debugger;
 class IDebugger;
 class BaseEventManager;
-struct ExpressionData;
 enum class MemoryOperationType;
 
 class BreakpointManager

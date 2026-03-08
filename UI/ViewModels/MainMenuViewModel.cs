@@ -988,24 +988,35 @@ namespace Mesen.ViewModels
 					ActionType = ActionType.OpenTilemapViewer,
 					Shortcut = () => ConfigManager.Config.Debug.Shortcuts.Get(DebuggerShortcut.OpenTilemapViewer),
 					IsEnabled = () => IsGameRunning,
+					IsVisible = () => IsGameRunning && MainWindow.RomInfo.ConsoleType != ConsoleType.Genesis,
 					OnClick = () => DebugWindowManager.OpenDebugWindow(() => new TilemapViewerWindow(MainWindow.RomInfo.ConsoleType.GetMainCpuType()))
 				},
-				new ContextMenuAction() {
-					ActionType = ActionType.OpenTileViewer,
-					Shortcut = () => ConfigManager.Config.Debug.Shortcuts.Get(DebuggerShortcut.OpenTileViewer),
-					IsEnabled = () => IsGameRunning,
-					OnClick = () => DebugWindowManager.OpenDebugWindow(() => new TileViewerWindow(MainWindow.RomInfo.ConsoleType.GetMainCpuType()))
-				},
+					new ContextMenuAction() {
+						ActionType = ActionType.OpenTilemapViewer,
+						DynamicText = () => "VDP Viewer",
+						Shortcut = () => ConfigManager.Config.Debug.Shortcuts.Get(DebuggerShortcut.OpenTilemapViewer),
+						IsEnabled = () => IsGameRunning,
+						IsVisible = () => IsGameRunning && MainWindow.RomInfo.ConsoleType == ConsoleType.Genesis,
+						OnClick = () => DebugWindowManager.OpenDebugWindow(() => new TilemapViewerWindow(CpuType.GenesisMain))
+					},
+					new ContextMenuAction() {
+						ActionType = ActionType.OpenTileViewer,
+						Shortcut = () => ConfigManager.Config.Debug.Shortcuts.Get(DebuggerShortcut.OpenTileViewer),
+						IsEnabled = () => IsGameRunning,
+						OnClick = () => DebugWindowManager.OpenDebugWindow(() => new TileViewerWindow(MainWindow.RomInfo.ConsoleType.GetMainCpuType()))
+					},
 				new ContextMenuAction() {
 					ActionType = ActionType.OpenSpriteViewer,
 					Shortcut = () => ConfigManager.Config.Debug.Shortcuts.Get(DebuggerShortcut.OpenSpriteViewer),
 					IsEnabled = () => IsGameRunning,
+					IsVisible = () => IsGameRunning && MainWindow.RomInfo.ConsoleType != ConsoleType.Genesis,
 					OnClick = () => DebugWindowManager.OpenDebugWindow(() => new SpriteViewerWindow(MainWindow.RomInfo.ConsoleType.GetMainCpuType()))
 				},
 				new ContextMenuAction() {
 					ActionType = ActionType.OpenPaletteViewer,
 					Shortcut = () => ConfigManager.Config.Debug.Shortcuts.Get(DebuggerShortcut.OpenPaletteViewer),
 					IsEnabled = () => IsGameRunning,
+					IsVisible = () => IsGameRunning && MainWindow.RomInfo.ConsoleType != ConsoleType.Genesis,
 					OnClick = () => DebugWindowManager.OpenDebugWindow(() => new PaletteViewerWindow(MainWindow.RomInfo.ConsoleType.GetMainCpuType()))
 				},
 				new ContextMenuSeparator(),

@@ -162,11 +162,13 @@ namespace Mesen.Debugger.ViewModels
 				new ContextMenuSeparator(),
 				new ContextMenuAction() {
 					ActionType = ActionType.EditTile,
+					IsVisible = () => CpuType != CpuType.GenesisMain,
 					Shortcut = () => ConfigManager.Config.Debug.Shortcuts.Get(DebuggerShortcut.TilemapViewer_EditTile),
 					OnClick = () => EditTileGrid(1, 1, wnd)
 				},
 				new ContextMenuAction() {
 					ActionType = ActionType.EditTiles,
+					IsVisible = () => CpuType != CpuType.GenesisMain,
 					SubActions = new() {
 						GetEditTileAction(1, 2, wnd),
 						GetEditTileAction(2, 1, wnd),
@@ -374,6 +376,13 @@ namespace Mesen.Debugger.ViewModels
 					Tabs = new() {
 						new() { Title = "BG0", Layer = 0 },
 						new() { Title = "BG1", Layer = 1 }
+					};
+					break;
+
+				case CpuType.GenesisMain:
+					Tabs = new() {
+						new() { Title = "BG A", Layer = 0 },
+						new() { Title = "BG B", Layer = 1 }
 					};
 					break;
 

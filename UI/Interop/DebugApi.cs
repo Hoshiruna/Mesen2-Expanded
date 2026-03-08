@@ -122,6 +122,7 @@ namespace Mesen.Interop
 				CpuType.Sms => GetPpuState<SmsVdpState>(cpuType),
 				CpuType.Gba => GetPpuState<GbaPpuState>(cpuType),
 				CpuType.Ws => GetPpuState<WsPpuState>(cpuType),
+				CpuType.GenesisMain => GetPpuState<GenesisVdpState>(cpuType),
 				_ => throw new Exception("Unsupported cpu type")
 			};
 		}
@@ -144,6 +145,7 @@ namespace Mesen.Interop
 				CpuType.Sms => GetPpuToolsState<EmptyPpuToolsState>(cpuType),
 				CpuType.Gba => GetPpuToolsState<EmptyPpuToolsState>(cpuType),
 				CpuType.Ws => GetPpuToolsState<EmptyPpuToolsState>(cpuType),
+				CpuType.GenesisMain => GetPpuToolsState<EmptyPpuToolsState>(cpuType),
 				_ => throw new Exception("Unsupported cpu type")
 			};
 		}
@@ -560,19 +562,20 @@ namespace Mesen.Interop
 			};
 		}
 
-		private static bool IsValidPpuState<T>(ref T state, CpuType cpuType) where T : BaseState
-		{
-			return cpuType.GetConsoleType() switch {
-				ConsoleType.Snes => state is SnesPpuState,
-				ConsoleType.Nes => state is NesPpuState,
-				ConsoleType.Gameboy => state is GbPpuState,
-				ConsoleType.PcEngine => state is PceVideoState,
-				ConsoleType.Sms => state is SmsVdpState,
-				ConsoleType.Gba => state is GbaPpuState,
-				ConsoleType.Ws => state is WsPpuState,
-				_ => false
-			};
-		}
+			private static bool IsValidPpuState<T>(ref T state, CpuType cpuType) where T : BaseState
+			{
+				return cpuType.GetConsoleType() switch {
+					ConsoleType.Snes => state is SnesPpuState,
+					ConsoleType.Nes => state is NesPpuState,
+					ConsoleType.Gameboy => state is GbPpuState,
+					ConsoleType.PcEngine => state is PceVideoState,
+					ConsoleType.Sms => state is SmsVdpState,
+					ConsoleType.Gba => state is GbaPpuState,
+					ConsoleType.Ws => state is WsPpuState,
+					ConsoleType.Genesis => state is GenesisVdpState,
+					_ => false
+				};
+			}
 
 		private static int GetStateSize(BaseState state)
 		{

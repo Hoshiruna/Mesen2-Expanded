@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -21,6 +21,10 @@
   <ItemGroup>
     <ClInclude Include="GBA\GbaCpuMultiply.h" />
     <ClInclude Include="GBA\GbaWaitStates.h" />
+    <ClInclude Include="Genesis\APU\GenesisApu.h" />
+    <ClInclude Include="Genesis\APU\GenesisDACchannel.h" />
+    <ClInclude Include="Genesis\APU\GenesisFMchannel.h" />
+    <ClInclude Include="Genesis\APU\GenesisPSGchannel.h" />
     <ClInclude Include="NES\Epsm.h" />
     <ClInclude Include="NES\Mappers\Homebrew\Rainbow.h" />
     <ClInclude Include="NES\Mappers\Homebrew\RainbowAudio.h" />
@@ -81,16 +85,24 @@
     <ClInclude Include="GBA\GbaTypes.h" />
     <ClInclude Include="GBA\Input\GbaController.h" />
     <ClInclude Include="GBA\Debugger\MgbaLogHandler.h" />
-    <ClInclude Include="Genesis\GenesisAresCore.h" />
+    <ClInclude Include="Genesis\GenesisI2cEeprom.h" />
     <ClInclude Include="Genesis\GenesisConsole.h" />
     <ClInclude Include="Genesis\GenesisControlManager.h" />
     <ClInclude Include="Genesis\GenesisDefaultVideoFilter.h" />
+    <ClInclude Include="Genesis\GenesisNativeBackend.h" />
     <ClInclude Include="Genesis\GenesisTypes.h" />
+    <ClInclude Include="Genesis\GenesisVdp.h" />
+    <ClInclude Include="Genesis\GenesisCpu68k.h" />
+    <ClInclude Include="Genesis\GenesisCpuZ80.h" />
+    <ClInclude Include="Genesis\IGenesisCoreBackend.h" />
+    <ClInclude Include="Genesis\IGenesisPlatformCallbacks.h" />
     <ClInclude Include="Genesis\Input\GenesisController.h" />
     <ClInclude Include="Genesis\Debugger\GenesisDebugger.h" />
+    <ClInclude Include="Genesis\Debugger\GenesisZ80Debugger.h" />
     <ClInclude Include="Genesis\Debugger\GenesisDisUtils.h" />
     <ClInclude Include="Genesis\Debugger\GenesisEventManager.h" />
     <ClInclude Include="Genesis\Debugger\GenesisTraceLogger.h" />
+    <ClInclude Include="Genesis\Debugger\GenesisVdpTools.h" />
     <ClInclude Include="NES\HdPacks\HdBuilderPpu.h" />
     <ClInclude Include="NES\HdPacks\HdPackBuilder.h" />
     <ClInclude Include="PCE\CdRom\PceCdSeekDelay.h" />
@@ -859,6 +871,10 @@
     <ClCompile Include="GBA\GbaMemoryManager.cpp" />
     <ClCompile Include="GBA\GbaPpu.cpp" />
     <ClCompile Include="GBA\GbaTimer.cpp" />
+    <ClCompile Include="Genesis\APU\GenesisApu.cpp" />
+    <ClCompile Include="Genesis\APU\GenesisDACchannel.cpp" />
+    <ClCompile Include="Genesis\APU\GenesisFMchannel.cpp" />
+    <ClCompile Include="Genesis\APU\GenesisPSGchannel.cpp" />
     <ClCompile Include="NES\BaseNesPpu.cpp" />
     <ClCompile Include="NES\BisqwitNtscFilter.cpp" />
     <ClCompile Include="NES\Debugger\DummyNesCpu.cpp" />
@@ -945,160 +961,18 @@
     <ClCompile Include="Shared\Video\RotateFilter.cpp" />
     <ClCompile Include="Shared\Video\SoftwareRenderer.cpp" />
     <ClCompile Include="Shared\Video\SystemHud.cpp" />
-    <ClCompile Include="Genesis\Ares\libco\libco.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-    </ClCompile>
-    <ClCompile Include="Genesis\Ares\nall\nall\nall.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <TreatWarningAsError>false</TreatWarningAsError>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-    </ClCompile>
-    <!-- sljit JIT compiler (C file, custom allocator via sljitConfigPre/Post.h) -->
-    <ClCompile Include="Genesis\Ares\thirdparty\sljit\sljit_src\sljitLir.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SLJIT_HAVE_CONFIG_PRE=1;SLJIT_HAVE_CONFIG_POST=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <CompileAs>CompileAsC</CompileAs>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-    </ClCompile>
-    <!-- sljit allocator: bridges nall::bump_allocator to sljit's memory API -->
-    <ClCompile Include="Genesis\Ares\thirdparty\sljitAllocator.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\thirdparty;$(ProjectDir)\Genesis\Ares\nall;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SLJIT_HAVE_CONFIG_PRE=1;SLJIT_HAVE_CONFIG_POST=1;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <TreatWarningAsError>false</TreatWarningAsError>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-    </ClCompile>
-    <!-- Ares component implementations: compiled as separate TUs to avoid
-         macro-pollution issues (sh2.cpp etc. define global #defines).
-         Each needs NotUsing PCH, extensions enabled, and ares include dirs. -->
-    <ClCompile Include="Genesis\Ares\component\processor\m68000\m68000.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <TreatWarningAsError>false</TreatWarningAsError>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-    </ClCompile>
-    <ClCompile Include="Genesis\Ares\component\processor\z80\z80.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <TreatWarningAsError>false</TreatWarningAsError>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-    </ClCompile>
-    <ClCompile Include="Genesis\Ares\component\processor\sh2\sh2.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <TreatWarningAsError>false</TreatWarningAsError>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-    </ClCompile>
-    <ClCompile Include="Genesis\Ares\component\processor\ssp1601\ssp1601.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <TreatWarningAsError>false</TreatWarningAsError>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-    </ClCompile>
-    <ClCompile Include="Genesis\Ares\audio\sn76489\sn76489.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <TreatWarningAsError>false</TreatWarningAsError>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-    </ClCompile>
-    <ClCompile Include="Genesis\Ares\audio\ym2612\ym2612.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <TreatWarningAsError>false</TreatWarningAsError>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-    </ClCompile>
-    <ClCompile Include="Genesis\Ares\component\eeprom\m24c\m24c.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <TreatWarningAsError>false</TreatWarningAsError>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-    </ClCompile>
-    <ClCompile Include="Genesis\GenesisAresCore.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">$(ProjectDir)\Genesis\Ares\ares;$(ProjectDir)\Genesis\Ares;$(ProjectDir)\Genesis\Ares\nall;$(ProjectDir)\Genesis\Ares\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4146;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <TreatWarningAsError>false</TreatWarningAsError>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-    </ClCompile>
     <ClCompile Include="Genesis\GenesisConsole.cpp" />
     <ClCompile Include="Genesis\GenesisControlManager.cpp" />
+    <ClCompile Include="Genesis\GenesisNativeBackend.cpp" />
+    <ClCompile Include="Genesis\GenesisVdp.cpp" />
+    <ClCompile Include="Genesis\GenesisCpu68k.cpp" />
+    <ClCompile Include="Genesis\GenesisCpuZ80.cpp" />
     <ClCompile Include="Genesis\Debugger\GenesisDebugger.cpp" />
+    <ClCompile Include="Genesis\Debugger\GenesisZ80Debugger.cpp" />
     <ClCompile Include="Genesis\Debugger\GenesisDisUtils.cpp" />
     <ClCompile Include="Genesis\Debugger\GenesisEventManager.cpp" />
     <ClCompile Include="Genesis\Debugger\GenesisTraceLogger.cpp" />
+    <ClCompile Include="Genesis\Debugger\GenesisVdpTools.cpp" />
     <ClCompile Include="SMS\Carts\SmsCart.cpp" />
     <ClCompile Include="SMS\Debugger\DummySmsCpu.cpp" />
     <ClCompile Include="SMS\Debugger\SmsAssembler.cpp" />
@@ -1336,14 +1210,14 @@
     <IncludePath>$(SolutionDir);$(ProjectDir);$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\bin\win-$(PlatformTarget)\$(Configuration)\</OutDir>
-    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
     <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
     <CodeAnalysisRuleSet>Core.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)\bin\win-$(PlatformTarget)\$(Configuration)\</OutDir>
-    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
     <EnableMicrosoftCodeAnalysis>true</EnableMicrosoftCodeAnalysis>
     <IncludePath>$(SolutionDir);$(ProjectDir);$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>Core.ruleset</CodeAnalysisRuleSet>
@@ -1351,7 +1225,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='PGO Profile|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)\bin\win-$(PlatformTarget)\$(Configuration)\</OutDir>
-    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
     <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
     <IncludePath>$(SolutionDir);$(ProjectDir);$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>Core.ruleset</CodeAnalysisRuleSet>
@@ -1359,7 +1233,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='PGO Optimize|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)\bin\win-$(PlatformTarget)\PGO Profile\</OutDir>
-    <IntDir>obj\$(Platform)\PGO Profile\</IntDir>
+    <IntDir>$(ProjectDir)obj\$(Platform)\PGO Profile\</IntDir>
     <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
     <IncludePath>$(SolutionDir);$(ProjectDir);$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>Core.ruleset</CodeAnalysisRuleSet>
@@ -1389,6 +1263,7 @@
       <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)Core.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -1427,6 +1302,7 @@
       <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)Core.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -1461,6 +1337,7 @@
       <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)Core.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -1495,6 +1372,7 @@
       <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)Core.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

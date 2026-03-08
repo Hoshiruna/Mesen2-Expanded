@@ -32,6 +32,7 @@ namespace Mesen.Config
 		[Reactive] public GameboyConfig Gameboy { get; set; } = new();
 		[Reactive] public PcEngineConfig PcEngine { get; set; } = new();
 		[Reactive] public SmsConfig Sms { get; set; } = new();
+		[Reactive] public GenesisConfig Genesis { get; set; } = new();
 		[Reactive] public CvConfig Cv { get; set; } = new();
 		[Reactive] public GbaConfig Gba { get; set; } = new();
 		[Reactive] public WsConfig Ws { get; set; } = new();
@@ -89,6 +90,7 @@ namespace Mesen.Config
 			Nes.ApplyConfig();
 			Snes.ApplyConfig();
 			Sms.ApplyConfig();
+			Genesis.ApplyConfig();
 			Cv.ApplyConfig();
 			Ws.ApplyConfig();
 			Preferences.ApplyConfig();
@@ -128,6 +130,10 @@ namespace Mesen.Config
 				Ws.InitializeDefaults(DefaultKeyMappings);
 			}
 
+			if(ConfigUpgrade < (int)ConfigUpgradeHint.GenesisInput) {
+				Genesis.InitializeDefaults(DefaultKeyMappings);
+			}
+
 			ConfigUpgrade = (int)ConfigUpgradeHint.NextValue - 1;
 			Version = EmuApi.GetMesenVersion().ToString(3);
 		}
@@ -141,6 +147,7 @@ namespace Mesen.Config
 				Gba.InitializeDefaults(DefaultKeyMappings);
 				PcEngine.InitializeDefaults(DefaultKeyMappings);
 				Sms.InitializeDefaults(DefaultKeyMappings);
+				Genesis.InitializeDefaults(DefaultKeyMappings);
 				Cv.InitializeDefaults(DefaultKeyMappings);
 				Ws.InitializeDefaults(DefaultKeyMappings);
 				ConfigUpgrade = (int)ConfigUpgradeHint.NextValue - 1;
@@ -321,6 +328,7 @@ namespace Mesen.Config
 		GbaInput,
 		CvInput,
 		WsInput,
+		GenesisInput,
 		NextValue,
 	}
 }

@@ -31,6 +31,7 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <OutputPath>$(SolutionDir)\bin\$(RuntimeIdentifier)\Debug\</OutputPath>
+    <DefineConstants>$(DefineConstants);GENESIS_EXEC_WINDOW</DefineConstants>
   </PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 	  <OutputPath>$(SolutionDir)\bin\$(RuntimeIdentifier)\Release\</OutputPath>

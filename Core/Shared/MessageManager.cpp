@@ -1,5 +1,70 @@
 ﻿#include "pch.h"
 #include "Shared/MessageManager.h"
+#include "Utilities/FolderUtilities.h"
+
+#ifdef _DEBUG
+	#ifdef _WIN32
+		// Forward-declare without <windows.h>: that header uses anonymous structs
+		// which are forbidden by the project's /Za (DisableLanguageExtensions) flag.
+		extern "C" __declspec(dllimport) unsigned long __stdcall
+			GetModuleFileNameW(void* hModule, wchar_t* lpFilename, unsigned long nSize);
+	#elif __APPLE__
+		#include <mach-o/dyld.h>
+	#else
+		#include <limits.h>
+		#include <unistd.h>
+	#endif
+
+static string GetExecutablePath()
+{
+	#ifdef _WIN32
+	// Use GetModuleFileNameW instead of _get_wpgmptr: the latter requires
+	// _wpgmptr to be set by the CRT EXE startup and asserts when called from
+	// a DLL context (MesenCore.dll).  GetModuleFileNameW(NULL, ...) returns
+	// the host process path and works correctly in both EXE and DLL contexts.
+	wchar_t exePath[32768] = {};   // 32767 is the Windows MAX_PATH extended limit
+	if(GetModuleFileNameW(nullptr, exePath, 32767) > 0) {
+		return utf8::utf8::encode(std::wstring(exePath));
+	}
+	return "";
+	#elif __APPLE__
+	uint32_t size = 0;
+	_NSGetExecutablePath(nullptr, &size);
+	if(size == 0) {
+		return "";
+	}
+
+	std::vector<char> buffer(size + 1, 0);
+	if(_NSGetExecutablePath(buffer.data(), &size) == 0) {
+		return string(buffer.data());
+	}
+	return "";
+	#else
+	char path[PATH_MAX + 1] = {};
+	ssize_t length = readlink("/proc/self/exe", path, PATH_MAX);
+	if(length > 0) {
+		path[length] = 0;
+		return path;
+	}
+	return "";
+	#endif
+}
+
+static string GetDebugLogPath()
+{
+	static string logPath;
+	if(logPath.empty()) {
+		string exePath = GetExecutablePath();
+		if(!exePath.empty()) {
+			logPath = FolderUtilities::CombinePath(FolderUtilities::GetFolderName(exePath), "mesen_debug.log");
+		} else {
+			logPath = "mesen_debug.log";
+		}
+	}
+
+	return logPath;
+}
+#endif
 
 std::unordered_map<string, string> MessageManager::_enResources = {
 	{ "Cheats", u8"Cheats" },
@@ -178,6 +243,18 @@ void MessageManager::Log(string message)
 		_log.pop_front();
 	}
 	_log.push_back(message);
+
+#ifdef _DEBUG
+	{
+		static bool truncateOnFirstWrite = true;
+		utf8::ofstream output;
+		output.open(GetDebugLogPath(), ios::out | (truncateOnFirstWrite ? ios::trunc : ios::app));
+		truncateOnFirstWrite = false;
+		if(output.is_open()) {
+			output << message << std::endl;
+		}
+	}
+#endif
 
 	if(_outputToStdout) {
 		std::cout << message << std::endl;
