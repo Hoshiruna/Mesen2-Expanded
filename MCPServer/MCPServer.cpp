@@ -1,14 +1,16 @@
-// MCPServer.exe — Standalone MCP HTTP server for Mesen2 Expanded.
+// MCPServer.exe — Standalone MCP bridge for Mesen2 Expanded.
 //
 // Architecture:
-//   Mesen.exe  <──named pipe "MesenDebug"──>  MCPServer.exe  <──HTTP──>  AI client
+//   Mesen.exe  <──named pipe "MesenDebug"──>  MCPServer.exe  <──HTTP / stdio──>  AI client
 //
 // The emulator exposes a named-pipe JSON-RPC endpoint (DebugPipeServer.cs).
 // This process connects to that pipe, listens on HTTP 127.0.0.1:51234, and
 // forwards every POST body to the pipe, returning the pipe response as the
 // HTTP response.  All MCP protocol logic lives on the C# side.
 //
-// Usage: MCPServer.exe [port]   (default port 51234)
+// Usage:
+//   MCPServer.exe [port]      (HTTP bridge, default port 51234)
+//   MCPServer.exe --stdio     (stdio bridge for local MCP clients like Codex)
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -23,8 +25,12 @@
 #include <cctype>
 #include <cstdlib>
 #include <cstdio>
+#include <iostream>
 #include <string>
 #include <thread>
+
+#include <fcntl.h>
+#include <io.h>
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -33,6 +39,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 static const char* PIPE_NAME = "\\\\.\\pipe\\MesenDebug";
 static int g_port = 51234;
+static bool g_stdioMode = false;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Named-pipe client
@@ -125,6 +132,102 @@ static std::string PipeRequest(const std::string& json)
 
 	LeaveCriticalSection(&g_pipeLock);
 	return R"({"jsonrpc":"2.0","id":0,"error":{"code":-32603,"message":"Emulator not running"}})";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MCP stdio bridge
+// ─────────────────────────────────────────────────────────────────────────────
+
+static std::string Trim(const std::string& value)
+{
+	size_t start = 0;
+	while(start < value.size() && std::isspace(static_cast<unsigned char>(value[start]))) {
+		start++;
+	}
+
+	size_t end = value.size();
+	while(end > start && std::isspace(static_cast<unsigned char>(value[end - 1]))) {
+		end--;
+	}
+
+	return value.substr(start, end - start);
+}
+
+static bool ReadStdioMessage(std::string& out)
+{
+	out.clear();
+
+	std::string line;
+	size_t contentLength = 0;
+	bool hasContentLength = false;
+
+	while(true) {
+		if(!std::getline(std::cin, line)) {
+			return false;
+		}
+
+		if(!line.empty() && line.back() == '\r') {
+			line.pop_back();
+		}
+
+		if(line.empty()) {
+			break;
+		}
+
+		size_t sep = line.find(':');
+		if(sep == std::string::npos) {
+			continue;
+		}
+
+		std::string header = line.substr(0, sep);
+		std::transform(header.begin(), header.end(), header.begin(), [](unsigned char c) {
+			return static_cast<char>(std::tolower(c));
+		});
+
+		if(header == "content-length") {
+			contentLength = static_cast<size_t>(std::strtoul(Trim(line.substr(sep + 1)).c_str(), nullptr, 10));
+			hasContentLength = true;
+		}
+	}
+
+	if(!hasContentLength) {
+		return false;
+	}
+
+	out.resize(contentLength);
+	std::cin.read(out.data(), static_cast<std::streamsize>(contentLength));
+	return std::cin.good() || std::cin.gcount() == static_cast<std::streamsize>(contentLength);
+}
+
+static void WriteStdioMessage(const std::string& json)
+{
+	std::cout << "Content-Length: " << json.size() << "\r\n\r\n";
+	std::cout.write(json.data(), static_cast<std::streamsize>(json.size()));
+	std::cout.flush();
+}
+
+static int RunStdio()
+{
+	_setmode(_fileno(stdin), _O_BINARY);
+	_setmode(_fileno(stdout), _O_BINARY);
+
+	fprintf(stderr, "[MCPServer] stdio bridge mode\n");
+	fprintf(stderr, "[MCPServer] Connecting to Mesen on pipe %s ...\n", PIPE_NAME);
+
+	InitializeCriticalSection(&g_pipeLock);
+	PipeConnect();
+	fprintf(stderr, "[MCPServer] Connected to Mesen.\n");
+
+	std::string request;
+	while(ReadStdioMessage(request)) {
+		std::string response = PipeRequest(request);
+		if(response != "{}") {
+			WriteStdioMessage(response);
+		}
+	}
+
+	DeleteCriticalSection(&g_pipeLock);
+	return 0;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -250,8 +353,15 @@ static void HandleClient(SOCKET client)
 // ─────────────────────────────────────────────────────────────────────────────
 int main(int argc, char* argv[])
 {
-	if(argc >= 2)
+	if(argc >= 2 && std::string(argv[1]) == "--stdio") {
+		g_stdioMode = true;
+	} else if(argc >= 2) {
 		g_port = std::atoi(argv[1]);
+	}
+
+	if(g_stdioMode) {
+		return RunStdio();
+	}
 
 	printf("[MCPServer] Mesen2 MCP Server\n");
 	printf("[MCPServer] Connecting to Mesen on pipe %s ...\n", PIPE_NAME);

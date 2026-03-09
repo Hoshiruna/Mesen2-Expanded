@@ -42,32 +42,47 @@ See [COMPILING.md](COMPILING.md)
 
 ## MCP Debug Server (Mesen Expanded)
 
-Mesen Expanded includes a built-in MCP server for debugger automation.
+Mesen Expanded exposes a debugger MCP endpoint over a named pipe when the main window opens.
+`MCPServer.exe` is the bridge process for external clients.
 
-- Transport: HTTP (JSON-RPC 2.0)
-- URL: `http://localhost:51234/mcp`
-- Bind address: `127.0.0.1` (local machine only)
-- Started automatically when the main window opens
+- Internal transport: named pipe (`MesenDebug`)
+- Bridge transports: stdio or HTTP
+- Default HTTP URL: `http://127.0.0.1:51234/mcp/`
+- HTTP bind address: `127.0.0.1` (local machine only)
 - Protocol version: `2025-03-26`
 - Server name: `Mesen2-MCP`
 
-You can also copy the MCP URL from the app via `Debug -> MCP Server Info`.
+### Codex
+
+Use the stdio bridge:
+
+```bash
+codex mcp add mesen-debugger -- path\to\MCPServer.exe --stdio
+```
 
 ### Claude Code
 
+Use the HTTP bridge:
+
 ```bash
-claude mcp add --transport http mesen-debugger http://localhost:51234/mcp
+claude mcp add --transport http mesen-debugger http://127.0.0.1:51234/mcp/
+```
+
+To use HTTP, start the bridge separately:
+
+```bash
+path\to\MCPServer.exe
 ```
 
 ### Claude Desktop
 
-Add this to your Claude Desktop config:
+Start `MCPServer.exe` first, then add this to your Claude Desktop config:
 
 ```json
 {
   "mcpServers": {
     "mesen-debugger": {
-      "url": "http://localhost:51234/mcp"
+      "url": "http://127.0.0.1:51234/mcp/"
     }
   }
 }
