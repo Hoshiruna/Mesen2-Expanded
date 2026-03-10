@@ -95,6 +95,8 @@ private:
 	DmaType  _dmaType    = DmaType::None;
 	uint32_t _dmaSrc     = 0;    // byte address (Bus68k) or VRAM addr (copy)
 	uint32_t _dmaLen     = 0;    // word count remaining
+	uint16_t _dmaAddr    = 0;    // latched DMA destination address register
+	uint8_t  _dmaCode    = 0;    // latched DMA command code (CD5:CD0)
 	uint16_t _dmaFillVal = 0;    // fill word (written via data port)
 	bool     _dmaFillPend = false; // fill word received, waiting to execute
 	uint8_t  _dmaBusStartDelayMclk = 0; // startup latency before first 68K DMA word
@@ -165,6 +167,7 @@ private:
 	void     ExecDmaBus68k(uint32_t maxWords);
 	void     ExecDmaFill(uint32_t maxBytes);
 	void     ExecDmaCopy(uint32_t maxWords);
+	void     AdvanceDmaAddr();
 	void     StartDmaIfArmed();
 
 	// -----------------------------------------------------------------------
@@ -279,10 +282,20 @@ public:
 	uint8_t*  Vsram() { return _vsram; }
 
 	uint16_t GetScanline()   const { return _scanline; }
+	uint16_t GetHClock()     const { return (uint16_t)(_mclkPos % MCLKS_PER_LINE); }
+	uint16_t GetVClock()     const { return _scanline; }
 	uint16_t GetStatus()     const { return _status; }
 	uint32_t GetFrameCount() const { return _frameCount; }
 	bool     IsDisplayEnabled() const { return DispEnabled(); }
 	uint8_t  GetRegister(uint8_t index) const { return index < 24 ? _reg[index] : 0; }
+	void     GetRegisters(uint8_t regs[24]) const { memcpy(regs, _reg, 24); }
+	uint8_t  GetDmaType() const { return (uint8_t)_dmaType; }
+	uint32_t GetDmaSource() const { return _dmaSrc; }
+	uint32_t GetDmaLength() const { return _dmaLen; }
+	uint16_t GetDmaFillValue() const { return _dmaFillVal; }
+	bool     IsDmaFillPending() const { return _dmaFillPend; }
+	bool     IsVIntPending() const { return _vintPending; }
+	bool     IsHIntPending() const { return _hintPending; }
 
 	// Save / load state helpers (called by GenesisNativeBackend::SaveState/LoadState)
 	void SaveState(vector<uint8_t>& out) const;

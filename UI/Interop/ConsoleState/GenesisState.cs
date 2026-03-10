@@ -32,3 +32,29 @@ public struct GenesisVdpState : BaseState
 	public UInt16 Height;
 	[MarshalAs(UnmanagedType.I1)] public bool PAL;
 }
+
+public struct GenesisBackendState
+{
+	public UInt64 MasterClock;
+	public UInt32 FrameWidth;
+	public UInt32 FrameHeight;
+	public UInt32 ActiveWidth;
+	public UInt32 ActiveHeight;
+	public UInt32 VdpMclkPos;
+	public UInt32 DmaSource;
+	public UInt32 DmaLength;
+	public UInt16 Scanline;
+	public UInt16 HClock;
+	public UInt16 VdpStatus;
+	public UInt16 DmaFillValue;
+	public byte DmaType;
+	public byte CpuPendingIrq;
+	public byte VintPending;
+	public byte HintPending;
+	public byte DmaFillPending;
+	public byte DisplayEnabled;
+	public byte Z80BusRequest;
+	public byte Z80Reset;
+	public byte Z80BusAck;
+	public byte PAL;
+}

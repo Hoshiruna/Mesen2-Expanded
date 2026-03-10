@@ -28,7 +28,10 @@ public:
 	virtual uint32_t GetMasterClockRate() const = 0;
 
 	virtual void GetCpuState(GenesisCpuState& state) const = 0;
+	virtual void GetVdpState(GenesisVdpState& state) const = 0;
+	virtual void GetVdpRegisters(uint8_t regs[24]) const = 0;
 	virtual void GetFrameSize(uint32_t& width, uint32_t& height) const = 0;
+	virtual bool GetBackendDebugState(GenesisBackendState& state) const { state = {}; return false; }
 
 	virtual uint8_t ReadMemory(MemoryType type, uint32_t address) = 0;
 	virtual void WriteMemory(MemoryType type, uint32_t address, uint8_t value) = 0;

@@ -525,14 +525,7 @@ GenesisState GenesisConsole::GetState()
 
 	if(_backend) {
 		_backend->GetCpuState(state.Cpu);
-
-		uint32_t w = 0;
-		uint32_t h = 0;
-		_backend->GetFrameSize(w, h);
-		state.Vdp.Width = (uint16_t)w;
-		state.Vdp.Height = (uint16_t)h;
-		state.Vdp.FrameCount = _frameCount;
-		state.Vdp.PAL = _isPAL;
+		_backend->GetVdpState(state.Vdp);
 	}
 
 	return state;
@@ -638,6 +631,25 @@ uint8_t GenesisConsole::GetVdpRegister(uint8_t index) const
 	}
 
 	return 0;
+}
+
+void GenesisConsole::GetVdpRegisters(uint8_t regs[24]) const
+{
+	if(_backend) {
+		_backend->GetVdpRegisters(regs);
+	} else {
+		memset(regs, 0, 24);
+	}
+}
+
+bool GenesisConsole::GetBackendDebugState(GenesisBackendState& state) const
+{
+	if(_backend) {
+		return _backend->GetBackendDebugState(state);
+	}
+
+	state = {};
+	return false;
 }
 
 ShortcutState GenesisConsole::IsShortcutAllowed(EmulatorShortcut shortcut, uint32_t shortcutParam)

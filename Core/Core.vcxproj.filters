@@ -3432,6 +3432,9 @@
     <ClCompile Include="Genesis\GenesisCpu68k.cpp">
       <Filter>Genesis</Filter>
     </ClCompile>
+    <ClCompile Include="Genesis\Genesis68Kdecoder.cpp">
+      <Filter>Genesis</Filter>
+    </ClCompile>
     <ClCompile Include="Genesis\GenesisCpuZ80.cpp">
       <Filter>Genesis</Filter>
     </ClCompile>

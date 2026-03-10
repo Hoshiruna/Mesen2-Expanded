@@ -218,7 +218,10 @@ public:
 	uint32_t GetMasterClockRate() const override;
 
 	void GetCpuState(GenesisCpuState& state) const override;
+	void GetVdpState(GenesisVdpState& state) const override;
+	void GetVdpRegisters(uint8_t regs[24]) const override;
 	void GetFrameSize(uint32_t& width, uint32_t& height) const override;
+	bool GetBackendDebugState(GenesisBackendState& state) const override;
 
 	uint8_t ReadMemory(MemoryType type, uint32_t address)            override;
 	void    WriteMemory(MemoryType type, uint32_t address, uint8_t value) override;

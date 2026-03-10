@@ -38,7 +38,9 @@ namespace
 bool GenesisFMchannel::_tablesReady = false;
 int16_t GenesisFMchannel::_sinTable[512] = {};
 int16_t GenesisFMchannel::_expTable[256] = {};
-uint8_t GenesisFMchannel::_dtTable[8][32] = {};
+uint8_t GenesisFMchannel::_counterShiftTable[64] = {};
+uint8_t GenesisFMchannel::_attenuationIncrementTable[64][8] = {};
+uint8_t GenesisFMchannel::_detunePhaseIncrementTable[32][4] = {};
 
 GenesisFMchannel::GenesisFMchannel()
 {
@@ -50,6 +52,49 @@ GenesisFMchannel::GenesisFMchannel()
 
 void GenesisFMchannel::BuildTables()
 {
+	static const uint8_t counterShiftTable[64] = {
+		11, 11, 11, 11, 10, 10, 10, 10,
+		9, 9, 9, 9, 8, 8, 8, 8,
+		7, 7, 7, 7, 6, 6, 6, 6,
+		5, 5, 5, 5, 4, 4, 4, 4,
+		3, 3, 3, 3, 2, 2, 2, 2,
+		1, 1, 1, 1, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0
+	};
+	memcpy(_counterShiftTable, counterShiftTable, sizeof(counterShiftTable));
+
+	static const uint8_t attenuationIncrementTable[64][8] = {
+		{0,0,0,0,0,0,0,0}, {0,0,0,0,0,0,0,0}, {0,1,0,1,0,1,0,1}, {0,1,0,1,0,1,0,1},
+		{0,1,0,1,0,1,0,1}, {0,1,0,1,0,1,0,1}, {0,1,1,1,0,1,1,1}, {0,1,1,1,0,1,1,1},
+		{0,1,0,1,0,1,0,1}, {0,1,0,1,1,1,0,1}, {0,1,1,1,0,1,1,1}, {0,1,1,1,1,1,1,1},
+		{0,1,0,1,0,1,0,1}, {0,1,0,1,1,1,0,1}, {0,1,1,1,0,1,1,1}, {0,1,1,1,1,1,1,1},
+		{0,1,0,1,0,1,0,1}, {0,1,0,1,1,1,0,1}, {0,1,1,1,0,1,1,1}, {0,1,1,1,1,1,1,1},
+		{0,1,0,1,0,1,0,1}, {0,1,0,1,1,1,0,1}, {0,1,1,1,0,1,1,1}, {0,1,1,1,1,1,1,1},
+		{0,1,0,1,0,1,0,1}, {0,1,0,1,1,1,0,1}, {0,1,1,1,0,1,1,1}, {0,1,1,1,1,1,1,1},
+		{0,1,0,1,0,1,0,1}, {0,1,0,1,1,1,0,1}, {0,1,1,1,0,1,1,1}, {0,1,1,1,1,1,1,1},
+		{0,1,0,1,0,1,0,1}, {0,1,0,1,1,1,0,1}, {0,1,1,1,0,1,1,1}, {0,1,1,1,1,1,1,1},
+		{0,1,0,1,0,1,0,1}, {0,1,0,1,1,1,0,1}, {0,1,1,1,0,1,1,1}, {0,1,1,1,1,1,1,1},
+		{0,1,0,1,0,1,0,1}, {0,1,0,1,1,1,0,1}, {0,1,1,1,0,1,1,1}, {0,1,1,1,1,1,1,1},
+		{1,1,1,1,1,1,1,1}, {1,1,1,2,1,1,1,2}, {1,2,1,2,1,2,1,2}, {1,2,2,2,1,2,2,2},
+		{2,2,2,2,2,2,2,2}, {2,2,2,4,2,2,2,4}, {2,4,2,4,2,4,2,4}, {2,4,4,4,2,4,4,4},
+		{4,4,4,4,4,4,4,4}, {4,4,4,8,4,4,4,8}, {4,8,4,8,4,8,4,8}, {4,8,8,8,4,8,8,8},
+		{8,8,8,8,8,8,8,8}, {8,8,8,8,8,8,8,8}, {8,8,8,8,8,8,8,8}, {8,8,8,8,8,8,8,8}
+	};
+	memcpy(_attenuationIncrementTable, attenuationIncrementTable, sizeof(attenuationIncrementTable));
+
+	static const uint8_t detunePhaseIncrementTable[32][4] = {
+		{0,0,1,2}, {0,0,1,2}, {0,0,1,2}, {0,0,1,2},
+		{0,1,2,2}, {0,1,2,3}, {0,1,2,3}, {0,1,2,3},
+		{0,1,2,4}, {0,1,3,4}, {0,1,3,4}, {0,1,3,5},
+		{0,2,4,5}, {0,2,4,6}, {0,2,4,6}, {0,2,5,7},
+		{0,2,5,8}, {0,3,6,8}, {0,3,6,9}, {0,3,7,10},
+		{0,4,8,11}, {0,4,8,12}, {0,4,9,13}, {0,5,10,14},
+		{0,5,11,16}, {0,6,12,17}, {0,6,13,19}, {0,7,14,20},
+		{0,8,16,22}, {0,8,16,22}, {0,8,16,22}, {0,8,16,22}
+	};
+	memcpy(_detunePhaseIncrementTable, detunePhaseIncrementTable, sizeof(detunePhaseIncrementTable));
+
 	for(int i = 0; i < 512; i++) {
 		double s = std::sin((i + 0.5) * kPi / 512.0);
 		_sinTable[i] = (int16_t)(-std::log2(s) * 256.0 + 0.5);
@@ -57,18 +102,6 @@ void GenesisFMchannel::BuildTables()
 
 	for(int i = 0; i < 256; i++) {
 		_expTable[i] = (int16_t)((std::pow(2.0, (255 - i) / 256.0)) * 1024.0 + 0.5);
-	}
-
-	static const uint8_t dtBase[8][4] = {
-		{ 0, 0, 0, 0 }, { 0, 0, 1, 1 }, { 0, 1, 1, 2 }, { 0, 1, 2, 2 },
-		{ 0, 1, 2, 3 }, { 1, 1, 2, 3 }, { 1, 2, 2, 4 }, { 1, 2, 3, 4 }
-	};
-
-	for(int d = 0; d < 8; d++) {
-		for(int kc = 0; kc < 32; kc++) {
-			int col = (kc < 8) ? 0 : (kc < 16) ? 1 : (kc < 24) ? 2 : 3;
-			_dtTable[d][kc] = dtBase[d & 3][col];
-		}
 	}
 }
 
@@ -408,10 +441,9 @@ void GenesisFMchannel::YmUpdatePhaseInc(int ch, int op)
 	scaledInc = (scaledInc + 12u) / 24u;
 	o.phaseInc = (scaledInc == 0 && baseInc != 0) ? 1u : scaledInc;
 
-	uint8_t dtIdx = o.dt & 0x03;
-	uint8_t dtVal = _dtTable[dtIdx][kc];
+	uint32_t dtVal = _detunePhaseIncrementTable[kc][o.dt & 0x03];
 	if(o.dt & 0x04) {
-		o.phaseInc = (o.phaseInc > dtVal) ? (o.phaseInc - dtVal) : 0;
+		o.phaseInc = (o.phaseInc > dtVal) ? (o.phaseInc - dtVal) : 0u;
 	} else {
 		o.phaseInc += dtVal;
 	}
@@ -463,6 +495,11 @@ void GenesisFMchannel::YmKeyOn(int ch, int op)
 		o.keyOn = true;
 		o.phase = 0;
 		o.egState = YmOp::Attack;
+
+		if(YmEgRate(o, ch, op) >= 62u) {
+			o.egLevel = 0;
+			o.egState = YmOp::Decay;
+		}
 	}
 }
 
@@ -511,33 +548,34 @@ void GenesisFMchannel::YmStepEnvelope(YmOp& o, int ch, int op)
 
 	uint32_t rate = YmEgRate(o, ch, op);
 	if(rate == 0) {
-		if(o.egState == YmOp::Attack) {
-			o.egLevel = 0;
-			o.egState = YmOp::Decay;
-		}
 		return;
 	}
 
-	uint32_t inc = 1u << (rate >> 2);
+	uint32_t counterShift = _counterShiftTable[rate];
+	uint32_t cycleMask = (1u << counterShift) - 1u;
+	if((_ym.egCounter & cycleMask) != 0u) {
+		return;
+	}
+
+	uint32_t updateCycle = (_ym.egCounter >> counterShift) & 0x07u;
+	uint32_t attenuationIncrement = _attenuationIncrementTable[rate][updateCycle];
+
 	switch(o.egState) {
 		case YmOp::Attack:
-			if(o.egLevel > 0) {
-				uint32_t shift = 4u;
-				uint32_t rateBand = rate >> 4;
-				if(rateBand >= 3u) shift = 1u;
-				else shift = 4u - rateBand;
-				uint32_t delta = 1u + (o.egLevel >> shift);
-				o.egLevel = (o.egLevel > delta) ? (o.egLevel - delta) : 0u;
-				if(o.egLevel == 0) {
+			if(rate >= 62u) {
+				o.egLevel = 0;
+				o.egState = YmOp::Decay;
+			} else if(o.egLevel > 0u) {
+				uint32_t delta = ((~o.egLevel) * attenuationIncrement) >> 4;
+				o.egLevel = (o.egLevel + delta) & 0x3FFu;
+				if(o.egLevel == 0u) {
 					o.egState = YmOp::Decay;
 				}
-			} else {
-				o.egState = YmOp::Decay;
 			}
 			break;
 
 		case YmOp::Decay: {
-			o.egLevel += inc;
+			o.egLevel += attenuationIncrement;
 			uint32_t sl = o.sl == 15 ? 1023u : (uint32_t)o.sl << 5;
 			if(o.egLevel >= sl) {
 				o.egLevel = sl;
@@ -548,7 +586,7 @@ void GenesisFMchannel::YmStepEnvelope(YmOp& o, int ch, int op)
 
 		case YmOp::Sustain:
 			if(o.d2r > 0) {
-				o.egLevel += inc >> 2;
+				o.egLevel += (o.ssgEg & 0x08) ? (attenuationIncrement * 4u) : attenuationIncrement;
 				if(o.egLevel >= 1023u) {
 					o.egLevel = 1023u;
 					o.egState = YmOp::Off;
@@ -557,7 +595,7 @@ void GenesisFMchannel::YmStepEnvelope(YmOp& o, int ch, int op)
 			break;
 
 		case YmOp::Release:
-			o.egLevel += inc;
+			o.egLevel += attenuationIncrement;
 			if(o.egLevel >= 1023u) {
 				o.egLevel = 1023u;
 				o.egState = YmOp::Off;
@@ -612,10 +650,6 @@ void GenesisFMchannel::YmCalcSample(int32_t& outL, int32_t& outR)
 	for(int ch = 0; ch < 6; ch++) {
 		YmCh& c = _ym.ch[ch];
 
-		if(ch == 5 && _ym.dacEnable) {
-			continue;
-		}
-
 		int32_t fbMod = 0;
 		if(c.fb > 0) {
 			fbMod = (c.fbBuf[0] + c.fbBuf[1]) >> (9 - c.fb);
@@ -637,7 +671,14 @@ void GenesisFMchannel::YmCalcSample(int32_t& outL, int32_t& outR)
 			case 7: { YmCalcOp(c.op[1], 0); YmCalcOp(c.op[2], 0); YmCalcOp(c.op[3], 0); out = op1 + c.op[1].output + c.op[2].output + c.op[3].output; break; }
 		}
 
-		out >>= 2;
+		if(ch == 5 && _ym.dacEnable) {
+			// Exodus models the DAC as replacing channel 6's FM output rather than as
+			// a separate post-mix source.
+			out = ((int32_t)_ym.dacData - 0x80) << 6;
+		} else {
+			out >>= 2;
+		}
+
 		if(c.lr & 0x02) outL += out;
 		if(c.lr & 0x01) outR += out;
 	}

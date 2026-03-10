@@ -37,6 +37,32 @@ struct GenesisState : public BaseState
 	GenesisVdpState Vdp;
 };
 
+struct GenesisBackendState : public BaseState
+{
+	uint64_t MasterClock = 0;
+	uint32_t FrameWidth = 0;
+	uint32_t FrameHeight = 0;
+	uint32_t ActiveWidth = 0;
+	uint32_t ActiveHeight = 0;
+	uint32_t VdpMclkPos = 0;
+	uint32_t DmaSource = 0;
+	uint32_t DmaLength = 0;
+	uint16_t Scanline = 0;
+	uint16_t HClock = 0;
+	uint16_t VdpStatus = 0;
+	uint16_t DmaFillValue = 0;
+	uint8_t  DmaType = 0;
+	uint8_t  CpuPendingIrq = 0;
+	uint8_t  VintPending = 0;
+	uint8_t  HintPending = 0;
+	uint8_t  DmaFillPending = 0;
+	uint8_t  DisplayEnabled = 0;
+	uint8_t  Z80BusRequest = 0;
+	uint8_t  Z80Reset = 0;
+	uint8_t  Z80BusAck = 0;
+	uint8_t  PAL = 0;
+};
+
 // Z80 state exposed to the Mesen2 debugger
 struct GenesisZ80State : public BaseState
 {

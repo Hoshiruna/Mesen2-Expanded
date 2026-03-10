@@ -101,6 +101,8 @@ public:
 	GenesisZ80State GetZ80DebugState();
 	void            SetZ80ProgramCounter(uint16_t addr);
 	uint8_t         GetVdpRegister(uint8_t index) const;
+	void            GetVdpRegisters(uint8_t regs[24]) const;
+	bool            GetBackendDebugState(GenesisBackendState& state) const;
 
 	ShortcutState IsShortcutAllowed(EmulatorShortcut shortcut, uint32_t shortcutParam) override;
 };

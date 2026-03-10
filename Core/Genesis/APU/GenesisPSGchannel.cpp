@@ -30,7 +30,7 @@ void GenesisPSGchannel::Reset()
 {
 	_state = {};
 	for(int i = 0; i < 4; i++) {
-		_state.polarity[i] = -1;
+		_state.polarity[i] = 1;
 	}
 	_state.latch = 3;
 	_state.noiseShiftWidth = 15;
@@ -125,7 +125,7 @@ void GenesisPSGchannel::Advance(uint32_t masterClocks)
 				}
 
 				uint32_t run = std::min<uint32_t>(remaining, (uint32_t)counter);
-				_sampleAccum += (int64_t)(polarity > 0 ? level : -level) * run;
+				_sampleAccum += (int64_t)(polarity < 0 ? -level : level) * run;
 				remaining -= run;
 				counter -= (int32_t)run;
 			}
@@ -156,7 +156,7 @@ void GenesisPSGchannel::Advance(uint32_t masterClocks)
 				}
 
 				uint32_t run = std::min<uint32_t>(remaining, (uint32_t)counter);
-				_sampleAccum += (int64_t)((shiftValue & 1u) ? level : -level) * run;
+				_sampleAccum += (int64_t)((shiftValue & 1u) ? level : 0) * run;
 				remaining -= run;
 				counter -= (int32_t)run;
 			}

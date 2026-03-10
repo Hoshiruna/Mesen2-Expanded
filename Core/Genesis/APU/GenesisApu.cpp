@@ -83,7 +83,6 @@ void GenesisApu::Advance(uint32_t masterClocks)
 		_ymSampleAcc += step;
 		remaining -= step;
 
-		_dac.Advance(step);
 		_psg.Advance(step);
 		_fm.Advance(step);
 
@@ -95,7 +94,6 @@ void GenesisApu::Advance(uint32_t masterClocks)
 				int32_t r = 0;
 				_psg.MixSample(l, r, GenesisFMchannel::YmPeriod);
 				_fm.MixSample(l, r, GenesisFMchannel::YmPeriod);
-				_dac.MixSample(l, r, GenesisFMchannel::YmPeriod);
 
 				l = l > 32767 ? 32767 : (l < -32768 ? -32768 : l);
 				r = r > 32767 ? 32767 : (r < -32768 ? -32768 : r);
@@ -105,7 +103,6 @@ void GenesisApu::Advance(uint32_t masterClocks)
 			}
 
 			_psg.ResetWindowAccumulator();
-			_dac.ResetWindowAccumulator();
 			_fm.ResetWindowAccumulators();
 		}
 	}

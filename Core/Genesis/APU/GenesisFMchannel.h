@@ -97,7 +97,9 @@ private:
 	static bool _tablesReady;
 	static int16_t _sinTable[512];
 	static int16_t _expTable[256];
-	static uint8_t _dtTable[8][32];
+	static uint8_t _counterShiftTable[64];
+	static uint8_t _attenuationIncrementTable[64][8];
+	static uint8_t _detunePhaseIncrementTable[32][4];
 	static void BuildTables();
 
 	void YmUpdateDacRouting(GenesisDACchannel& dac);

@@ -5,6 +5,41 @@
 #include "Debugger/Debugger.h"
 #include "Debugger/MemoryDumper.h"
 
+namespace {
+	uint16_t GetSpriteBaseAddress(uint8_t reg5, bool h40)
+	{
+		return h40 ? (uint16_t)(reg5 & 0x7Eu) << 9 : (uint16_t)(reg5 & 0x7Fu) << 9;
+	}
+
+	struct DebugGenesisLineSprite
+	{
+		uint16_t tile = 0;
+		uint16_t rawX = 0;
+		int16_t x = 0;
+		uint8_t palette = 0;
+		uint8_t vertCells = 1;
+		uint8_t horizCells = 1;
+		uint8_t cellRow = 0;
+		uint8_t pixRow = 0;
+		bool hflip = false;
+		bool vflip = false;
+	};
+
+	struct DebugGenesisLineSpriteCell
+	{
+		uint16_t tile = 0;
+		int16_t x = 0;
+		uint8_t palette = 0;
+		uint8_t vertCells = 1;
+		uint8_t screenCellCol = 0;
+		uint8_t patternCellOffsetX = 0;
+		uint8_t patternCellOffsetY = 0;
+		uint8_t pixRow = 0;
+		bool hflip = false;
+		bool vflip = false;
+	};
+}
+
 GenesisVdpTools::GenesisVdpTools(Debugger* debugger, Emulator* emu, GenesisConsole* console) : PpuTools(debugger, emu)
 {
 	_console = console;
@@ -44,6 +79,9 @@ uint16_t GenesisVdpTools::GetHScroll(const uint8_t* vram, uint8_t reg11, uint16_
 {
 	uint32_t entryOffset;
 	switch(reg11 & 0x03u) {
+		case 0x01:
+			entryOffset = 0u;
+			break;
 		case 0x02:
 			entryOffset = (line & ~7u) * 4u;
 			break;
@@ -213,22 +251,254 @@ DebugTilemapTileInfo GenesisVdpTools::GetTilemapTileInfo(uint32_t x, uint32_t y,
 DebugSpritePreviewInfo GenesisVdpTools::GetSpritePreviewInfo(GetSpritePreviewOptions options, BaseState& state, BaseState& ppuToolsState)
 {
 	(void)options;
-	(void)state;
 	(void)ppuToolsState;
-	return {};
+
+	GenesisVdpState& vdpState = (GenesisVdpState&)state;
+
+	DebugSpritePreviewInfo info = {};
+	info.Width = 512;
+	info.Height = 512;
+	info.SpriteCount = vdpState.Width >= 320 ? 80 : 64;
+	info.CoordOffsetX = 128;
+	info.CoordOffsetY = 128;
+	info.VisibleX = 128;
+	info.VisibleY = 128;
+	info.VisibleWidth = vdpState.Width;
+	info.VisibleHeight = vdpState.Height;
+	info.WrapBottomToTop = false;
+	info.WrapRightToLeft = false;
+	return info;
 }
 
 void GenesisVdpTools::GetSpriteList(GetSpritePreviewOptions options, BaseState& baseState, BaseState& ppuToolsState, uint8_t* vram, uint8_t* oamRam, uint32_t* palette, DebugSpriteInfo outBuffer[], uint32_t* spritePreviews, uint32_t* screenPreview)
 {
-	(void)options;
-	(void)baseState;
 	(void)ppuToolsState;
-	(void)vram;
 	(void)oamRam;
-	(void)palette;
-	(void)outBuffer;
-	(void)spritePreviews;
-	(void)screenPreview;
+
+	GenesisVdpState& vdpState = (GenesisVdpState&)baseState;
+
+	bool h40 = (_console->GetVdpRegister(12) & 0x01u) != 0;
+	bool int2 = (_console->GetVdpRegister(12) & 0x06u) == 0x06u;
+	uint16_t spriteBase = GetSpriteBaseAddress(_console->GetVdpRegister(5), h40);
+	uint16_t spriteCount = h40 ? 80u : 64u;
+	uint16_t cellPixH = int2 ? 16u : 8u;
+
+	DebugSpritePreviewInfo previewInfo = GetSpritePreviewInfo(options, baseState, ppuToolsState);
+	uint32_t bgColor = GetSpriteBackgroundColor(options.Background, palette, false);
+	uint32_t offscreenBgColor = GetSpriteBackgroundColor(options.Background, palette, true);
+
+	std::fill(screenPreview, screenPreview + previewInfo.Width * previewInfo.Height, offscreenBgColor);
+	for(uint32_t y = 0; y < previewInfo.VisibleHeight; y++) {
+		uint32_t* row = screenPreview + (previewInfo.VisibleY + y) * previewInfo.Width + previewInfo.VisibleX;
+		std::fill(row, row + previewInfo.VisibleWidth, bgColor);
+	}
+
+	for(uint16_t i = 0; i < spriteCount; i++) {
+		DebugSpriteInfo& sprite = outBuffer[i];
+		uint32_t* spritePreview = spritePreviews + (i * _spritePreviewSize);
+		sprite.Init();
+		std::fill(spritePreview, spritePreview + _spritePreviewSize, 0u);
+
+		uint16_t entryBase = (uint16_t)(spriteBase + i * 8u);
+		uint16_t w0 = ((uint16_t)vram[(entryBase + 0u) & 0xFFFFu] << 8) | vram[(entryBase + 1u) & 0xFFFFu];
+		uint16_t w1 = ((uint16_t)vram[(entryBase + 2u) & 0xFFFFu] << 8) | vram[(entryBase + 3u) & 0xFFFFu];
+		uint16_t w2 = ((uint16_t)vram[(entryBase + 4u) & 0xFFFFu] << 8) | vram[(entryBase + 5u) & 0xFFFFu];
+		uint16_t w3 = ((uint16_t)vram[(entryBase + 6u) & 0xFFFFu] << 8) | vram[(entryBase + 7u) & 0xFFFFu];
+
+		uint8_t vertCells = (uint8_t)(((w1 >> 8) & 0x03u) + 1u);
+		uint8_t horizCells = (uint8_t)(((w1 >> 10) & 0x03u) + 1u);
+		bool pri = (w2 & 0x8000u) != 0;
+		uint8_t pal = (uint8_t)((w2 >> 13) & 0x03u);
+		bool vflip = (w2 & 0x1000u) != 0;
+		bool hflip = (w2 & 0x0800u) != 0;
+		uint16_t tile = w2 & 0x07FFu;
+		uint16_t rawY = w0 & 0x01FFu;
+		uint16_t rawX = w3 & 0x01FFu;
+		int16_t x = (int16_t)rawX - 128;
+		int16_t y = (int16_t)rawY - 128;
+		uint16_t width = (uint16_t)horizCells * 8u;
+		uint16_t height = (uint16_t)vertCells * cellPixH;
+		uint16_t tileBytes = int2 ? 64u : 32u;
+
+		sprite.Format = TileFormat::GbaBpp4;
+		sprite.Bpp = 4;
+		sprite.SpriteIndex = i;
+		sprite.X = x;
+		sprite.Y = y;
+		sprite.RawX = (int16_t)rawX;
+		sprite.RawY = (int16_t)rawY;
+		sprite.Width = width;
+		sprite.Height = height;
+		sprite.TileIndex = tile;
+		sprite.TileAddress = tile * tileBytes;
+		sprite.Palette = pal;
+		sprite.PaletteAddress = pal * 32;
+		sprite.Priority = pri ? DebugSpritePriority::Foreground : DebugSpritePriority::Background;
+		sprite.Mode = DebugSpriteMode::Normal;
+		sprite.HorizontalMirror = hflip ? NullableBoolean::True : NullableBoolean::False;
+		sprite.VerticalMirror = vflip ? NullableBoolean::True : NullableBoolean::False;
+		sprite.UseExtendedVram = false;
+		sprite.UseSecondTable = NullableBoolean::Undefined;
+
+		bool visible = x < (int16_t)vdpState.Width && y < (int16_t)vdpState.Height &&
+			(x + (int16_t)width) > 0 && (y + (int16_t)height) > 0;
+		sprite.Visibility = visible ? SpriteVisibility::Visible : SpriteVisibility::Offscreen;
+
+		uint32_t tileCount = 0;
+		for(uint8_t cx = 0; cx < horizCells && tileCount < 64u; cx++) {
+			for(uint8_t cy = 0; cy < vertCells && tileCount < 64u; cy++) {
+				uint8_t patternCellX = hflip ? (uint8_t)(horizCells - 1u - cx) : cx;
+				uint8_t patternCellY = vflip ? (uint8_t)(vertCells - 1u - cy) : cy;
+				uint16_t tileIdx = tile + (uint16_t)(patternCellX * vertCells) + patternCellY;
+				sprite.TileAddresses[tileCount++] = tileIdx * tileBytes;
+			}
+		}
+		sprite.TileCount = tileCount;
+
+		for(uint16_t py = 0; py < height; py++) {
+			uint8_t cellRow = (uint8_t)(py / cellPixH);
+			uint8_t pixRow = (uint8_t)(py % cellPixH);
+			uint8_t patternCellY = vflip ? (uint8_t)(vertCells - 1u - cellRow) : cellRow;
+			uint8_t row = vflip ? (uint8_t)(cellPixH - 1u - pixRow) : pixRow;
+
+			for(uint16_t px = 0; px < width; px++) {
+				uint8_t screenCellCol = (uint8_t)(px >> 3);
+				uint8_t patternCellX = hflip ? (uint8_t)(horizCells - 1u - screenCellCol) : screenCellCol;
+				uint16_t tileIdx = tile + (uint16_t)(patternCellX * vertCells) + patternCellY;
+				uint32_t tileBase = (uint32_t)tileIdx * tileBytes;
+				uint8_t col = hflip ? (uint8_t)(7u - (px & 7u)) : (uint8_t)(px & 7u);
+				uint8_t color = GetTilePixel(vram, tileBase, row, col);
+				if(color != 0) {
+					spritePreview[py * width + px] = palette[pal * 16u + color];
+				}
+			}
+		}
+
+	}
+
+	bool prevLineDotOverflow = false;
+	uint16_t maxPerLine = h40 ? 20u : 16u;
+	uint16_t maxCells = h40 ? 40u : 32u;
+	for(uint16_t line = 0; line < vdpState.Height; line++) {
+		DebugGenesisLineSprite lineSprites[80] = {};
+		DebugGenesisLineSpriteCell lineCells[40] = {};
+		uint16_t lineSpriteCount = 0;
+		uint16_t lineCellCount = 0;
+		bool lineDotOverflow = false;
+		uint8_t idx = 0;
+
+		for(uint16_t s = 0; s < spriteCount; s++) {
+			uint16_t entryBase = (uint16_t)(spriteBase + (uint16_t)idx * 8u);
+			uint16_t w0 = ((uint16_t)vram[(entryBase + 0u) & 0xFFFFu] << 8) | vram[(entryBase + 1u) & 0xFFFFu];
+			uint16_t w1 = ((uint16_t)vram[(entryBase + 2u) & 0xFFFFu] << 8) | vram[(entryBase + 3u) & 0xFFFFu];
+			uint16_t w2 = ((uint16_t)vram[(entryBase + 4u) & 0xFFFFu] << 8) | vram[(entryBase + 5u) & 0xFFFFu];
+			uint16_t w3 = ((uint16_t)vram[(entryBase + 6u) & 0xFFFFu] << 8) | vram[(entryBase + 7u) & 0xFFFFu];
+			uint8_t link = (uint8_t)(w1 & 0x7Fu);
+			int16_t sprY = (int16_t)(w0 & 0x01FFu) - 128;
+			uint8_t vertCells = (uint8_t)(((w1 >> 8) & 0x03u) + 1u);
+			uint8_t horizCells = (uint8_t)(((w1 >> 10) & 0x03u) + 1u);
+			uint16_t sprH = (uint16_t)vertCells * cellPixH;
+
+			if((int16_t)line >= sprY && (int16_t)line < (int16_t)(sprY + sprH)) {
+				if(lineSpriteCount >= maxPerLine) {
+					break;
+				}
+
+				bool spriteVflip = (w2 & 0x1000u) != 0;
+				uint16_t sprRow = (uint16_t)((int16_t)line - sprY);
+				uint8_t cellRow = (uint8_t)(sprRow / cellPixH);
+				uint8_t pixRow = (uint8_t)(sprRow % cellPixH);
+
+				DebugGenesisLineSprite& sprite = lineSprites[lineSpriteCount++];
+				sprite.tile = w2 & 0x07FFu;
+				sprite.rawX = w3 & 0x01FFu;
+				sprite.x = (int16_t)sprite.rawX - 128;
+				sprite.palette = (uint8_t)((w2 >> 13) & 0x03u);
+				sprite.vertCells = vertCells;
+				sprite.horizCells = horizCells;
+				sprite.cellRow = spriteVflip ? (uint8_t)(vertCells - 1u - cellRow) : cellRow;
+				sprite.pixRow = pixRow;
+				sprite.hflip = (w2 & 0x0800u) != 0;
+				sprite.vflip = spriteVflip;
+			}
+
+			if(link == 0 || link >= spriteCount) {
+				break;
+			}
+			idx = link;
+		}
+
+		bool maskActive = false;
+		bool nonMaskCellEncountered = false;
+		for(uint16_t i = 0; i < lineSpriteCount; i++) {
+			const DebugGenesisLineSprite& sprite = lineSprites[i];
+			if(sprite.rawX == 0) {
+				if(nonMaskCellEncountered || prevLineDotOverflow) {
+					maskActive = true;
+				}
+				continue;
+			}
+
+			nonMaskCellEncountered = true;
+			if(maskActive) {
+				continue;
+			}
+
+			for(uint8_t screenCellCol = 0; screenCellCol < sprite.horizCells; screenCellCol++) {
+				if(lineCellCount >= maxCells) {
+					lineDotOverflow = true;
+					break;
+				}
+
+				DebugGenesisLineSpriteCell& cell = lineCells[lineCellCount++];
+				cell.tile = sprite.tile;
+				cell.x = sprite.x;
+				cell.palette = sprite.palette;
+				cell.vertCells = sprite.vertCells;
+				cell.screenCellCol = screenCellCol;
+				cell.patternCellOffsetX = sprite.hflip ? (uint8_t)(sprite.horizCells - 1u - screenCellCol) : screenCellCol;
+				cell.patternCellOffsetY = sprite.cellRow;
+				cell.pixRow = sprite.pixRow;
+				cell.hflip = sprite.hflip;
+				cell.vflip = sprite.vflip;
+			}
+
+			if(lineDotOverflow) {
+				break;
+			}
+		}
+
+		prevLineDotOverflow = lineDotOverflow;
+		uint32_t* outLine = screenPreview + (previewInfo.VisibleY + line) * previewInfo.Width + previewInfo.VisibleX;
+		for(uint16_t i = 0; i < lineCellCount; i++) {
+			const DebugGenesisLineSpriteCell& cell = lineCells[i];
+			uint16_t tileIdx = cell.tile + (uint16_t)(cell.patternCellOffsetX * cell.vertCells) + cell.patternCellOffsetY;
+			uint32_t tileBase = (uint32_t)tileIdx * (int2 ? 64u : 32u);
+			for(uint8_t px = 0; px < 8u; px++) {
+				int16_t screenX = cell.x + (int16_t)(cell.screenCellCol * 8u + px);
+				if(screenX < 0 || screenX >= (int16_t)vdpState.Width) {
+					continue;
+				}
+
+				uint8_t col = cell.hflip ? (uint8_t)(7u - px) : px;
+				uint8_t row = cell.vflip ? (uint8_t)(cellPixH - 1u - cell.pixRow) : cell.pixRow;
+				uint8_t color = GetTilePixel(vram, tileBase, row, col);
+				if(color != 0 && outLine[screenX] == bgColor) {
+					outLine[screenX] = palette[cell.palette * 16u + color];
+				}
+			}
+		}
+	}
+
+	for(uint16_t i = 0; i < spriteCount; i++) {
+		DebugSpriteInfo& sprite = outBuffer[i];
+		uint32_t* spritePreview = spritePreviews + (i * _spritePreviewSize);
+		for(uint32_t p = 0; p < (uint32_t)sprite.Width * sprite.Height; p++) {
+			if(spritePreview[p] == 0) {
+				spritePreview[p] = bgColor;
+			}
+		}
+	}
 }
 
 DebugPaletteInfo GenesisVdpTools::GetPaletteInfo(GetPaletteInfoOptions options)

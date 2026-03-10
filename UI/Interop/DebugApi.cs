@@ -20,6 +20,8 @@ namespace Mesen.Interop
 		private const string DllPath = EmuApi.DllName;
 		[DllImport(DllPath)] public static extern void InitializeDebugger();
 		[DllImport(DllPath)] public static extern void ReleaseDebugger();
+		[DllImport(DllPath)] [return: MarshalAs(UnmanagedType.I1)] public static extern bool IsDebuggerRunning();
+		[DllImport(DllPath)] [return: MarshalAs(UnmanagedType.I1)] public static extern bool IsExecutionStopped();
 
 		[DllImport(DllPath)] public static extern void ResumeExecution();
 		[DllImport(DllPath)] public static extern void Step(CpuType cpuType, Int32 instructionCount, StepType type = StepType.Step);
@@ -102,6 +104,32 @@ namespace Mesen.Interop
 			byte* ptr = stackalloc byte[Marshal.SizeOf<T>()];
 			DebugApi.GetCpuState((IntPtr)ptr, cpuType);
 			return Marshal.PtrToStructure<T>((IntPtr)ptr);
+		}
+
+		[DllImport(DllPath, EntryPoint = "GetGenesisVdpRegisters")]
+		[return: MarshalAs(UnmanagedType.I1)]
+		private static extern bool GetGenesisVdpRegistersWrapper([Out] byte[] registers, UInt32 length);
+
+		public static byte[] GetGenesisVdpRegisters()
+		{
+			byte[] registers = new byte[24];
+			if(!GetGenesisVdpRegistersWrapper(registers, (UInt32)registers.Length)) {
+				throw new Exception("Genesis VDP registers are not available.");
+			}
+			return registers;
+		}
+
+		[DllImport(DllPath, EntryPoint = "GetGenesisBackendState")]
+		[return: MarshalAs(UnmanagedType.I1)]
+		private static extern bool GetGenesisBackendStateWrapper(IntPtr state);
+
+		public unsafe static GenesisBackendState GetGenesisBackendState()
+		{
+			byte* ptr = stackalloc byte[Marshal.SizeOf<GenesisBackendState>()];
+			if(!GetGenesisBackendStateWrapper((IntPtr)ptr)) {
+				throw new Exception("Genesis backend state is not available.");
+			}
+			return Marshal.PtrToStructure<GenesisBackendState>((IntPtr)ptr);
 		}
 
 		[DllImport(DllPath)] private static extern void GetPpuState(IntPtr state, CpuType cpuType);
@@ -558,6 +586,7 @@ namespace Mesen.Interop
 				CpuType.Sms => state is SmsCpuState,
 				CpuType.Gba => state is GbaCpuState,
 				CpuType.Ws => state is WsCpuState,
+				CpuType.GenesisMain => state is GenesisCpuState,
 				_ => false
 			};
 		}

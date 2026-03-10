@@ -25,6 +25,37 @@ namespace {
 		o += sizeof(T);
 		return true;
 	}
+
+	struct GenesisLineSprite
+	{
+		uint16_t Tile = 0;
+		uint16_t RawX = 0;
+		int16_t X = 0;
+		uint8_t Palette = 0;
+		uint8_t VertCells = 1;
+		uint8_t HorizCells = 1;
+		uint8_t CellRow = 0;
+		uint8_t PixRow = 0;
+		bool Priority = false;
+		bool HFlip = false;
+		bool VFlip = false;
+	};
+
+	struct GenesisLineSpriteCell
+	{
+		uint16_t Tile = 0;
+		uint16_t RawX = 0;
+		int16_t X = 0;
+		uint8_t Palette = 0;
+		uint8_t VertCells = 1;
+		uint8_t ScreenCellCol = 0;
+		uint8_t PatternCellOffsetX = 0;
+		uint8_t PatternCellOffsetY = 0;
+		uint8_t PixRow = 0;
+		bool Priority = false;
+		bool HFlip = false;
+		bool VFlip = false;
+	};
 }
 
 // ===========================================================================
@@ -73,6 +104,8 @@ void GenesisVdp::Reset(bool isPal)
 	_dmaType     = DmaType::None;
 	_dmaSrc      = 0;
 	_dmaLen      = 0;
+	_dmaAddr     = 0;
+	_dmaCode     = 0;
 	_dmaFillVal  = 0;
 	_dmaFillPend = false;
 	_dmaBusStartDelayMclk = 0;
@@ -253,6 +286,17 @@ void GenesisVdp::AdvanceAddr()
 	_addrReg = (uint16_t)(_addrReg + inc);
 }
 
+void GenesisVdp::AdvanceDmaAddr()
+{
+	uint8_t inc = AutoInc();
+	if(inc != 0) {
+		_dmaAddr = (uint16_t)(_dmaAddr + inc);
+	}
+	// DMA writes advance the hardware address register as well.
+	// Keep the live register in sync for post-DMA command behavior.
+	_addrReg = _dmaAddr;
+}
+
 void GenesisVdp::PrimeBuf()
 {
 	// Fill the read-ahead buffer from the current address/code target
@@ -281,15 +325,14 @@ void GenesisVdp::BeginOperation()
 {
 	// Check if this is a DMA start
 	if((_codeReg & 0x20) && DmaEnabled()) {
+		_dmaAddr = _addrReg;
+		_dmaCode = _codeReg;
 		uint8_t dmaMode = (_reg[23] >> 6) & 3;
 		if(dmaMode == 2) {
 			// VRAM fill — starts on next data-port write.
-			// Fill DMA length behaves as a byte count in common software usage
-			// (e.g. Sonic disassembly fillVRAM macro programs end-start-1).
-			// Keep 0 => 65536 compatibility.
 			_dmaType     = DmaType::VramFill;
 			uint32_t rawLen = (uint32_t)_reg[19] | ((uint32_t)_reg[20] << 8);
-			_dmaLen      = (rawLen == 0u) ? 0x10000u : (rawLen + 1u);
+			_dmaLen      = (rawLen == 0u) ? 0x10000u : rawLen;
 			_dmaFillPend = false;
 			_dmaBusStartDelayMclk = 0;
 			_status |= 0x0002u; // DMA busy
@@ -342,12 +385,6 @@ void GenesisVdp::HandleControlWrite(uint16_t word)
 	} else {
 		// Second word — assemble address and code
 		_ctrlPend = false;
-		// Flush any in-flight DMA before overwriting the destination encoded by
-		// the previous control command. GenTest image slides rely on this when
-		// they arm a VRAM DMA, then immediately program the tilemap target.
-		if(_dmaType != DmaType::None && (_dmaLen > 0 || _dmaFillPend)) {
-			ExecPendingDma();
-		}
 		_addrReg  = (uint16_t)((_ctrlFirst & 0x3FFFu) | ((word & 0x0003u) << 14));
 		_codeReg  = (uint8_t)((_ctrlFirst >> 14) | ((word >> 2) & 0x3Cu));
 		BeginOperation();
@@ -612,7 +649,7 @@ void GenesisVdp::TriggerDmaFill(uint16_t data)
 void GenesisVdp::ExecDmaBus68k(uint32_t maxWords)
 {
 	if(!_backend || _dmaType != DmaType::Bus68k || _dmaLen == 0 || maxWords == 0) return;
-	uint8_t  cd  = _codeReg & 0x0Fu;
+	uint8_t  cd  = _dmaCode & 0x0Fu;
 	uint32_t len = (_dmaLen < maxWords) ? _dmaLen : maxWords;
 	uint32_t src = _dmaSrc;
 
@@ -629,14 +666,14 @@ void GenesisVdp::ExecDmaBus68k(uint32_t maxWords)
 
 			switch(cd) {
 				case 0x01:
-					_vram[_addrReg & 0xFFFFu]        = (uint8_t)(word >> 8);
-					_vram[(_addrReg + 1u) & 0xFFFFu] = (uint8_t)word;
+					_vram[_dmaAddr & 0xFFFFu]        = (uint8_t)(word >> 8);
+					_vram[(_dmaAddr + 1u) & 0xFFFFu] = (uint8_t)word;
 					break;
-				case 0x03: CramWrite ((_addrReg >> 1) & 0x3Fu, word); break;
-				case 0x05: VsramWrite((_addrReg >> 1) & 0x27u, word); break;
+				case 0x03: CramWrite ((_dmaAddr >> 1) & 0x3Fu, word); break;
+				case 0x05: VsramWrite((_dmaAddr >> 1) & 0x27u, word); break;
 				default: break;
 			}
-		AdvanceAddr();
+		AdvanceDmaAddr();
 		len--;
 		_dmaLen--;
 	}
@@ -644,10 +681,11 @@ void GenesisVdp::ExecDmaBus68k(uint32_t maxWords)
 	src = srcBase | srcOffset;
 	_dmaSrc  = src;
 	// Update DMA source registers for the next transfer chunk.
-	uint32_t srcWords = src >> 1;
-	_reg[21] = (uint8_t)(srcWords);
-	_reg[22] = (uint8_t)(srcWords >> 8);
-	_reg[23] = (_reg[23] & 0xC0u) | (uint8_t)((srcWords >> 16) & 0x7Fu);
+	// Hardware keeps the high source bits in R23[6:0] fixed while a transfer runs;
+	// only R21/R22 advance (wrapping within the current 128KB source window).
+	uint32_t srcWords = srcOffset >> 1;
+	_reg[21] = (uint8_t)(srcWords & 0xFFu);
+	_reg[22] = (uint8_t)((srcWords >> 8) & 0xFFu);
 
 	if(_dmaLen == 0) {
 		_dmaType = DmaType::None;
@@ -663,7 +701,7 @@ void GenesisVdp::ExecDmaFill(uint32_t maxBytes)
 		return;
 	}
 
-	uint8_t cd = _codeReg & 0x0Fu;
+	uint8_t cd = _dmaCode & 0x0Fu;
 	uint32_t len = (_dmaLen < maxBytes) ? _dmaLen : maxBytes;
 
 	switch(cd) {
@@ -672,8 +710,8 @@ void GenesisVdp::ExecDmaFill(uint32_t maxBytes)
 			// the data-port word, matching the standard #$yy00 fill command form.
 			uint8_t fillByte = (uint8_t)(_dmaFillVal >> 8);
 			while(len > 0) {
-				_vram[_addrReg & 0xFFFFu] = fillByte;
-				AdvanceAddr();
+				_vram[_dmaAddr & 0xFFFFu] = fillByte;
+				AdvanceDmaAddr();
 				len--;
 				_dmaLen--;
 			}
@@ -682,8 +720,8 @@ void GenesisVdp::ExecDmaFill(uint32_t maxBytes)
 
 		case 0x03:
 			while(len > 0) {
-				CramWrite((_addrReg >> 1) & 0x3Fu, _dmaFillVal);
-				AdvanceAddr();
+				CramWrite((_dmaAddr >> 1) & 0x3Fu, _dmaFillVal);
+				AdvanceDmaAddr();
 				len--;
 				_dmaLen--;
 			}
@@ -691,8 +729,8 @@ void GenesisVdp::ExecDmaFill(uint32_t maxBytes)
 
 		case 0x05:
 			while(len > 0) {
-				VsramWrite((_addrReg >> 1) & 0x27u, _dmaFillVal);
-				AdvanceAddr();
+				VsramWrite((_dmaAddr >> 1) & 0x27u, _dmaFillVal);
+				AdvanceDmaAddr();
 				len--;
 				_dmaLen--;
 			}
@@ -702,7 +740,7 @@ void GenesisVdp::ExecDmaFill(uint32_t maxBytes)
 			// Invalid DMA-fill destinations do not write, but the VDP still
 			// consumes the programmed length and advances the address.
 			while(len > 0) {
-				AdvanceAddr();
+				AdvanceDmaAddr();
 				len--;
 				_dmaLen--;
 			}
@@ -729,9 +767,9 @@ void GenesisVdp::ExecDmaCopy(uint32_t maxWords)
 
 	while(len > 0) {
 		uint8_t val = _vram[src & 0xFFFFu];
-		_vram[_addrReg & 0xFFFFu] = val;
+		_vram[_dmaAddr & 0xFFFFu] = val;
 		src++;
-		AdvanceAddr();
+		AdvanceDmaAddr();
 		len--;
 		_dmaLen--;
 	}
@@ -811,7 +849,7 @@ uint32_t GenesisVdp::Consume68kBusDma(uint32_t masterClocks, uint32_t sliceStart
 		return 0u;
 	}
 
-	uint8_t cd = _codeReg & 0x0Fu;
+	uint8_t cd = _dmaCode & 0x0Fu;
 	bool wordDest = (cd == 0x03u || cd == 0x05u);
 	auto getWordPeriodMclk = [&](bool blanking) -> uint32_t {
 		if(wordDest) {
@@ -960,7 +998,9 @@ uint16_t GenesisVdp::GetHScroll(uint16_t line, bool planeA) const
 
 	switch(mode) {
 		case 0x00: // Full screen — one entry
-		case 0x01: // Prohibited — treat as full
+			entryOffset = 0;
+			break;
+		case 0x01: // Treated as full-screen in Exodus/hardware tests
 			entryOffset = 0;
 			break;
 		case 0x02: // Cell scroll (one entry per 8 scanlines)
@@ -1012,8 +1052,10 @@ bool GenesisVdp::IsWindowPixel(uint16_t line, uint16_t x) const
 	uint8_t  wy          = _reg[18];
 	bool     windowRight = (wx & 0x80u) != 0;
 	bool     windowDown  = (wy & 0x80u) != 0;
-	// R11 HP4-HP0: horizontal boundary in units of 8 pixels (per VDP registers doc).
-	uint16_t wx_pix      = (uint16_t)(wx & 0x1Fu) * 8u;
+	// R17 HP4-HP0: horizontal boundary in units of 16 pixels.
+	// Using 8-pixel units incorrectly exposes a right-side window slice on
+	// patterns like 240p Test Suite Bleed1.
+	uint16_t wx_pix      = (uint16_t)(wx & 0x1Fu) * 16u;
 	uint16_t wy_cell     = (uint16_t)(wy & 0x1Fu);
 	uint16_t line_cell   = line >> 3;
 
@@ -1180,132 +1222,139 @@ void GenesisVdp::RenderSprites(uint16_t line, uint8_t* dst, uint16_t pixels)
 	uint16_t sprBase    = SpriteBase();
 	uint16_t maxSprites = IsH40() ? 80u : 64u;
 	uint16_t maxPerLine = IsH40() ? 20u : 16u;
-	uint16_t maxDots    = pixels;
+	uint16_t maxCells   = IsH40() ? 40u : 32u;
+	uint16_t cellPixH   = int2 ? 16u : 8u;
+	uint16_t effLine    = int2 ? (uint16_t)(line * 2u + (_interlaceField ? 1u : 0u)) : line;
 
-	// In interlace mode 2 each sprite cell is 16 pixels tall; Y positions are
-	// in virtual doubled-resolution lines, and tiles are 64 bytes each.
-	uint16_t cellPixH = int2 ? 16u : 8u;
-	// Effective display line in interlace: double the scanline and add field
-	uint16_t effLine = int2 ? (uint16_t)(line * 2u + (_interlaceField ? 1u : 0u)) : line;
+	GenesisLineSprite spriteList[80] = {};
+	GenesisLineSpriteCell cellList[40] = {};
+	uint16_t spriteCount = 0;
+	uint16_t cellCount = 0;
+	bool lineDotOverflow = false;
+	bool prevLineDotOverflow = _prevLineDotOverflow;
 
-	uint8_t  count = 0;
-	uint8_t  idx   = 0;  // start at sprite 0
-	uint16_t dots  = 0;
+	// Build the list of sprites active on this line by traversing the SAT link chain.
+	uint8_t idx = 0;
+	for(uint16_t s = 0; s < maxSprites; s++) {
+		uint16_t entryBase = (uint16_t)(sprBase + (uint16_t)idx * 8u);
+		uint16_t w0 = ((uint16_t)_vram[(entryBase + 0u) & 0xFFFFu] << 8) | _vram[(entryBase + 1u) & 0xFFFFu];
+		uint16_t w1 = ((uint16_t)_vram[(entryBase + 2u) & 0xFFFFu] << 8) | _vram[(entryBase + 3u) & 0xFFFFu];
+		uint16_t w2 = ((uint16_t)_vram[(entryBase + 4u) & 0xFFFFu] << 8) | _vram[(entryBase + 5u) & 0xFFFFu];
+		uint16_t w3 = ((uint16_t)_vram[(entryBase + 6u) & 0xFFFFu] << 8) | _vram[(entryBase + 7u) & 0xFFFFu];
 
-	// Masking state:
-	// - Any visible sprite with x!=0 arms masking for later x=0 sprites.
-	// - If previous line hit sprite-dot limit, masking starts armed.
-	bool maskArmed  = _prevLineDotOverflow;
-	bool maskActive = false;
-
-	// Traverse the full sprite chain so we can detect overflow even past the limit.
-	for(uint8_t s = 0; s < maxSprites; s++) {
-		uint16_t entryBase = sprBase + (uint16_t)idx * 8u;
-
-		// Word 0: Y position (9-bit, bias 128)
-		uint16_t w0 = ((uint16_t)_vram[(entryBase    ) & 0xFFFFu] << 8)
-		            |             _vram[(entryBase + 1) & 0xFFFFu];
-		// Word 1: size | link
-		uint16_t w1 = ((uint16_t)_vram[(entryBase + 2) & 0xFFFFu] << 8)
-		            |             _vram[(entryBase + 3) & 0xFFFFu];
-		// Word 2: attributes
-		uint16_t w2 = ((uint16_t)_vram[(entryBase + 4) & 0xFFFFu] << 8)
-		            |             _vram[(entryBase + 5) & 0xFFFFu];
-		// Word 3: X position (9-bit, bias 128)
-		uint16_t w3 = ((uint16_t)_vram[(entryBase + 6) & 0xFFFFu] << 8)
-		            |             _vram[(entryBase + 7) & 0xFFFFu];
-
-		// In interlace mode 2 the Y position in the sprite attribute table is
-		// already in doubled-resolution coordinates (bias still 128).
-		int16_t  sprY      = (int16_t)(w0 & 0x1FFu) - 128;
-		// Sprite word 1: bits[11:10] = HS (horizontal size), bits[9:8] = VS (vertical size)
-		uint8_t  vertCells  = (uint8_t)(((w1 >>  8) & 3u) + 1u);  // VS: vertical cell count
-		uint8_t  horizCells = (uint8_t)(((w1 >> 10) & 3u) + 1u);  // HS: horizontal cell count
-		uint8_t  link      = (uint8_t)(w1 & 0x7Fu);
-
-		bool     pri   = (w2 >> 15) & 1;
-		uint8_t  pal   = (uint8_t)((w2 >> 13) & 3u);
-		bool     vflip = (w2 >> 12) & 1;
-		bool     hflip = (w2 >> 11) & 1;
-		uint16_t tile  = w2 & 0x7FFu;
-		uint16_t sprXRaw = (w3 & 0x1FFu);
-		int16_t  sprX    = (int16_t)sprXRaw - 128;
-
+		int16_t sprY = (int16_t)(w0 & 0x01FFu) - 128;
+		uint8_t vertCells = (uint8_t)(((w1 >> 8) & 0x03u) + 1u);
+		uint8_t horizCells = (uint8_t)(((w1 >> 10) & 0x03u) + 1u);
+		uint8_t link = (uint8_t)(w1 & 0x7Fu);
 		uint16_t sprH = (uint16_t)vertCells * cellPixH;
 
-		// Is this sprite on the current (effective) scanline?
 		if((int16_t)effLine >= sprY && (int16_t)effLine < (int16_t)(sprY + sprH)) {
-			count++;
-
-			if(count > maxPerLine) {
-				// Sprite overflow: more sprites on this scanline than the hardware limit.
-				// Set status bit 6 and stop rendering (hardware also stops here).
+			if(spriteCount >= maxPerLine) {
 				_status |= 0x0040u;
 				break;
 			}
 
-			if(sprXRaw != 0) {
-				maskArmed = true;
-			} else if(maskArmed) {
-				maskActive = true;
-			}
-
-			uint16_t spriteDots = (uint16_t)horizCells * 8u;
-			dots = (uint16_t)(dots + spriteDots);
-
-			uint16_t drawDots = spriteDots;
-			if(dots > maxDots) {
-				drawDots = (uint16_t)(drawDots - (dots - maxDots));
-			}
-
+			bool vflip = (w2 & 0x1000u) != 0;
 			uint16_t sprRow = (uint16_t)((int16_t)effLine - sprY);
-			if(vflip) sprRow = (uint16_t)(sprH - 1u - sprRow);
-
 			uint8_t cellRow = (uint8_t)(sprRow / cellPixH);
-			uint8_t pixRow  = (uint8_t)(sprRow % cellPixH);
+			uint8_t pixRow = (uint8_t)(sprRow % cellPixH);
 
-			uint16_t dotPos = 0;
-			for(uint8_t cx = 0; cx < horizCells && dotPos < drawDots; cx++) {
-				uint8_t cellCol = hflip ? (horizCells - 1u - cx) : cx;
-
-				// Tile index: sprite tiles are in column-major order (vertical then horizontal)
-				uint16_t tileIdx = tile + (uint16_t)(cellCol * vertCells) + cellRow;
-				// Interlace mode 2: 64-byte tiles; normal: 32-byte tiles
-				uint16_t tileBase = int2 ? (tileIdx * 64u) : (tileIdx * 32u);
-
-				for(uint8_t px = 0; px < 8u && dotPos < drawDots; px++, dotPos++) {
-					if(maskActive) continue;
-
-					int16_t screenX = sprX + (int16_t)(cx * 8u + px);
-					if(screenX < 0 || screenX >= (int16_t)pixels) continue;
-
-					uint8_t col = hflip ? (7u - px) : px;
-					uint8_t pix = FetchTilePixel(tileBase, pixRow, col);
-					if(pix == 0) continue;  // transparent pixel — no collision
-
-					if(dst[screenX] != 0) {
-						// Two non-transparent sprite pixels overlap: sprite collision.
-						_status |= 0x0020u;  // set status bit 5
-						continue;            // first sprite wins
-					}
-
-					dst[screenX] = (uint8_t)((pri ? 0x80u : 0x00u) | (pal << 4) | pix);
-				}
-			}
-
-			if(dots >= maxDots) {
-				// If this line reached the sprite-dot budget, an x=0 mask in
-				// the first slot can be effective on the next line.
-				_prevLineDotOverflow = (dots >= pixels);
-				return;
-			}
+			GenesisLineSprite& sprite = spriteList[spriteCount++];
+			sprite.Tile = w2 & 0x07FFu;
+			sprite.RawX = w3 & 0x01FFu;
+			sprite.X = (int16_t)sprite.RawX - 128;
+			sprite.Palette = (uint8_t)((w2 >> 13) & 0x03u);
+			sprite.VertCells = vertCells;
+			sprite.HorizCells = horizCells;
+			sprite.CellRow = vflip ? (uint8_t)(vertCells - 1u - cellRow) : cellRow;
+			sprite.PixRow = pixRow;
+			sprite.Priority = (w2 & 0x8000u) != 0;
+			sprite.HFlip = (w2 & 0x0800u) != 0;
+			sprite.VFlip = vflip;
 		}
 
-		if(link == 0 || link >= maxSprites) break;
+		if(link == 0 || link >= maxSprites) {
+			break;
+		}
 		idx = link;
 	}
 
-	_prevLineDotOverflow = false;
+	// Expand the selected sprites into individual 8x8/8x16 cells.
+	// Dot-overflow accounting is based on parsed sprite cells, independent of
+	// later masking decisions.
+	for(uint16_t i = 0; i < spriteCount; i++) {
+		const GenesisLineSprite& sprite = spriteList[i];
+
+		for(uint8_t screenCellCol = 0; screenCellCol < sprite.HorizCells; screenCellCol++) {
+			if(cellCount >= maxCells) {
+				_status |= 0x0040u;
+				lineDotOverflow = true;
+				break;
+			}
+
+			GenesisLineSpriteCell& cell = cellList[cellCount++];
+			cell.Tile = sprite.Tile;
+			cell.RawX = sprite.RawX;
+			cell.X = sprite.X;
+			cell.Palette = sprite.Palette;
+			cell.VertCells = sprite.VertCells;
+			cell.ScreenCellCol = screenCellCol;
+			cell.PatternCellOffsetX = sprite.HFlip ? (uint8_t)(sprite.HorizCells - 1u - screenCellCol) : screenCellCol;
+			cell.PatternCellOffsetY = sprite.CellRow;
+			cell.PixRow = sprite.PixRow;
+			cell.Priority = sprite.Priority;
+			cell.HFlip = sprite.HFlip;
+			cell.VFlip = sprite.VFlip;
+		}
+
+		if(lineDotOverflow) {
+			break;
+		}
+	}
+
+	// Rasterize prepared cells in SAT order so the first visible sprite pixel wins.
+	bool maskActive = false;
+	bool nonMaskCellEncountered = false;
+	for(uint16_t i = 0; i < cellCount; i++) {
+		const GenesisLineSpriteCell& cell = cellList[i];
+		if(cell.RawX == 0) {
+			if(nonMaskCellEncountered || prevLineDotOverflow) {
+				maskActive = true;
+			}
+			continue;
+		}
+
+		nonMaskCellEncountered = true;
+		if(maskActive) {
+			continue;
+		}
+
+		uint16_t tileIdx = cell.Tile + (uint16_t)(cell.PatternCellOffsetX * cell.VertCells) + cell.PatternCellOffsetY;
+		uint16_t tileBase = int2 ? (uint16_t)(tileIdx * 64u) : (uint16_t)(tileIdx * 32u);
+
+		for(uint8_t px = 0; px < 8u; px++) {
+			int16_t screenX = cell.X + (int16_t)(cell.ScreenCellCol * 8u + px);
+			if(screenX < 0 || screenX >= (int16_t)pixels) {
+				continue;
+			}
+
+			uint8_t col = cell.HFlip ? (uint8_t)(7u - px) : px;
+			uint8_t row = cell.VFlip ? (uint8_t)(cellPixH - 1u - cell.PixRow) : cell.PixRow;
+			uint8_t pix = FetchTilePixel(tileBase, row, col);
+			if(pix == 0) {
+				continue;
+			}
+
+			if(dst[screenX] != 0) {
+				_status |= 0x0020u;
+				continue;
+			}
+
+			dst[screenX] = (uint8_t)((cell.Priority ? 0x80u : 0x00u) | (cell.Palette << 4) | pix);
+		}
+	}
+
+	_prevLineDotOverflow = lineDotOverflow;
 }
 
 void GenesisVdp::Composite(uint16_t line,
@@ -1668,6 +1717,8 @@ void GenesisVdp::SaveState(vector<uint8_t>& out) const
 	AppV(out, _mclkPos);
 	AppV(out, _lineBegun);
 	AppV(out, _vintFiredFrame);
+	AppV(out, _dmaAddr);
+	AppV(out, _dmaCode);
 }
 
 bool GenesisVdp::LoadState(const vector<uint8_t>& data, size_t& offset)
@@ -1712,6 +1763,13 @@ bool GenesisVdp::LoadState(const vector<uint8_t>& data, size_t& offset)
 	if(!RdV(data, offset, _mclkPos))      return false;
 	if(!RdV(data, offset, _lineBegun))    return false;
 	if(!RdV(data, offset, _vintFiredFrame)) return false;
+	if(offset + sizeof(_dmaAddr) + sizeof(_dmaCode) <= data.size()) {
+		if(!RdV(data, offset, _dmaAddr)) return false;
+		if(!RdV(data, offset, _dmaCode)) return false;
+	} else {
+		_dmaAddr = _addrReg;
+		_dmaCode = _codeReg;
+	}
 
 	// Debug register is not serialized; clear to power-on default on load.
 	_debugReg = 0;

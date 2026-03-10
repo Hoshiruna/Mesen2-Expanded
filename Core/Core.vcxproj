@@ -965,6 +965,7 @@
     <ClCompile Include="Genesis\GenesisControlManager.cpp" />
     <ClCompile Include="Genesis\GenesisNativeBackend.cpp" />
     <ClCompile Include="Genesis\GenesisVdp.cpp" />
+    <ClCompile Include="Genesis\Genesis68Kdecoder.cpp" />
     <ClCompile Include="Genesis\GenesisCpu68k.cpp" />
     <ClCompile Include="Genesis\GenesisCpuZ80.cpp" />
     <ClCompile Include="Genesis\Debugger\GenesisDebugger.cpp" />

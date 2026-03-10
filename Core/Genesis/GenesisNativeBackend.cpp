@@ -953,7 +953,50 @@ uint32_t GenesisNativeBackend::GetMasterClockRate() const
 }
 
 void GenesisNativeBackend::GetCpuState(GenesisCpuState& state)    const { state = _cpu.GetState(); state.USP = _cpu.GetUSP(); }
+void GenesisNativeBackend::GetVdpState(GenesisVdpState& state)    const
+{
+	state = {};
+	state.FrameCount = _vdp.GetFrameCount();
+	state.HClock = _vdp.GetHClock();
+	state.VClock = _vdp.GetVClock();
+	state.Width = (uint16_t)_frameWidth;
+	state.Height = (uint16_t)_frameHeight;
+	state.PAL = _isPal;
+}
+
+void GenesisNativeBackend::GetVdpRegisters(uint8_t regs[24]) const
+{
+	_vdp.GetRegisters(regs);
+}
+
 void GenesisNativeBackend::GetFrameSize(uint32_t& w, uint32_t& h) const { w = _frameWidth; h = _frameHeight; }
+bool GenesisNativeBackend::GetBackendDebugState(GenesisBackendState& state) const
+{
+	state = {};
+	state.MasterClock = GetMasterClock();
+	state.FrameWidth = _frameWidth;
+	state.FrameHeight = _frameHeight;
+	state.ActiveWidth = _vdp.ActiveWidth();
+	state.ActiveHeight = _vdp.ActiveHeight();
+	state.VdpMclkPos = _vdp.GetMclkPos();
+	state.DmaSource = _vdp.GetDmaSource();
+	state.DmaLength = _vdp.GetDmaLength();
+	state.Scanline = _vdp.GetScanline();
+	state.HClock = _vdp.GetHClock();
+	state.VdpStatus = _vdp.GetStatus();
+	state.DmaFillValue = _vdp.GetDmaFillValue();
+	state.DmaType = _vdp.GetDmaType();
+	state.CpuPendingIrq = _cpuPendingIrq;
+	state.VintPending = _vdp.IsVIntPending() ? 1 : 0;
+	state.HintPending = _vdp.IsHIntPending() ? 1 : 0;
+	state.DmaFillPending = _vdp.IsDmaFillPending() ? 1 : 0;
+	state.DisplayEnabled = _vdp.IsDisplayEnabled() ? 1 : 0;
+	state.Z80BusRequest = _z80BusRequest ? 1 : 0;
+	state.Z80Reset = _z80Reset ? 1 : 0;
+	state.Z80BusAck = _z80BusAck ? 1 : 0;
+	state.PAL = _isPal ? 1 : 0;
+	return true;
+}
 
 uint16_t GenesisNativeBackend::ReadCartBusWord(uint32_t address)
 {
