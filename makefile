@@ -131,7 +131,7 @@ endif
 ifeq ($(USE_AOT),true)
 	PUBLISHFLAGS ?=  -r $(MESENPLATFORM) -p:PublishSingleFile=false -p:PublishAot=true -p:SelfContained=true
 else
-	PUBLISHFLAGS ?=  -r $(MESENPLATFORM) --no-self-contained true -p:PublishSingleFile=true
+	PUBLISHFLAGS ?=  -r $(MESENPLATFORM) --self-contained false -p:PublishSingleFile=true
 endif
 
 
