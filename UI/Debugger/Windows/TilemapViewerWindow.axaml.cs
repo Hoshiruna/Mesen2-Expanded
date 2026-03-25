@@ -32,6 +32,9 @@ namespace Mesen.Debugger.Windows
 			_picViewer = scrollViewer.InnerViewer;
 			_model = new TilemapViewerViewModel(cpuType, _picViewer, scrollViewer, this);
 			DataContext = _model;
+			if(cpuType == CpuType.GenesisMain) {
+				Title = "VDP Viewer";
+			}
 
 			_model.Config.LoadWindowSettings(this);
 

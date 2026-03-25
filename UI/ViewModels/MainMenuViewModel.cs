@@ -495,6 +495,10 @@ namespace Mesen.ViewModels
 					OnClick = () => OpenConfig(wnd, ConfigWindowTab.Sms)
 				},
 				new MainMenuAction() {
+					ActionType = ActionType.Genesis,
+					OnClick = () => OpenConfig(wnd, ConfigWindowTab.Genesis)
+				},
+				new MainMenuAction() {
 					ActionType = ActionType.Ws,
 					OnClick = () => OpenConfig(wnd, ConfigWindowTab.Ws)
 				},
@@ -988,24 +992,35 @@ namespace Mesen.ViewModels
 					ActionType = ActionType.OpenTilemapViewer,
 					Shortcut = () => ConfigManager.Config.Debug.Shortcuts.Get(DebuggerShortcut.OpenTilemapViewer),
 					IsEnabled = () => IsGameRunning,
+					IsVisible = () => IsGameRunning && MainWindow.RomInfo.ConsoleType != ConsoleType.Genesis,
 					OnClick = () => DebugWindowManager.OpenDebugWindow(() => new TilemapViewerWindow(MainWindow.RomInfo.ConsoleType.GetMainCpuType()))
 				},
-				new ContextMenuAction() {
-					ActionType = ActionType.OpenTileViewer,
-					Shortcut = () => ConfigManager.Config.Debug.Shortcuts.Get(DebuggerShortcut.OpenTileViewer),
-					IsEnabled = () => IsGameRunning,
-					OnClick = () => DebugWindowManager.OpenDebugWindow(() => new TileViewerWindow(MainWindow.RomInfo.ConsoleType.GetMainCpuType()))
-				},
+					new ContextMenuAction() {
+						ActionType = ActionType.OpenTilemapViewer,
+						DynamicText = () => "VDP Viewer",
+						Shortcut = () => ConfigManager.Config.Debug.Shortcuts.Get(DebuggerShortcut.OpenTilemapViewer),
+						IsEnabled = () => IsGameRunning,
+						IsVisible = () => IsGameRunning && MainWindow.RomInfo.ConsoleType == ConsoleType.Genesis,
+						OnClick = () => DebugWindowManager.OpenDebugWindow(() => new TilemapViewerWindow(CpuType.GenesisMain))
+					},
+					new ContextMenuAction() {
+						ActionType = ActionType.OpenTileViewer,
+						Shortcut = () => ConfigManager.Config.Debug.Shortcuts.Get(DebuggerShortcut.OpenTileViewer),
+						IsEnabled = () => IsGameRunning,
+						OnClick = () => DebugWindowManager.OpenDebugWindow(() => new TileViewerWindow(MainWindow.RomInfo.ConsoleType.GetMainCpuType()))
+					},
 				new ContextMenuAction() {
 					ActionType = ActionType.OpenSpriteViewer,
 					Shortcut = () => ConfigManager.Config.Debug.Shortcuts.Get(DebuggerShortcut.OpenSpriteViewer),
 					IsEnabled = () => IsGameRunning,
+					IsVisible = () => IsGameRunning && MainWindow.RomInfo.ConsoleType != ConsoleType.Genesis,
 					OnClick = () => DebugWindowManager.OpenDebugWindow(() => new SpriteViewerWindow(MainWindow.RomInfo.ConsoleType.GetMainCpuType()))
 				},
 				new ContextMenuAction() {
 					ActionType = ActionType.OpenPaletteViewer,
 					Shortcut = () => ConfigManager.Config.Debug.Shortcuts.Get(DebuggerShortcut.OpenPaletteViewer),
 					IsEnabled = () => IsGameRunning,
+					IsVisible = () => IsGameRunning && MainWindow.RomInfo.ConsoleType != ConsoleType.Genesis,
 					OnClick = () => DebugWindowManager.OpenDebugWindow(() => new PaletteViewerWindow(MainWindow.RomInfo.ConsoleType.GetMainCpuType()))
 				},
 				new ContextMenuSeparator(),
@@ -1114,15 +1129,18 @@ namespace Mesen.ViewModels
 			DebugShortcutManager.RegisterActions(wnd, DebugMenuItems);
 		}
 
-		private static readonly string McpServerUrl = "http://localhost:51234/mcp";
+		private static readonly string McpServerUrl = "http://127.0.0.1:51234/mcp/";
+		private static readonly string McpServerExe = Path.Combine(AppContext.BaseDirectory, "MCPServer.exe");
 
 		private async void OpenMcpServer(Window wnd)
 		{
 			ApplicationHelper.GetMainWindow()?.Clipboard?.SetTextAsync(McpServerUrl);
 
+			string bridgePath = File.Exists(McpServerExe) ? McpServerExe : "path\\to\\MCPServer.exe";
+
 			await MessageBox.Show(
 				wnd,
-				$"MCP server URL copied to clipboard:\n\n{McpServerUrl}\n\nThe MCP server starts automatically with Mesen Expanded.\n\nTo connect from Claude Code:\n  claude mcp add --transport http mesen-debugger {McpServerUrl}\n\nTo connect from Claude Desktop, add to config:\n  {{\"mcpServers\":{{\"mesen-debugger\":{{\"url\":\"{McpServerUrl}\"}}}}}}",
+				$"MCP bridge URL copied to clipboard:\n\n{McpServerUrl}\n\nMesen Expanded exposes the debugger over a named pipe when the main window is open.\n\nFor Codex, use the stdio bridge:\n  codex mcp add mesen-debugger -- \"{bridgePath}\" --stdio\n\nFor Claude Code over HTTP, start MCPServer.exe and run:\n  claude mcp add --transport http mesen-debugger {McpServerUrl}\n\nFor Claude Desktop, start MCPServer.exe and add:\n  {{\"mcpServers\":{{\"mesen-debugger\":{{\"url\":\"{McpServerUrl}\"}}}}}}",
 				"Mesen Expanded - MCP Server",
 				MessageBoxButtons.OK,
 				MessageBoxIcon.Info

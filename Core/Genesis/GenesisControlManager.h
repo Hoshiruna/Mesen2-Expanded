@@ -17,8 +17,9 @@ public:
 	shared_ptr<BaseControlDevice> CreateControllerDevice(ControllerType type, uint8_t port) override;
 	void UpdateControlDevices() override;
 
-	// Returns the GenesisButton bitmask for a given port (called by GenesisConsole::GetControllerButtons)
-	uint32_t GetButtonsForAres(int port);
+	// Returns the GenesisButton bitmask for a given port.
+	uint32_t GetButtonsForPort(int port);
+	bool IsPortConnected(int port);
 
 	void Serialize(Serializer& s) override;
 };

@@ -50,6 +50,9 @@
 		<DataTemplate DataType="{x:Type vm:SmsConfigViewModel}">
 			<v:SmsConfigView />
 		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:GenesisConfigViewModel}">
+			<v:GenesisConfigView />
+		</DataTemplate>
 		<DataTemplate DataType="{x:Type vm:WsConfigViewModel}">
 			<v:WsConfigView />
 		</DataTemplate>
@@ -162,6 +165,15 @@
 					<StackPanel Orientation="Horizontal">
 						<Image Source="/Assets/SmsIcon.png" Margin="0 0 10 0" />
 						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabSms}" />
+					</StackPanel>
+				</TabItem.Header>
+			</TabItem>
+
+			<TabItem Content="{Binding Genesis}">
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Assets/GenesisIcon.png" Margin="0 0 10 0" />
+						<TextBlock VerticalAlignment="Center" Text="{l:Translate tabGenesis}" />
 					</StackPanel>
 				</TabItem.Header>
 			</TabItem>

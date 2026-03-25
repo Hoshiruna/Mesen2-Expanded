@@ -107,6 +107,7 @@ enum class MemoryType
 	GenesisVideoRam,
 	GenesisColorRam,
 	GenesisVScrollRam,
+	GenesisAudioRam,
 
 	None
 };

@@ -26,7 +26,6 @@
 #include "WS/WsConsole.h"
 #include "WS/WsMemoryManager.h"
 #include "Genesis/GenesisConsole.h"
-#include "Genesis/GenesisAresCore.h"
 #include "Shared/Video/VideoDecoder.h"
 #include "Debugger/DebugTypes.h"
 #include "Debugger/DebugBreakHelper.h"
@@ -109,6 +108,7 @@ uint32_t MemoryDumper::GetMemorySize(MemoryType type)
 		case MemoryType::GbaMemory: return 0x10000000;
 		case MemoryType::WsMemory: return 0x100000;
 		case MemoryType::GenesisMemory: return 0x1000000;  // 24-bit M68K address space
+		case MemoryType::GenesisAudioRam: return 0x2000;  // 8 KB Z80 RAM
 		case MemoryType::SnesRegister: return 0x10000;
 		case MemoryType::SmsPort: return 0x100;
 		case MemoryType::WsPort: return 0x10000;
@@ -241,10 +241,24 @@ void MemoryDumper::GetMemoryState(MemoryType type, uint8_t *buffer)
 
 		case MemoryType::GenesisMemory: {
 			if(_genesisConsole) {
-				GenesisAresImpl* impl = _genesisConsole->GetAresImpl();
-				if(impl) {
-					for(int i = 0; i < 0x1000000; i++) {
-						buffer[i] = GenesisAresReadMemory(impl, (uint32_t)i);
+				// Fill with open-bus value, then copy each physical region directly.
+				// This avoids 16 million individual ReadMemory calls.
+				memset(buffer, 0xFF, 0x1000000);
+
+				// ROM: $000000-$3FFFFF (up to 4 MB)
+				uint8_t* rom = GetMemoryBuffer(MemoryType::GenesisPrgRom);
+				uint32_t romSize = GetMemorySize(MemoryType::GenesisPrgRom);
+				if(rom && romSize > 0) {
+					uint32_t copy = romSize < 0x400000u ? romSize : 0x400000u;
+					memcpy(buffer, rom, copy);
+				}
+
+				// Work RAM: $E00000-$FFFFFF (64 KB mirrored across 2 MB)
+				uint8_t* wram = GetMemoryBuffer(MemoryType::GenesisWorkRam);
+				uint32_t wramSize = GetMemorySize(MemoryType::GenesisWorkRam);
+				if(wram && wramSize >= 0x10000u) {
+					for(uint32_t a = 0xE00000u; a < 0x1000000u; a += 0x10000u) {
+						memcpy(buffer + a, wram, 0x10000u);
 					}
 				}
 			}
@@ -253,12 +267,9 @@ void MemoryDumper::GetMemoryState(MemoryType type, uint8_t *buffer)
 
 		case MemoryType::GenesisVideoRam: {
 			if(_genesisConsole) {
-				GenesisAresImpl* impl = _genesisConsole->GetAresImpl();
-				if(impl) {
-					uint32_t size = GetMemorySize(type);
-					for(uint32_t i = 0; i < size; i++) {
-						buffer[i] = GenesisAresReadVRam(impl, i);
-					}
+				uint32_t size = GetMemorySize(type);
+				for(uint32_t i = 0; i < size; i++) {
+					buffer[i] = _genesisConsole->ReadMemory(MemoryType::GenesisVideoRam, i);
 				}
 			}
 			break;
@@ -266,12 +277,9 @@ void MemoryDumper::GetMemoryState(MemoryType type, uint8_t *buffer)
 
 		case MemoryType::GenesisColorRam: {
 			if(_genesisConsole) {
-				GenesisAresImpl* impl = _genesisConsole->GetAresImpl();
-				if(impl) {
-					uint32_t size = GetMemorySize(type);
-					for(uint32_t i = 0; i < size; i++) {
-						buffer[i] = GenesisAresReadCRam(impl, i);
-					}
+				uint32_t size = GetMemorySize(type);
+				for(uint32_t i = 0; i < size; i++) {
+					buffer[i] = _genesisConsole->ReadMemory(MemoryType::GenesisColorRam, i);
 				}
 			}
 			break;
@@ -279,14 +287,17 @@ void MemoryDumper::GetMemoryState(MemoryType type, uint8_t *buffer)
 
 		case MemoryType::GenesisVScrollRam: {
 			if(_genesisConsole) {
-				GenesisAresImpl* impl = _genesisConsole->GetAresImpl();
-				if(impl) {
-					uint32_t size = GetMemorySize(type);
-					for(uint32_t i = 0; i < size; i++) {
-						buffer[i] = GenesisAresReadVSRam(impl, i);
-					}
+				uint32_t size = GetMemorySize(type);
+				for(uint32_t i = 0; i < size; i++) {
+					buffer[i] = _genesisConsole->ReadMemory(MemoryType::GenesisVScrollRam, i);
 				}
 			}
+			break;
+		}
+
+		case MemoryType::GenesisAudioRam: {
+			uint8_t* src = GetMemoryBuffer(MemoryType::GenesisAudioRam);
+			if(src) memcpy(buffer, src, 0x2000);
 			break;
 		}
 
@@ -344,26 +355,27 @@ void MemoryDumper::InternalSetMemoryValues(MemoryType originalMemoryType, uint32
 			case MemoryType::WsMemory: _wsConsole->GetMemoryManager()->DebugWrite(address, value); break;
 			case MemoryType::SpcDspRegisters: _spc->DebugWriteDspReg(address, value); break;
 			case MemoryType::GenesisMemory: {
-				GenesisAresImpl* impl = _genesisConsole ? _genesisConsole->GetAresImpl() : nullptr;
-				if(impl) { GenesisAresWriteMemory(impl, address, value); }
+				if(_genesisConsole) { _genesisConsole->WriteMemory(MemoryType::GenesisMemory, address, value); }
 				break;
 			}
 
 			case MemoryType::GenesisVideoRam: {
-				GenesisAresImpl* impl = _genesisConsole ? _genesisConsole->GetAresImpl() : nullptr;
-				if(impl) { GenesisAresWriteVRam(impl, address, value); }
+				if(_genesisConsole) { _genesisConsole->WriteMemory(MemoryType::GenesisVideoRam, address, value); }
 				break;
 			}
 
 			case MemoryType::GenesisColorRam: {
-				GenesisAresImpl* impl = _genesisConsole ? _genesisConsole->GetAresImpl() : nullptr;
-				if(impl) { GenesisAresWriteCRam(impl, address, value); }
+				if(_genesisConsole) { _genesisConsole->WriteMemory(MemoryType::GenesisColorRam, address, value); }
 				break;
 			}
 
 			case MemoryType::GenesisVScrollRam: {
-				GenesisAresImpl* impl = _genesisConsole ? _genesisConsole->GetAresImpl() : nullptr;
-				if(impl) { GenesisAresWriteVSRam(impl, address, value); }
+				if(_genesisConsole) { _genesisConsole->WriteMemory(MemoryType::GenesisVScrollRam, address, value); }
+				break;
+			}
+
+			case MemoryType::GenesisAudioRam: {
+				if(_genesisConsole) { _genesisConsole->WriteMemory(MemoryType::GenesisAudioRam, address, value); }
 				break;
 			}
 
@@ -467,20 +479,48 @@ uint8_t MemoryDumper::InternalGetMemoryValue(MemoryType memoryType, uint32_t add
 		case MemoryType::WsMemory: return _wsConsole->GetMemoryManager()->DebugRead(address);
 		case MemoryType::WsPort: return _wsConsole->GetMemoryManager()->DebugReadPort<uint8_t>(address);
 		case MemoryType::GenesisMemory: {
-			GenesisAresImpl* impl = _genesisConsole ? _genesisConsole->GetAresImpl() : nullptr;
-			return impl ? GenesisAresReadMemory(impl, address) : 0;
+			if(!_genesisConsole) {
+				return 0;
+			}
+
+			if(disableSideEffects) {
+				address &= 0x00FFFFFFu;
+
+				// Side-effect-free debugger reads: use direct memory regions only.
+				// This avoids mutating VDP/IO state when disassembly/memory windows poll.
+				if(address < 0x400000u) {
+					uint8_t* rom = GetMemoryBuffer(MemoryType::GenesisPrgRom);
+					uint32_t romSize = GetMemorySize(MemoryType::GenesisPrgRom);
+					return (rom && address < romSize) ? rom[address] : 0xFFu;
+				}
+
+				if((address & 0xFF0000u) == 0xA00000u) {
+					uint8_t* z80Ram = GetMemoryBuffer(MemoryType::GenesisAudioRam);
+					return z80Ram ? z80Ram[address & 0x1FFFu] : 0xFFu;
+				}
+
+				if(address >= 0xE00000u) {
+					uint8_t* wram = GetMemoryBuffer(MemoryType::GenesisWorkRam);
+					return wram ? wram[address & 0xFFFFu] : 0xFFu;
+				}
+
+				// Unmapped/IO/VDP ranges return open bus in no-side-effect mode.
+				return 0xFFu;
+			}
+
+			return _genesisConsole->ReadMemory(MemoryType::GenesisMemory, address);
 		}
 		case MemoryType::GenesisVideoRam: {
-			GenesisAresImpl* impl = _genesisConsole ? _genesisConsole->GetAresImpl() : nullptr;
-			return impl ? GenesisAresReadVRam(impl, address) : 0;
+			return _genesisConsole ? _genesisConsole->ReadMemory(MemoryType::GenesisVideoRam, address) : 0;
 		}
 		case MemoryType::GenesisColorRam: {
-			GenesisAresImpl* impl = _genesisConsole ? _genesisConsole->GetAresImpl() : nullptr;
-			return impl ? GenesisAresReadCRam(impl, address) : 0;
+			return _genesisConsole ? _genesisConsole->ReadMemory(MemoryType::GenesisColorRam, address) : 0;
 		}
 		case MemoryType::GenesisVScrollRam: {
-			GenesisAresImpl* impl = _genesisConsole ? _genesisConsole->GetAresImpl() : nullptr;
-			return impl ? GenesisAresReadVSRam(impl, address) : 0;
+			return _genesisConsole ? _genesisConsole->ReadMemory(MemoryType::GenesisVScrollRam, address) : 0;
+		}
+		case MemoryType::GenesisAudioRam: {
+			return _genesisConsole ? _genesisConsole->ReadMemory(MemoryType::GenesisAudioRam, address) : 0;
 		}
 
 		default:
@@ -492,18 +532,18 @@ uint8_t MemoryDumper::InternalGetMemoryValue(MemoryType memoryType, uint32_t add
 uint16_t MemoryDumper::GetMemoryValue16(MemoryType memoryType, uint32_t address, bool disableSideEffects)
 {
 	uint32_t memorySize = GetMemorySize(memoryType);
-	uint8_t lsb = GetMemoryValue(memoryType, address);
-	uint8_t msb = GetMemoryValue(memoryType, address + 1 >= memorySize ? 0 : address + 1);
+	uint8_t lsb = GetMemoryValue(memoryType, address, disableSideEffects);
+	uint8_t msb = GetMemoryValue(memoryType, address + 1 >= memorySize ? 0 : address + 1, disableSideEffects);
 	return (msb << 8) | lsb;
 }
 
 uint32_t MemoryDumper::GetMemoryValue32(MemoryType memoryType, uint32_t address, bool disableSideEffects)
 {
 	uint32_t memorySize = GetMemorySize(memoryType);
-	uint8_t b0 = GetMemoryValue(memoryType, address);
-	uint8_t b1 = GetMemoryValue(memoryType, address + 1 >= memorySize ? 0 : address + 1);
-	uint8_t b2 = GetMemoryValue(memoryType, address + 2 >= memorySize ? 0 : address + 2);
-	uint8_t b3 = GetMemoryValue(memoryType, address + 3 >= memorySize ? 0 : address + 3);
+	uint8_t b0 = GetMemoryValue(memoryType, address, disableSideEffects);
+	uint8_t b1 = GetMemoryValue(memoryType, address + 1 >= memorySize ? 0 : address + 1, disableSideEffects);
+	uint8_t b2 = GetMemoryValue(memoryType, address + 2 >= memorySize ? 0 : address + 2, disableSideEffects);
+	uint8_t b3 = GetMemoryValue(memoryType, address + 3 >= memorySize ? 0 : address + 3, disableSideEffects);
 	return (b3 << 24) | (b2 << 16) | (b1 << 8) | b0;
 }
 

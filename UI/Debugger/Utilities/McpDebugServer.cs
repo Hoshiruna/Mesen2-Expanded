@@ -205,20 +205,20 @@ namespace Mesen.Debugger.Utilities
 				new JsonObject { ["type"] = "object", ["properties"] = new JsonObject() }));
 
 			tools.Add((JsonNode)MakeToolDef("get_cpu_state",
-				"Get CPU register state including program counter, registers, and flags. cpu_type: 0=SNES, 3=SA1, 7=Gameboy, 8=NES.",
+				"Get CPU register state including program counter, registers, and flags. Supports GenesisMain(13) with full 68K register output.",
 				new JsonObject {
 					["type"] = "object",
 					["properties"] = new JsonObject {
-						["cpu_type"] = new JsonObject { ["type"] = "integer", ["description"] = "CPU type: 0=SNES, 3=SA1, 7=Gameboy, 8=NES", ["default"] = 0 }
+						["cpu_type"] = new JsonObject { ["type"] = "integer", ["description"] = "CPU type enum value", ["default"] = 0 }
 					}
 				}));
 
 			tools.Add((JsonNode)MakeToolDef("get_ppu_state",
-				"Get PPU/graphics chip state (scanline, cycle, frame count). cpu_type: 0=SNES, 7=Gameboy, 8=NES.",
+				"Get PPU/graphics chip state (scanline, cycle, frame count). Supports GenesisMain(13) with VDP timing output.",
 				new JsonObject {
 					["type"] = "object",
 					["properties"] = new JsonObject {
-						["cpu_type"] = new JsonObject { ["type"] = "integer", ["description"] = "CPU type: 0=SNES, 7=Gameboy, 8=NES", ["default"] = 0 }
+						["cpu_type"] = new JsonObject { ["type"] = "integer", ["description"] = "CPU type enum value", ["default"] = 0 }
 					}
 				}));
 
@@ -325,6 +325,64 @@ namespace Mesen.Debugger.Utilities
 				"Get loaded ROM information including console type (Snes=0, Gameboy=1, Nes=2), available CPU types, and ROM path.",
 				new JsonObject { ["type"] = "object", ["properties"] = new JsonObject() }));
 
+			tools.Add((JsonNode)MakeToolDef("get_vdp_registers",
+				"Get the current Genesis VDP register file (R0-R23).",
+				new JsonObject { ["type"] = "object", ["properties"] = new JsonObject() }));
+
+			tools.Add((JsonNode)MakeToolDef("get_cram",
+				"Read Genesis CRAM bytes. start_address defaults to 0, length defaults to 128 bytes.",
+				new JsonObject {
+					["type"] = "object",
+					["properties"] = new JsonObject {
+						["start_address"] = new JsonObject { ["type"] = "integer", ["default"] = 0 },
+						["length"] = new JsonObject { ["type"] = "integer", ["default"] = 128 }
+					}
+				}));
+
+			tools.Add((JsonNode)MakeToolDef("get_vsram",
+				"Read Genesis VSRAM bytes. start_address defaults to 0, length defaults to 80 bytes.",
+				new JsonObject {
+					["type"] = "object",
+					["properties"] = new JsonObject {
+						["start_address"] = new JsonObject { ["type"] = "integer", ["default"] = 0 },
+						["length"] = new JsonObject { ["type"] = "integer", ["default"] = 80 }
+					}
+				}));
+
+			tools.Add((JsonNode)MakeToolDef("get_vram_range",
+				"Read Genesis VRAM bytes. start_address defaults to 0, length defaults to 256 bytes.",
+				new JsonObject {
+					["type"] = "object",
+					["properties"] = new JsonObject {
+						["start_address"] = new JsonObject { ["type"] = "integer", ["default"] = 0 },
+						["length"] = new JsonObject { ["type"] = "integer", ["default"] = 256 }
+					}
+				}));
+
+			tools.Add((JsonNode)MakeToolDef("get_genesis_backend_state",
+				"Get Genesis native-core scheduler, DMA, IRQ, line timing, and Z80 bus state.",
+				new JsonObject { ["type"] = "object", ["properties"] = new JsonObject() }));
+
+			tools.Add((JsonNode)MakeToolDef("capture_genesis_snapshot",
+				"Capture a deterministic Genesis debug snapshot with CPU state, VDP state, registers, backend state, selected VRAM/CRAM/VSRAM ranges, and recent trace. Optional trigger arguments: trigger_pc, trigger_scanline, or trigger_vdp_register.",
+				new JsonObject {
+					["type"] = "object",
+					["properties"] = new JsonObject {
+						["trace_count"] = new JsonObject { ["type"] = "integer", ["default"] = 32 },
+						["vram_start"] = new JsonObject { ["type"] = "integer", ["default"] = 0 },
+						["vram_length"] = new JsonObject { ["type"] = "integer", ["default"] = 256 },
+						["cram_start"] = new JsonObject { ["type"] = "integer", ["default"] = 0 },
+						["cram_length"] = new JsonObject { ["type"] = "integer", ["default"] = 128 },
+						["vsram_start"] = new JsonObject { ["type"] = "integer", ["default"] = 0 },
+						["vsram_length"] = new JsonObject { ["type"] = "integer", ["default"] = 80 },
+						["trigger_pc"] = new JsonObject { ["type"] = "integer" },
+						["trigger_scanline"] = new JsonObject { ["type"] = "integer" },
+						["trigger_vdp_register"] = new JsonObject { ["type"] = "integer" },
+						["trigger_vdp_value"] = new JsonObject { ["type"] = "integer" },
+						["max_steps"] = new JsonObject { ["type"] = "integer", ["default"] = 200000 }
+					}
+				}));
+
 			var result = new JsonObject { ["tools"] = tools };
 			return MakeJsonRpcResult(id, result);
 		}
@@ -375,6 +433,12 @@ namespace Mesen.Debugger.Utilities
 					"resume" => HandleResume(id),
 					"pause" => HandlePause(id),
 					"get_rom_info" => HandleGetRomInfo(id),
+					"get_vdp_registers" => HandleGetVdpRegisters(id),
+					"get_cram" => HandleGetCram(id, args),
+					"get_vsram" => HandleGetVsram(id, args),
+					"get_vram_range" => HandleGetVramRange(id, args),
+					"get_genesis_backend_state" => HandleGetGenesisBackendState(id),
+					"capture_genesis_snapshot" => HandleCaptureGenesisSnapshot(id, args),
 					_ => MakeToolCallError(id, $"Unknown tool: {toolName}")
 				};
 			} catch(Exception ex) {
@@ -415,10 +479,12 @@ namespace Mesen.Debugger.Utilities
 		{
 			bool isRunning = EmuApi.IsRunning();
 			bool isPaused = EmuApi.IsPaused();
+			bool debuggerRunning = DebugApi.IsDebuggerRunning();
+			bool executionStopped = debuggerRunning && DebugApi.IsExecutionStopped();
 			var data = new JsonObject {
-				["debugger_running"] = true,
+				["debugger_running"] = debuggerRunning,
 				["emulation_running"] = isRunning,
-				["execution_stopped"] = isPaused,
+				["execution_stopped"] = executionStopped,
 				["emulation_paused"] = isPaused,
 				["mesen_version"] = "2.0"
 			};
@@ -431,6 +497,10 @@ namespace Mesen.Debugger.Utilities
 			JsonObject data;
 
 			switch(cpuType) {
+				case CpuType.GenesisMain: {
+					data = GenesisMcpDebugHelper.BuildCpuState();
+					break;
+				}
 				case CpuType.Snes: {
 					var s = DebugApi.GetCpuState<SnesCpuState>(cpuType);
 					data = new JsonObject {
@@ -488,6 +558,10 @@ namespace Mesen.Debugger.Utilities
 			JsonObject data;
 
 			switch(cpuType) {
+				case CpuType.GenesisMain: {
+					data = GenesisMcpDebugHelper.BuildPpuState();
+					break;
+				}
 				case CpuType.Snes: {
 					var s = DebugApi.GetPpuState<SnesPpuState>(cpuType);
 					data = new JsonObject {
@@ -754,7 +828,8 @@ namespace Mesen.Debugger.Utilities
 
 		private string HandlePause(JsonNode id)
 		{
-			DebugApi.Step(CpuType.Snes, 1, StepType.Step);
+			CpuType cpuType = EmuApi.GetRomInfo().ConsoleType.GetMainCpuType();
+			DebugApi.Step(cpuType, 1, StepType.Step);
 			var data = new JsonObject { ["success"] = true };
 			return MakeToolCallSuccess(id, data);
 		}
@@ -779,6 +854,36 @@ namespace Mesen.Debugger.Utilities
 				["cpu_types"] = cpuTypesArray
 			};
 			return MakeToolCallSuccess(id, data);
+		}
+
+		private string HandleGetVdpRegisters(JsonNode id)
+		{
+			return MakeToolCallSuccess(id, GenesisMcpDebugHelper.BuildVdpRegisters());
+		}
+
+		private string HandleGetCram(JsonNode id, JsonObject? args)
+		{
+			return MakeToolCallSuccess(id, GenesisMcpDebugHelper.BuildCram(args));
+		}
+
+		private string HandleGetVsram(JsonNode id, JsonObject? args)
+		{
+			return MakeToolCallSuccess(id, GenesisMcpDebugHelper.BuildVsram(args));
+		}
+
+		private string HandleGetVramRange(JsonNode id, JsonObject? args)
+		{
+			return MakeToolCallSuccess(id, GenesisMcpDebugHelper.BuildVramRange(args));
+		}
+
+		private string HandleGetGenesisBackendState(JsonNode id)
+		{
+			return MakeToolCallSuccess(id, GenesisMcpDebugHelper.BuildBackendState());
+		}
+
+		private string HandleCaptureGenesisSnapshot(JsonNode id, JsonObject? args)
+		{
+			return MakeToolCallSuccess(id, GenesisMcpDebugHelper.CaptureSnapshot(args));
 		}
 	}
 }

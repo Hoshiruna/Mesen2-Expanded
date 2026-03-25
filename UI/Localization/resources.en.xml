@@ -577,6 +577,15 @@
 			<Control ID="chkAllowInvalidInput">Allow invalid input (e.g Down + Up or Left + Right at the same time)</Control>
 		</Form>
 
+		<Form ID="GenesisConfigView">
+			<Control ID="tpgGeneral">General</Control>
+			<Control ID="tpgInput">Input</Control>
+			<Control ID="grpControllers">Controllers</Control>
+			<Control ID="lblController1">Port 1:</Control>
+			<Control ID="lblController2">Port 2:</Control>
+			<Control ID="lblRegion">Region:</Control>
+		</Form>
+
 		<Form ID="OtherConsolesConfigView">
 			<Control ID="tabColecoVision">ColecoVision</Control>
 		</Form>
@@ -671,6 +680,7 @@
 			<Control ID="tabGba">GBA</Control>
 			<Control ID="tabPcEngine">PC Engine</Control>
 			<Control ID="tabSms">SMS</Control>
+			<Control ID="tabGenesis">Genesis</Control>
 			<Control ID="tabWs">WonderSwan</Control>
 			<Control ID="tabOtherConsoles">Other systems</Control>
 			<Control ID="tabPreferences">Preferences</Control>
@@ -724,6 +734,7 @@
 			<Control ID="chkPceRomFiles">PC Engine roms: .pce, .sgx</Control>
 			<Control ID="chkPceMusicFiles">PC Engine music: .hes</Control>
 			<Control ID="chkSmsRomFiles">SMS roms: .sms</Control>
+			<Control ID="chkGenesisRomFiles">Genesis roms: .md</Control>
 			<Control ID="chkGameGearRomFiles">Game Gear roms: .gg</Control>
 			<Control ID="chkSgRomFiles">SG-1000 roms: .sg</Control>
 			<Control ID="chkCvRomFiles">ColecoVision roms: .col</Control>
@@ -1028,6 +1039,7 @@
 			<Control ID="lblGba">GBA</Control>
 			<Control ID="lblPcEngine">PC Engine</Control>
 			<Control ID="lblSms">SMS</Control>
+			<Control ID="lblGenesis">Genesis</Control>
 			<Control ID="lblWs">WonderSwan</Control>
 		</Form>
 		
@@ -2051,6 +2063,8 @@ E
 			<Value ID="SmsController">SMS Controller</Value>
 			<Value ID="SmsLightPhaser">Light Phaser</Value>
 			<Value ID="ColecoVisionController">ColecoVision Controller</Value>
+			<Value ID="GenesisController">Genesis 6-Button Controller</Value>
+			<Value ID="GenesisController3Buttons">Genesis 3-Button Controller</Value>
 		</Enum>
 		<Enum ID="NesJissenMahjongButtons">
 			<Value ID="A">A</Value>
@@ -2548,6 +2562,10 @@ E
 			<Value ID="Compatibility">Compatibility (default)</Value>
 			<Value ID="Sms1">SMS 1</Value>
 			<Value ID="Sms2">SMS 2</Value>
+		</Enum>
+
+		<Enum ID="GenesisCoreType">
+			<Value ID="Native">Native</Value>
 		</Enum>
 
 		<Enum ID="GbaSaveType">
@@ -3569,6 +3587,7 @@ E
 			<Value ID="Gba">GBA</Value>
 			<Value ID="PcEngine">PC Engine</Value>
 			<Value ID="Sms">SMS</Value>
+			<Value ID="Genesis">Genesis</Value>
 			<Value ID="Ws">WonderSwan</Value>
 			<Value ID="OtherConsoles">Other systems</Value>
 

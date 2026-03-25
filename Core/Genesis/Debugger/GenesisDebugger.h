@@ -9,6 +9,7 @@ class Debugger;
 class GenesisTraceLogger;
 class GenesisConsole;
 class GenesisEventManager;
+class GenesisVdpTools;
 class CallstackManager;
 class MemoryAccessCounter;
 class BreakpointManager;
@@ -28,13 +29,15 @@ class GenesisDebugger final : public IDebugger
 	MemoryAccessCounter* _memoryAccessCounter;
 
 	unique_ptr<GenesisEventManager> _eventManager;
+	unique_ptr<GenesisVdpTools>     _ppuTools;
 	unique_ptr<CallstackManager>    _callstackManager;
 	unique_ptr<CodeDataLogger>      _codeDataLogger;
 	unique_ptr<BreakpointManager>   _breakpointManager;
 	unique_ptr<GenesisTraceLogger>  _traceLogger;
 
-	uint32_t _prevProgramCounter = 0;
-	uint16_t _prevOpWord = 0;
+	uint32_t _prevProgramCounter  = 0;
+	uint16_t _prevOpWord          = 0;
+	uint32_t _prevStackPointer    = 0;
 
 	string _cdlFile;
 
@@ -47,6 +50,8 @@ public:
 	void Step(int32_t stepCount, StepType type) override;
 
 	void ProcessInstruction();
+	void ProcessRead(uint32_t addr, uint8_t value, MemoryOperationType type);
+	void ProcessWrite(uint32_t addr, uint8_t value, MemoryOperationType type);
 
 	void SetProgramCounter(uint32_t addr, bool updateDebuggerOnly = false) override;
 	uint32_t GetProgramCounter(bool getInstPc) override;
@@ -60,10 +65,15 @@ public:
 	CallstackManager* GetCallstackManager() override;
 	BreakpointManager* GetBreakpointManager() override;
 	ITraceLogger* GetTraceLogger() override;
+	PpuTools* GetPpuTools() override;
 
 	BaseState& GetState() override;
 	void GetPpuState(BaseState& state) override;
 	void SetPpuState(BaseState& state) override;
+
+	void ProcessCallStackUpdates(AddressInfo& destAddr, uint32_t destPc);
+
+	StepBackConfig GetStepBackConfig() override;
 
 private:
 	GenesisState _cachedState;

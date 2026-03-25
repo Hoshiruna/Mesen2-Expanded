@@ -22,6 +22,7 @@
 #include "Core/Debugger/ITraceLogger.h"
 #include "Core/Debugger/TraceLogFileSaver.h"
 #include "Core/Debugger/FrozenAddressManager.h"
+#include "Core/Genesis/GenesisConsole.h"
 #include "Core/Gameboy/GbTypes.h"
 #include "Utilities/StringUtilities.h"
 
@@ -110,6 +111,29 @@ extern "C"
 	DllExport void __stdcall GetConsoleState(BaseState& state, ConsoleType consoleType) { WithDebugger(void, GetConsoleState(state, consoleType)); }
 	DllExport void __stdcall GetCpuState(BaseState& state, CpuType cpuType) { WithDebugger(void, GetCpuState(state, cpuType)); }
 	DllExport void __stdcall GetPpuState(BaseState& state, CpuType cpuType) { WithDebugger(void, GetPpuState(state, cpuType)); }
+	DllExport bool __stdcall GetGenesisVdpRegisters(uint8_t* registers, uint32_t length)
+	{
+		return WrapDebuggerCall<bool>([&](Debugger* dbg) -> bool {
+			if(!registers || length < 24 || dbg->GetConsole()->GetConsoleType() != ConsoleType::Genesis) {
+				return false;
+			}
+
+			static_cast<GenesisConsole*>(dbg->GetConsole())->GetVdpRegisters(registers);
+			return true;
+		});
+	}
+
+	DllExport bool __stdcall GetGenesisBackendState(GenesisBackendState& state)
+	{
+		return WrapDebuggerCall<bool>([&](Debugger* dbg) -> bool {
+			if(dbg->GetConsole()->GetConsoleType() != ConsoleType::Genesis) {
+				state = {};
+				return false;
+			}
+
+			return static_cast<GenesisConsole*>(dbg->GetConsole())->GetBackendDebugState(state);
+		});
+	}
 
 	DllExport void __stdcall SetCpuState(BaseState& state, CpuType cpuType) { WithDebugger(void, SetCpuState(state, cpuType)); }
 	DllExport void __stdcall SetPpuState(BaseState& state, CpuType cpuType) { WithDebugger(void, SetPpuState(state, cpuType)); }

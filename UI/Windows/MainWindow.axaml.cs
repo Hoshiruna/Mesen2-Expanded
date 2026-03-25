@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -64,7 +64,7 @@ namespace Mesen.Windows
 		private Dictionary<Key, IDisposable> _pendingKeyUpEvents = new();
 		private bool _isLinux = false;
 
-		private McpDebugServer? _mcpDebugServer;
+		private DebugPipeServer? _debugPipeServer;
 		private Stopwatch _stopWatch = Stopwatch.StartNew();
 		private Dictionary<Key, long> _keyPressedStamp = new();
 		private bool _focusInMenu;
@@ -258,8 +258,8 @@ namespace Mesen.Windows
 
 				_model.Init(this);
 
-				_mcpDebugServer = new McpDebugServer();
-				_mcpDebugServer.Start();
+				_debugPipeServer = new DebugPipeServer();
+				_debugPipeServer.Start();
 
 				ConfigManager.Config.ApplyConfig();
 
@@ -305,6 +305,14 @@ namespace Mesen.Windows
 				case ConsoleNotificationType.GameLoaded:
 					CheatCodes.ApplyCheats();
 					RomInfo romInfo = EmuApi.GetRomInfo();
+
+#if GENESIS_EXEC_WINDOW
+					if(romInfo.ConsoleType == ConsoleType.Genesis) {
+						Dispatcher.UIThread.Post(() => {
+							GenesisExecutionWindow.GetOrOpenWindow();
+						});
+					}
+#endif
 					
 					Dispatcher.UIThread.Post(() => {
 						bool wasAudioFile = _model.AudioPlayer != null;

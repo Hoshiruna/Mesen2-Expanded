@@ -124,9 +124,9 @@ namespace Mesen.Interop
 		[DllImport(DllPath)] public static extern void SetCheats([In]InteropCheatCode[] cheats, UInt32 cheatCount);
 		[DllImport(DllPath)] public static extern void ClearCheats();
 
-		[DllImport(DllPath)] public static extern void InputBarcode(UInt64 barcode, UInt32 digitCount);
-		[DllImport(DllPath)] public static extern void ProcessTapeRecorderAction(TapeRecorderAction action, [MarshalAs(UnmanagedType.LPUTF8Str)] string filename = "");
-	}
+			[DllImport(DllPath)] public static extern void InputBarcode(UInt64 barcode, UInt32 digitCount);
+			[DllImport(DllPath)] public static extern void ProcessTapeRecorderAction(TapeRecorderAction action, [MarshalAs(UnmanagedType.LPUTF8Str)] string filename = "");
+		}
 
 	public struct TimingInfo
 	{

@@ -1,19 +1,21 @@
-#include "Common.h"
+﻿#include "EmuApiWrapper.h"
 #include "Core/Shared/Emulator.h"
+#include "Core/Shared/DebuggerRequest.h"
 #include "Core/Shared/EmuSettings.h"
 #include "Core/Shared/Video/VideoDecoder.h"
 #include "Core/Shared/Video/VideoRenderer.h"
-#include "Core/Shared/SystemActionManager.h"
 #include "Core/Shared/MessageManager.h"
 #include "Core/Shared/SaveStateManager.h"
+#include "Core/Shared/Interfaces/IAudioDevice.h"
+#include "Core/Shared/Interfaces/IKeyManager.h"
+#include "Core/Shared/Interfaces/IMouseManager.h"
 #include "Core/Shared/Interfaces/INotificationListener.h"
+#include "Core/Shared/Interfaces/IRenderingDevice.h"
 #include "Core/Shared/KeyManager.h"
 #include "Core/Shared/ShortcutKeyHandler.h"
 #include "Core/Shared/TimingInfo.h"
 #include "Core/Shared/CheatManager.h"
-#include "Core/Shared/DebuggerRequest.h"
 #include "Core/Netplay/GameClient.h"
-#include "Core/Netplay/GameServer.h"
 #include "Utilities/ArchiveReader.h"
 #include "Utilities/FolderUtilities.h"
 #include "Utilities/StringUtilities.h"
@@ -282,7 +284,6 @@ extern "C" {
 
 	DllExport void __stdcall InputBarcode(uint64_t barcode, uint32_t digitCount) { _emu->InputBarcode(barcode, digitCount); }
 	DllExport void __stdcall ProcessTapeRecorderAction(TapeRecorderAction action, char* filename) { _emu->ProcessTapeRecorderAction(action, filename); }
-
 	DllExport void __stdcall ExecuteShortcut(ExecuteShortcutParams params) { _emu->GetNotificationManager()->SendNotification(ConsoleNotificationType::ExecuteShortcut, &params); }
 	DllExport bool __stdcall IsShortcutAllowed(EmulatorShortcut shortcut, uint32_t shortcutParam) { return _emu->GetShortcutKeyHandler()->IsShortcutAllowed(shortcut, shortcutParam); }
 

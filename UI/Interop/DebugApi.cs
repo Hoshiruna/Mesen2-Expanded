@@ -20,6 +20,8 @@ namespace Mesen.Interop
 		private const string DllPath = EmuApi.DllName;
 		[DllImport(DllPath)] public static extern void InitializeDebugger();
 		[DllImport(DllPath)] public static extern void ReleaseDebugger();
+		[DllImport(DllPath)] [return: MarshalAs(UnmanagedType.I1)] public static extern bool IsDebuggerRunning();
+		[DllImport(DllPath)] [return: MarshalAs(UnmanagedType.I1)] public static extern bool IsExecutionStopped();
 
 		[DllImport(DllPath)] public static extern void ResumeExecution();
 		[DllImport(DllPath)] public static extern void Step(CpuType cpuType, Int32 instructionCount, StepType type = StepType.Step);
@@ -104,6 +106,32 @@ namespace Mesen.Interop
 			return Marshal.PtrToStructure<T>((IntPtr)ptr);
 		}
 
+		[DllImport(DllPath, EntryPoint = "GetGenesisVdpRegisters")]
+		[return: MarshalAs(UnmanagedType.I1)]
+		private static extern bool GetGenesisVdpRegistersWrapper([Out] byte[] registers, UInt32 length);
+
+		public static byte[] GetGenesisVdpRegisters()
+		{
+			byte[] registers = new byte[24];
+			if(!GetGenesisVdpRegistersWrapper(registers, (UInt32)registers.Length)) {
+				throw new Exception("Genesis VDP registers are not available.");
+			}
+			return registers;
+		}
+
+		[DllImport(DllPath, EntryPoint = "GetGenesisBackendState")]
+		[return: MarshalAs(UnmanagedType.I1)]
+		private static extern bool GetGenesisBackendStateWrapper(IntPtr state);
+
+		public unsafe static GenesisBackendState GetGenesisBackendState()
+		{
+			byte* ptr = stackalloc byte[Marshal.SizeOf<GenesisBackendState>()];
+			if(!GetGenesisBackendStateWrapper((IntPtr)ptr)) {
+				throw new Exception("Genesis backend state is not available.");
+			}
+			return Marshal.PtrToStructure<GenesisBackendState>((IntPtr)ptr);
+		}
+
 		[DllImport(DllPath)] private static extern void GetPpuState(IntPtr state, CpuType cpuType);
 		public unsafe static T GetPpuState<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(CpuType cpuType) where T : struct, BaseState
 		{
@@ -122,6 +150,7 @@ namespace Mesen.Interop
 				CpuType.Sms => GetPpuState<SmsVdpState>(cpuType),
 				CpuType.Gba => GetPpuState<GbaPpuState>(cpuType),
 				CpuType.Ws => GetPpuState<WsPpuState>(cpuType),
+				CpuType.GenesisMain => GetPpuState<GenesisVdpState>(cpuType),
 				_ => throw new Exception("Unsupported cpu type")
 			};
 		}
@@ -144,6 +173,7 @@ namespace Mesen.Interop
 				CpuType.Sms => GetPpuToolsState<EmptyPpuToolsState>(cpuType),
 				CpuType.Gba => GetPpuToolsState<EmptyPpuToolsState>(cpuType),
 				CpuType.Ws => GetPpuToolsState<EmptyPpuToolsState>(cpuType),
+				CpuType.GenesisMain => GetPpuToolsState<EmptyPpuToolsState>(cpuType),
 				_ => throw new Exception("Unsupported cpu type")
 			};
 		}
@@ -556,23 +586,25 @@ namespace Mesen.Interop
 				CpuType.Sms => state is SmsCpuState,
 				CpuType.Gba => state is GbaCpuState,
 				CpuType.Ws => state is WsCpuState,
+				CpuType.GenesisMain => state is GenesisCpuState,
 				_ => false
 			};
 		}
 
-		private static bool IsValidPpuState<T>(ref T state, CpuType cpuType) where T : BaseState
-		{
-			return cpuType.GetConsoleType() switch {
-				ConsoleType.Snes => state is SnesPpuState,
-				ConsoleType.Nes => state is NesPpuState,
-				ConsoleType.Gameboy => state is GbPpuState,
-				ConsoleType.PcEngine => state is PceVideoState,
-				ConsoleType.Sms => state is SmsVdpState,
-				ConsoleType.Gba => state is GbaPpuState,
-				ConsoleType.Ws => state is WsPpuState,
-				_ => false
-			};
-		}
+			private static bool IsValidPpuState<T>(ref T state, CpuType cpuType) where T : BaseState
+			{
+				return cpuType.GetConsoleType() switch {
+					ConsoleType.Snes => state is SnesPpuState,
+					ConsoleType.Nes => state is NesPpuState,
+					ConsoleType.Gameboy => state is GbPpuState,
+					ConsoleType.PcEngine => state is PceVideoState,
+					ConsoleType.Sms => state is SmsVdpState,
+					ConsoleType.Gba => state is GbaPpuState,
+					ConsoleType.Ws => state is WsPpuState,
+					ConsoleType.Genesis => state is GenesisVdpState,
+					_ => false
+				};
+			}
 
 		private static int GetStateSize(BaseState state)
 		{
