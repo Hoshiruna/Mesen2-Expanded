@@ -46,7 +46,7 @@ Build instructions are available in [COMPILING.md](COMPILING.md).
 
 Mesen Expanded exposes debugger functionality through an MCP bridge for external tooling and AI-assisted debugging workflows.
 
-- Setup and usage: [MCP_Server.md](MCP_Server.md)
+- Setup and usage: [MCP_SERVER.md](MCP_SERVER.md)
 - Safety and liability notes: [DISCLAIMER.md](DISCLAIMER.md)
 
 ## Disclaimer
