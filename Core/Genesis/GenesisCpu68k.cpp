@@ -469,8 +469,8 @@ uint32_t GenesisCpu68k::CalcEA(uint8_t mode, uint8_t reg, uint8_t size)
 					return base + (int32_t)disp;
 				}
 				case 3: {
-					// For d8(PC,Xn), the base is the PC at the extension word address
-					// (same convention as m68k_get_ea_pcix in GenplusGX), not PC+2.
+					// For d8(PC,Xn), base is the PC at the extension word address.
+					// MODE_PC_INDEX_DISP8 path (inst->address + 2).
 					_faultIsPcRelativeEA = true;
 					uint32_t base = _state.PC;
 					uint16_t ext  = FetchExtWord();
@@ -1140,5 +1140,4 @@ uint8_t GenesisCpu68k::Sbcd(uint8_t a, uint8_t b, bool& carry, bool& zero, bool 
 	if(result) zero = false;
 	return result;
 }
-
 

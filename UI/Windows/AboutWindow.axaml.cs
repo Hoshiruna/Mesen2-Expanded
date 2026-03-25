@@ -76,6 +76,7 @@ namespace Mesen.Windows
 
 			AcknowledgeList = new List<AboutListEntry>() {
 				new("ares (Near)", "Near", "ISC", "https://github.com/ares-emulator/ares"),
+				new("BlastEm", "Mike Pavone", "GPL3", "https://www.retrodev.com/blastem/"),
 				new("NesDev Wiki/Forums Contributors", "", "", "https://www.nesdev.org/"),
 				new("SameBoy (LIJI32)", "LIJI32", "MIT", "https://github.com/LIJI32/SameBoy"),
 				new("BizHawk (PCEHawk)", "", "MIT", "https://github.com/TASEmulators/BizHawk"),

@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include <algorithm>
 #include <cstdint>
+#include <cstdlib>
+#include <filesystem>
 #include <string>
 #include <string.h>
 #include <vector>
@@ -245,6 +247,87 @@ namespace
 		}
 		return out;
 	}
+
+	static constexpr const char* kCpuRamTraceDirectory = "reference";
+	static constexpr const char* kCpuRamTracePath = "reference/cpu_ram_trace.log";
+	static FILE* sCpuRamTraceFile = nullptr;
+	static uint32_t sCpuRamTraceLines = 0;
+	static bool sCpuRamTraceConfigLoaded = false;
+	static uint32_t kCpuRamTraceFrameStart = 0u;
+	static uint32_t kCpuRamTraceFrameEnd = 50u;
+	static uint32_t kCpuRamTraceAddrStart = 0xFFCC00u;
+	static uint32_t kCpuRamTraceAddrEnd = 0xFFCFFFu;
+	static uint32_t kCpuRamTraceMaxLines = 300000u;
+
+	static bool TryParseEnvU32AutoBase(const char* name, uint32_t minVal, uint32_t maxVal, uint32_t& outVal)
+	{
+		const char* raw = std::getenv(name);
+		if(!raw || !*raw) return false;
+
+		char* end = nullptr;
+		unsigned long v = std::strtoul(raw, &end, 0);
+		if(end == raw || *end != '\0') return false;
+		if(v < minVal || v > maxVal) return false;
+		outVal = (uint32_t)v;
+		return true;
+	}
+
+	static void LoadCpuRamTraceConfigFromEnv()
+	{
+		if(sCpuRamTraceConfigLoaded) return;
+		sCpuRamTraceConfigLoaded = true;
+
+		uint32_t v = 0;
+		if(TryParseEnvU32AutoBase("MESEN_WRAM_FRAME_START", 0u, 0xFFFFFFFFu, v)) kCpuRamTraceFrameStart = v;
+		if(TryParseEnvU32AutoBase("MESEN_WRAM_FRAME_END",   0u, 0xFFFFFFFFu, v)) kCpuRamTraceFrameEnd = v;
+		if(TryParseEnvU32AutoBase("MESEN_WRAM_ADDR_START",  0u, 0xFFFFFFu,   v)) kCpuRamTraceAddrStart = v;
+		if(TryParseEnvU32AutoBase("MESEN_WRAM_ADDR_END",    0u, 0xFFFFFFu,   v)) kCpuRamTraceAddrEnd = v;
+		if(TryParseEnvU32AutoBase("MESEN_WRAM_MAX_LINES",   1u, 0xFFFFFFFFu, v)) kCpuRamTraceMaxLines = v;
+
+		if(kCpuRamTraceFrameStart > kCpuRamTraceFrameEnd) {
+			std::swap(kCpuRamTraceFrameStart, kCpuRamTraceFrameEnd);
+		}
+		if(kCpuRamTraceAddrStart > kCpuRamTraceAddrEnd) {
+			std::swap(kCpuRamTraceAddrStart, kCpuRamTraceAddrEnd);
+		}
+	}
+
+	static void EnsureCpuRamTraceOpen()
+	{
+		if(sCpuRamTraceFile) return;
+		LoadCpuRamTraceConfigFromEnv();
+		std::error_code fsErr;
+		std::filesystem::create_directories(kCpuRamTraceDirectory, fsErr);
+		sCpuRamTraceFile = fopen(kCpuRamTracePath, "w");
+		if(sCpuRamTraceFile) {
+			fprintf(sCpuRamTraceFile, "# CPU work-RAM write trace\n");
+			fprintf(sCpuRamTraceFile, "# frameRange=%u-%u addrRange=%06X-%06X maxLines=%u\n",
+				kCpuRamTraceFrameStart, kCpuRamTraceFrameEnd,
+				(unsigned)kCpuRamTraceAddrStart, (unsigned)kCpuRamTraceAddrEnd, kCpuRamTraceMaxLines);
+			fflush(sCpuRamTraceFile);
+		}
+	}
+
+	static bool CpuRamTraceShouldLog(uint32_t frame, uint32_t addr)
+	{
+		EnsureCpuRamTraceOpen();
+		if(!sCpuRamTraceFile) return false;
+		if(sCpuRamTraceLines >= kCpuRamTraceMaxLines) return false;
+		if(frame < kCpuRamTraceFrameStart || frame > kCpuRamTraceFrameEnd) return false;
+		if(addr < kCpuRamTraceAddrStart || addr > kCpuRamTraceAddrEnd) return false;
+		return true;
+	}
+
+	static void CpuRamTraceLog(uint32_t frame, uint16_t line, uint32_t addr, uint8_t data, uint32_t pc, uint64_t mclk)
+	{
+		if(!sCpuRamTraceFile) return;
+		fprintf(sCpuRamTraceFile, "F%04u L%03u WRAM addr=%06X data=%02X pc=%06X mclk=%llu\n",
+			(unsigned)frame, (unsigned)line, (unsigned)addr, (unsigned)data, (unsigned)pc, (unsigned long long)mclk);
+		sCpuRamTraceLines++;
+		if((sCpuRamTraceLines & 0x3FFu) == 0u) {
+			fflush(sCpuRamTraceFile);
+		}
+	}
 }
 
 // ===========================================================================
@@ -350,6 +433,11 @@ int32_t GenesisNativeBackend::RunCpuInstructionForTest()
 uint8_t GenesisNativeBackend::GetVdpRegister(uint8_t index) const
 {
 	return _vdp.GetRegister(index);
+}
+
+uint16_t GenesisNativeBackend::GetHVCounter() const
+{
+	return _vdp.GetHVCounter();
 }
 
 // ===========================================================================
@@ -796,7 +884,7 @@ void GenesisNativeBackend::RunFrame()
 	// Update frame dimensions from VDP (may change if VDP registers change).
 	UpdateFrameGeometry();
 
-	// Event-driven master-clock scheduler (BlastEm-inspired).
+	// Event-driven master-clock scheduler.
 	// The VDP tracks its own master-clock position (_mclkPos).
 	// Each iteration: run CPU/Z80 up to the next event boundary, then advance
 	// VDP to that same boundary and deliver any newly-raised VDP interrupts.
@@ -967,6 +1055,17 @@ void GenesisNativeBackend::GetVdpState(GenesisVdpState& state)    const
 void GenesisNativeBackend::GetVdpRegisters(uint8_t regs[24]) const
 {
 	_vdp.GetRegisters(regs);
+}
+
+bool GenesisNativeBackend::GetVdpDebugState(GenesisVdpDebugState& state) const
+{
+	_vdp.GetDebugState(state);
+	return true;
+}
+
+bool GenesisNativeBackend::GetVdpTraceLines(GenesisTraceBufferKind kind, vector<string>& lines) const
+{
+	return _vdp.GetDebugTraceLines(kind, lines);
 }
 
 void GenesisNativeBackend::GetFrameSize(uint32_t& w, uint32_t& h) const { w = _frameWidth; h = _frameHeight; }
@@ -1286,6 +1385,12 @@ uint8_t GenesisNativeBackend::CpuBusWaitStates(uint32_t address, bool isWrite) c
 {
 	if(_cpuTestBusEnabled) {
 		return 0u;
+	}
+	// 68K->VDP DMA freezes the 68K bus until DMA progress frees it again.
+	// Apply a strong per-access penalty so the CPU effectively stalls while
+	// RunMasterClockSlice() advances DMA at the start of each slice.
+	if(_vdp.Is68kBusDmaActive()) {
+		return 0xFFu;
 	}
 	(void)isWrite;
 	switch(DecodeBusRegion(address & 0x00FFFFFFu)) {
@@ -1676,6 +1781,10 @@ void GenesisNativeBackend::WriteCartBus(uint32_t address, uint8_t value)
 
 		case BusRegion::WorkRam:
 			_workRam[address & 0xFFFFu] = value;
+			if(CpuRamTraceShouldLog(_vdp.GetFrameCount(), address)) {
+				CpuRamTraceLog(_vdp.GetFrameCount(), _vdp.GetScanline(), address, value,
+					(_cpu.GetState().PC & 0x00FFFFFFu), _masterClock);
+			}
 			return;
 
 		default:

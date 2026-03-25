@@ -56,7 +56,7 @@ namespace Mesen.Utilities
 							"*.nes", "*.fds", "*.qd", "*.unif", "*.unf", "*.studybox", "*.nsf", "*.nsfe",
 							"*.gb", "*.gbc", "*.gbx", "*.gbs",
 							"*.pce", "*.sgx", "*.cue", "*.hes",
-							"*.sms", "*.gg", "*.sg", "*.col",
+							"*.sms", "*.md", "*.gg", "*.sg", "*.col",
 							"*.gba",
 							"*.ws", "*.wsc",
 							"*.zip", "*.7z",
@@ -68,6 +68,7 @@ namespace Mesen.Utilities
 						filter.Add(new FilePickerFileType("GBA ROM files") { Patterns = new List<string>() { "*.gba" } });
 						filter.Add(new FilePickerFileType("PC Engine ROM files") { Patterns = new List<string>() { "*.pce", "*.sgx", "*.cue", "*.hes" } });
 						filter.Add(new FilePickerFileType("SMS / GG ROM files") { Patterns = new List<string>() { "*.sms", "*.gg" } });
+						filter.Add(new FilePickerFileType("Genesis ROM files") { Patterns = new List<string>() { "*.md" } });
 						filter.Add(new FilePickerFileType("SG-1000 ROM files") { Patterns = new List<string>() { "*.sg" } });
 						filter.Add(new FilePickerFileType("ColecoVision ROM files") { Patterns = new List<string>() { "*.col" } });
 						filter.Add(new FilePickerFileType("WonderSwan ROM files") { Patterns = new List<string>() { "*.ws", "*.wsc" } });

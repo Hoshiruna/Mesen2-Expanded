@@ -6,6 +6,7 @@
 #include "Shared/BatteryManager.h"
 #include "Shared/Emulator.h"
 #include "Shared/EmuSettings.h"
+#include "Shared/EventType.h"
 #include "Shared/Audio/SoundMixer.h"
 #include "Shared/Video/VideoDecoder.h"
 #include "Shared/RenderedFrame.h"
@@ -380,6 +381,9 @@ void GenesisConsole::RunFrame()
 	_backend->RunFrame();
 	RefreshDebuggerMemoryViews();
 
+	// Notify debugger (and Lua event callbacks) that the frame is complete.
+	_emu->ProcessEvent(EventType::EndFrame, CpuType::GenesisMain);
+
 	if(!_frameBuffer.empty() && _frameWidth > 0 && _frameHeight > 0) {
 		RenderedFrame frame((void*)_frameBuffer.data(), _frameWidth, _frameHeight, 1.0, _frameCount);
 		_emu->GetVideoDecoder()->UpdateFrame(frame, false, false);
@@ -633,6 +637,16 @@ uint8_t GenesisConsole::GetVdpRegister(uint8_t index) const
 	return 0;
 }
 
+uint16_t GenesisConsole::GetHVCounter() const
+{
+	if(_backend && _backend->GetCoreType() == GenesisCoreType::Native) {
+		auto* nb = static_cast<GenesisNativeBackend*>(_backend.get());
+		return nb->GetHVCounter();
+	}
+
+	return 0;
+}
+
 void GenesisConsole::GetVdpRegisters(uint8_t regs[24]) const
 {
 	if(_backend) {
@@ -640,6 +654,26 @@ void GenesisConsole::GetVdpRegisters(uint8_t regs[24]) const
 	} else {
 		memset(regs, 0, 24);
 	}
+}
+
+bool GenesisConsole::GetVdpDebugState(GenesisVdpDebugState& state) const
+{
+	if(_backend) {
+		return _backend->GetVdpDebugState(state);
+	}
+
+	state = {};
+	return false;
+}
+
+bool GenesisConsole::GetVdpTraceLines(GenesisTraceBufferKind kind, vector<string>& lines) const
+{
+	if(_backend) {
+		return _backend->GetVdpTraceLines(kind, lines);
+	}
+
+	lines.clear();
+	return false;
 }
 
 bool GenesisConsole::GetBackendDebugState(GenesisBackendState& state) const

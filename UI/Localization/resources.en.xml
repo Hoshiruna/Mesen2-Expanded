@@ -584,7 +584,6 @@
 			<Control ID="lblController1">Port 1:</Control>
 			<Control ID="lblController2">Port 2:</Control>
 			<Control ID="lblRegion">Region:</Control>
-			<Control ID="lblCoreType">Core:</Control>
 		</Form>
 
 		<Form ID="OtherConsolesConfigView">
@@ -735,6 +734,7 @@
 			<Control ID="chkPceRomFiles">PC Engine roms: .pce, .sgx</Control>
 			<Control ID="chkPceMusicFiles">PC Engine music: .hes</Control>
 			<Control ID="chkSmsRomFiles">SMS roms: .sms</Control>
+			<Control ID="chkGenesisRomFiles">Genesis roms: .md</Control>
 			<Control ID="chkGameGearRomFiles">Game Gear roms: .gg</Control>
 			<Control ID="chkSgRomFiles">SG-1000 roms: .sg</Control>
 			<Control ID="chkCvRomFiles">ColecoVision roms: .col</Control>
@@ -3587,6 +3587,7 @@ E
 			<Value ID="Gba">GBA</Value>
 			<Value ID="PcEngine">PC Engine</Value>
 			<Value ID="Sms">SMS</Value>
+			<Value ID="Genesis">Genesis</Value>
 			<Value ID="Ws">WonderSwan</Value>
 			<Value ID="OtherConsoles">Other systems</Value>
 

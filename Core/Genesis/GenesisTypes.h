@@ -63,6 +63,99 @@ struct GenesisBackendState : public BaseState
 	uint8_t  PAL = 0;
 };
 
+enum class GenesisTraceBufferKind : uint8_t
+{
+	Dma,
+	Sprite,
+	Compose,
+	Scroll,
+	HScrollDma
+};
+
+static constexpr uint32_t GenesisDebugScrollBufferSize = 32;
+static constexpr uint32_t GenesisDebugLineBufferSize = 347;
+static constexpr uint32_t GenesisDebugMaxSpritesLine = 20;
+static constexpr uint32_t GenesisDebugMaxSpriteDraws = 40;
+
+struct GenesisSpriteInfoDebugState : public BaseState
+{
+	uint16_t Index = 0;
+	int16_t  Y = 0;
+	uint8_t  Size = 0;
+};
+
+struct GenesisSpriteDrawDebugState : public BaseState
+{
+	int16_t  XPos = 0;
+	uint16_t Address = 0;
+	uint8_t  PalPri = 0;
+	uint8_t  HFlip = 0;
+	uint8_t  Width = 0;
+	uint8_t  Height = 0;
+	uint16_t BaseTile = 0;
+	uint8_t  CellRow = 0;
+	uint8_t  PixRow = 0;
+	uint8_t  SatIndex = 0;
+};
+
+struct GenesisVdpDebugState : public BaseState
+{
+	uint32_t FrameCount = 0;
+	uint16_t Scanline = 0;
+	uint16_t HClock = 0;
+	uint16_t VClock = 0;
+	uint16_t HvCounter = 0;
+	uint16_t Status = 0;
+	uint16_t ActiveWidth = 0;
+	uint16_t ActiveHeight = 0;
+	uint8_t  Regs[24] = {};
+	bool     IsH40 = false;
+	bool     Interlace2 = false;
+	bool     DisplayEnabled = false;
+	bool     ShadowHighlightEnabled = false;
+
+	uint16_t SlotIndex = 0;
+	uint16_t SlotCycles = 0;
+
+	uint8_t  TmpBufA[GenesisDebugScrollBufferSize] = {};
+	uint8_t  TmpBufB[GenesisDebugScrollBufferSize] = {};
+	uint8_t  BufAOff = 0;
+	uint8_t  BufBOff = 0;
+
+	uint16_t Col1 = 0;
+	uint16_t Col2 = 0;
+	uint16_t ColB1 = 0;
+	uint16_t ColB2 = 0;
+	uint8_t  VOffsetA = 0;
+	uint8_t  VOffsetB = 0;
+	bool     WindowActive = false;
+	uint16_t VscrollLatch[2] = {};
+	uint16_t HscrollA = 0;
+	uint16_t HscrollAFine = 0;
+	uint16_t HscrollB = 0;
+	uint16_t HscrollBFine = 0;
+
+	uint8_t  Linebuf[GenesisDebugLineBufferSize] = {};
+	uint8_t  Compositebuf[GenesisDebugLineBufferSize] = {};
+
+	uint8_t  SprInfoCount = 0;
+	uint8_t  SprDraws = 0;
+	int8_t   SprCurSlot = 0;
+	uint8_t  SprRenderIdx = 0;
+	uint8_t  SprRenderCell = 0;
+	uint8_t  SprScanLink = 0;
+	bool     SprScanDone = false;
+	bool     SprCanMask = false;
+	bool     SprMasked = false;
+	uint8_t  MaxSpritesLine = 0;
+	uint8_t  MaxDrawsLine = 0;
+	uint8_t  SprCellBudget = 0;
+	bool     PrevLineDotOverflow = false;
+
+	GenesisSpriteInfoDebugState SpriteInfos[GenesisDebugMaxSpritesLine] = {};
+	GenesisSpriteDrawDebugState SpriteDrawList[GenesisDebugMaxSpriteDraws] = {};
+};
+
 // Z80 state exposed to the Mesen2 debugger
 struct GenesisZ80State : public BaseState
 {

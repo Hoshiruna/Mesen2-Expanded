@@ -88,6 +88,7 @@ namespace Mesen.Config
 			CreateMimeType("x-mesen-hes", "hes", "PC Engine Sound File", mimeTypes, cfg.AssociatePceMusicFiles);
 
 			CreateMimeType("x-mesen-sms", "sms", "Master System ROM", mimeTypes, cfg.AssociateSmsRomFiles);
+			CreateMimeType("x-mesen-md", "md", "Genesis / Mega Drive ROM", mimeTypes, cfg.AssociateGenesisRomFiles);
 			CreateMimeType("x-mesen-gg", "gg", "Game Gear ROM", mimeTypes, cfg.AssociateGameGearRomFiles);
 			CreateMimeType("x-mesen-sg", "sg", "SG-1000 ROM", mimeTypes, cfg.AssociateSgRomFiles);
 			CreateMimeType("x-mesen-col", "col", "ColecoVision ROM", mimeTypes, cfg.AssociateCvRomFiles);
@@ -211,6 +212,7 @@ namespace Mesen.Config
 			FileAssociationHelper.UpdateFileAssociation("hes", cfg.AssociatePceMusicFiles);
 
 			FileAssociationHelper.UpdateFileAssociation("sms", cfg.AssociateSmsRomFiles);
+			FileAssociationHelper.UpdateFileAssociation("md", cfg.AssociateGenesisRomFiles);
 			FileAssociationHelper.UpdateFileAssociation("gg", cfg.AssociateGameGearRomFiles);
 			FileAssociationHelper.UpdateFileAssociation("sg", cfg.AssociateSgRomFiles);
 			FileAssociationHelper.UpdateFileAssociation("col", cfg.AssociateCvRomFiles);

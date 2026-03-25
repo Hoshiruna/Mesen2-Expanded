@@ -30,6 +30,8 @@ public:
 	virtual void GetCpuState(GenesisCpuState& state) const = 0;
 	virtual void GetVdpState(GenesisVdpState& state) const = 0;
 	virtual void GetVdpRegisters(uint8_t regs[24]) const = 0;
+	virtual bool GetVdpDebugState(GenesisVdpDebugState& state) const { state = {}; return false; }
+	virtual bool GetVdpTraceLines(GenesisTraceBufferKind kind, vector<string>& lines) const { lines.clear(); return false; }
 	virtual void GetFrameSize(uint32_t& width, uint32_t& height) const = 0;
 	virtual bool GetBackendDebugState(GenesisBackendState& state) const { state = {}; return false; }
 

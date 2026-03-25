@@ -50,7 +50,7 @@ public:
 			// Save-state identity
 			// -----------------------------------------------------------------------
 			static constexpr uint32_t NativeStateMagic   = 0x314E444Du; // MDN1
-			static constexpr uint32_t NativeStateVersion = 31;          // Native Genesis FM core replaces ymfm-backed savestate data
+			static constexpr uint32_t NativeStateVersion = 33;          // Sprite mask carry-over fix
 
 	// -----------------------------------------------------------------------
 	// Platform callbacks / emulator
@@ -220,6 +220,8 @@ public:
 	void GetCpuState(GenesisCpuState& state) const override;
 	void GetVdpState(GenesisVdpState& state) const override;
 	void GetVdpRegisters(uint8_t regs[24]) const override;
+	bool GetVdpDebugState(GenesisVdpDebugState& state) const override;
+	bool GetVdpTraceLines(GenesisTraceBufferKind kind, vector<string>& lines) const override;
 	void GetFrameSize(uint32_t& width, uint32_t& height) const override;
 	bool GetBackendDebugState(GenesisBackendState& state) const override;
 
@@ -251,4 +253,5 @@ public:
 		void GetCpuStateForTest(GenesisCpuState& state) const;
 		int32_t RunCpuInstructionForTest();
 		uint8_t GetVdpRegister(uint8_t index) const;
+		uint16_t GetHVCounter() const;
 };

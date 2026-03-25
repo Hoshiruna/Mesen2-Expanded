@@ -1148,7 +1148,14 @@ void GenesisCpu68k::I_Group4()
 				uint32_t ea = CalcEA(mode, reg, 1);
 				uint8_t v = ReadResolvedEA8(ea);
 				UpdateFlagsNZ8(v); SetC(false); SetV(false);
-				WriteResolvedEA8(ea, (uint8_t)(v | 0x80)); _cycles += 14;
+				if(mode == 0) {
+					// Dn destination: still set bit 7 in register.
+					_state.D[reg] = (_state.D[reg] & 0xFFFFFF00u) | (uint32_t)((uint8_t)(v | 0x80));
+				} else {
+					// Genesis/68000 "broken TAS" behavior: memory destinations do not
+					// perform the final write-back cycle.
+				}
+				_cycles += 14;
 			} else {
 				SetFaultPCForEA(mode, reg, (uint8_t)(1u << sz));
 				if(sz == 0) { UpdateFlagsNZ8 (ReadEA8 (mode,reg)); }

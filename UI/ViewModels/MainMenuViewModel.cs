@@ -495,6 +495,10 @@ namespace Mesen.ViewModels
 					OnClick = () => OpenConfig(wnd, ConfigWindowTab.Sms)
 				},
 				new MainMenuAction() {
+					ActionType = ActionType.Genesis,
+					OnClick = () => OpenConfig(wnd, ConfigWindowTab.Genesis)
+				},
+				new MainMenuAction() {
 					ActionType = ActionType.Ws,
 					OnClick = () => OpenConfig(wnd, ConfigWindowTab.Ws)
 				},

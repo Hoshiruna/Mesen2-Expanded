@@ -674,6 +674,8 @@ namespace Mesen.Debugger.Utilities
 		PcEngine,
 		[IconFile("SmsIcon")]
 		Sms,
+		[IconFile("GenesisIcon")]
+		Genesis,
 		[IconFile("WsIcon")]
 		Ws,
 		[IconFile("Drive")]

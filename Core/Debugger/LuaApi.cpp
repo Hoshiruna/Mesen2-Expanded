@@ -29,6 +29,7 @@
 #include "Utilities/FolderUtilities.h"
 #include "Utilities/magic_enum.hpp"
 #include "Shared/MemoryOperationType.h"
+#include "Genesis/GenesisConsole.h"
 
 #ifdef _MSC_VER
 //TODO MSVC seems to trigger this by mistake because of the macros?
@@ -68,6 +69,100 @@ enum class AccessCounterType
 	LastWriteClock,
 	LastExecClock
 };
+
+namespace
+{
+	void LuaPushTableInt(lua_State* lua, const char* key, int64_t value)
+	{
+		lua_pushstring(lua, key);
+		lua_pushinteger(lua, (lua_Integer)value);
+		lua_settable(lua, -3);
+	}
+
+	void LuaPushTableBool(lua_State* lua, const char* key, bool value)
+	{
+		lua_pushstring(lua, key);
+		lua_pushboolean(lua, value ? 1 : 0);
+		lua_settable(lua, -3);
+	}
+
+	void LuaPushByteArray(lua_State* lua, const char* key, const uint8_t* values, size_t count)
+	{
+		lua_pushstring(lua, key);
+		lua_newtable(lua);
+		for(size_t i = 0; i < count; i++) {
+			lua_pushinteger(lua, (lua_Integer)i + 1);
+			lua_pushinteger(lua, (lua_Integer)values[i]);
+			lua_settable(lua, -3);
+		}
+		lua_settable(lua, -3);
+	}
+
+	void LuaStateSetInt(unordered_map<string, SerializeMapValue>& values, const string& key, int64_t value)
+	{
+		values.insert_or_assign(key, SerializeMapValue(SerializeMapValueFormat::Integer, value));
+	}
+
+	void LuaStateSetBool(unordered_map<string, SerializeMapValue>& values, const string& key, bool value)
+	{
+		values.insert_or_assign(key, SerializeMapValue(SerializeMapValueFormat::Bool, value));
+	}
+
+	void AppendGenesisLuaState(unordered_map<string, SerializeMapValue>& values, Emulator* emu)
+	{
+		if(emu->GetConsoleType() != ConsoleType::Genesis) {
+			return;
+		}
+
+		auto* console = dynamic_cast<GenesisConsole*>(emu->GetConsoleUnsafe());
+		if(!console) {
+			return;
+		}
+
+		GenesisState state = console->GetState();
+		GenesisBackendState backendState = {};
+		bool hasBackendState = console->GetBackendDebugState(backendState);
+		uint8_t regs[24] = {};
+		console->GetVdpRegisters(regs);
+
+		LuaStateSetInt(values, "cpu.cycleCount", (int64_t)state.Cpu.CycleCount);
+		LuaStateSetInt(values, "cpu.pc", (int64_t)state.Cpu.PC);
+		LuaStateSetInt(values, "cpu.sp", (int64_t)state.Cpu.SP);
+		LuaStateSetInt(values, "cpu.usp", (int64_t)state.Cpu.USP);
+		LuaStateSetInt(values, "cpu.sr", (int64_t)state.Cpu.SR);
+		LuaStateSetBool(values, "cpu.stopped", state.Cpu.Stopped);
+
+		for(uint32_t i = 0; i < 8; i++) {
+			LuaStateSetInt(values, "cpu.d" + std::to_string(i), (int64_t)state.Cpu.D[i]);
+			LuaStateSetInt(values, "cpu.a" + std::to_string(i), (int64_t)state.Cpu.A[i]);
+		}
+
+		LuaStateSetInt(values, "vdp.frameCount", (int64_t)state.Vdp.FrameCount);
+		LuaStateSetInt(values, "vdp.hClock", (int64_t)state.Vdp.HClock);
+		LuaStateSetInt(values, "vdp.vClock", (int64_t)state.Vdp.VClock);
+		LuaStateSetInt(values, "vdp.width", (int64_t)state.Vdp.Width);
+		LuaStateSetInt(values, "vdp.height", (int64_t)state.Vdp.Height);
+		LuaStateSetBool(values, "vdp.pal", state.Vdp.PAL);
+		LuaStateSetInt(values, "vdp.hvCounter", (int64_t)console->GetHVCounter());
+
+		if(hasBackendState) {
+			LuaStateSetInt(values, "vdp.status", (int64_t)backendState.VdpStatus);
+			LuaStateSetInt(values, "vdp.activeWidth", (int64_t)backendState.ActiveWidth);
+			LuaStateSetInt(values, "vdp.activeHeight", (int64_t)backendState.ActiveHeight);
+			LuaStateSetBool(values, "vdp.displayEnabled", backendState.DisplayEnabled != 0);
+			LuaStateSetBool(values, "vdp.vintPending", backendState.VintPending != 0);
+			LuaStateSetBool(values, "vdp.hintPending", backendState.HintPending != 0);
+			LuaStateSetInt(values, "vdp.dmaSource", (int64_t)backendState.DmaSource);
+			LuaStateSetInt(values, "vdp.dmaLength", (int64_t)backendState.DmaLength);
+			LuaStateSetInt(values, "vdp.dmaFillValue", (int64_t)backendState.DmaFillValue);
+			LuaStateSetInt(values, "vdp.dmaType", (int64_t)backendState.DmaType);
+		}
+
+		for(uint32_t i = 0; i < 24; i++) {
+			LuaStateSetInt(values, "vdp.reg" + std::to_string(i), (int64_t)regs[i]);
+		}
+	}
+}
 
 void LuaApi::SetContext(ScriptingContext* context)
 {
@@ -158,6 +253,8 @@ int LuaApi::GetLibrary(lua_State *lua)
 		{ "getScriptDataFolder", LuaApi::GetScriptDataFolder },
 		{ "getRomInfo", LuaApi::GetRomInfo },
 		{ "getLogWindowLog", LuaApi::GetLogWindowLog },
+		{ "getGenesisVdpDebugState", LuaApi::GetGenesisVdpDebugState },
+		{ "getGenesisVdpTrace", LuaApi::GetGenesisVdpTrace },
 		{ NULL,NULL }
 	};
 
@@ -1090,6 +1187,7 @@ int LuaApi::GetState(lua_State *lua)
 	SV(masterClock);
 
 	unordered_map<string, SerializeMapValue>& values = s.GetMapValues();
+	AppendGenesisLuaState(values, _emu);
 
 	lua_newtable(lua);
 	for(auto& kvp : values) {
@@ -1100,6 +1198,191 @@ int LuaApi::GetState(lua_State *lua)
 			case SerializeMapValueFormat::Bool: lua_pushboolean(lua, kvp.second.Value.Bool); break;
 			case SerializeMapValueFormat::String: lua_pushlstring(lua, kvp.second.StringValue.c_str(), kvp.second.StringValue.size()); break;
 		}
+		lua_settable(lua, -3);
+	}
+	return 1;
+}
+
+int LuaApi::GetGenesisVdpDebugState(lua_State* lua)
+{
+	LuaCallHelper l(lua);
+	checkparams();
+
+	if(_emu->GetConsoleType() != ConsoleType::Genesis) {
+		lua_pushnil(lua);
+		return 1;
+	}
+
+	auto* console = dynamic_cast<GenesisConsole*>(_emu->GetConsoleUnsafe());
+	if(!console) {
+		lua_pushnil(lua);
+		return 1;
+	}
+
+	GenesisVdpDebugState vdpState = {};
+	if(!console->GetVdpDebugState(vdpState)) {
+		lua_pushnil(lua);
+		return 1;
+	}
+
+	GenesisBackendState backendState = {};
+	bool hasBackendState = console->GetBackendDebugState(backendState);
+
+	lua_newtable(lua);
+
+	LuaPushTableInt(lua, "frameCount", vdpState.FrameCount);
+	LuaPushTableInt(lua, "scanline", vdpState.Scanline);
+	LuaPushTableInt(lua, "hClock", vdpState.HClock);
+	LuaPushTableInt(lua, "vClock", vdpState.VClock);
+	LuaPushTableInt(lua, "hvCounter", vdpState.HvCounter);
+	LuaPushTableInt(lua, "status", vdpState.Status);
+	LuaPushTableInt(lua, "activeWidth", vdpState.ActiveWidth);
+	LuaPushTableInt(lua, "activeHeight", vdpState.ActiveHeight);
+	LuaPushTableBool(lua, "isH40", vdpState.IsH40);
+	LuaPushTableBool(lua, "interlace2", vdpState.Interlace2);
+	LuaPushTableBool(lua, "displayEnabled", vdpState.DisplayEnabled);
+	LuaPushTableBool(lua, "shadowHighlightEnabled", vdpState.ShadowHighlightEnabled);
+	LuaPushTableInt(lua, "slotIndex", vdpState.SlotIndex);
+	LuaPushTableInt(lua, "slotCycles", vdpState.SlotCycles);
+	LuaPushTableInt(lua, "bufAOff", vdpState.BufAOff);
+	LuaPushTableInt(lua, "bufBOff", vdpState.BufBOff);
+	LuaPushTableInt(lua, "col1", vdpState.Col1);
+	LuaPushTableInt(lua, "col2", vdpState.Col2);
+	LuaPushTableInt(lua, "colB1", vdpState.ColB1);
+	LuaPushTableInt(lua, "colB2", vdpState.ColB2);
+	LuaPushTableInt(lua, "vOffsetA", vdpState.VOffsetA);
+	LuaPushTableInt(lua, "vOffsetB", vdpState.VOffsetB);
+	LuaPushTableBool(lua, "windowActive", vdpState.WindowActive);
+	LuaPushTableInt(lua, "vscrollLatchA", vdpState.VscrollLatch[0]);
+	LuaPushTableInt(lua, "vscrollLatchB", vdpState.VscrollLatch[1]);
+	LuaPushTableInt(lua, "hscrollA", vdpState.HscrollA);
+	LuaPushTableInt(lua, "hscrollAFine", vdpState.HscrollAFine);
+	LuaPushTableInt(lua, "hscrollB", vdpState.HscrollB);
+	LuaPushTableInt(lua, "hscrollBFine", vdpState.HscrollBFine);
+	LuaPushTableInt(lua, "sprInfoCount", vdpState.SprInfoCount);
+	LuaPushTableInt(lua, "sprDraws", vdpState.SprDraws);
+	LuaPushTableInt(lua, "sprCurSlot", vdpState.SprCurSlot);
+	LuaPushTableInt(lua, "sprRenderIdx", vdpState.SprRenderIdx);
+	LuaPushTableInt(lua, "sprRenderCell", vdpState.SprRenderCell);
+	LuaPushTableInt(lua, "sprScanLink", vdpState.SprScanLink);
+	LuaPushTableBool(lua, "sprScanDone", vdpState.SprScanDone);
+	LuaPushTableBool(lua, "sprCanMask", vdpState.SprCanMask);
+	LuaPushTableBool(lua, "sprMasked", vdpState.SprMasked);
+	LuaPushTableInt(lua, "maxSpritesLine", vdpState.MaxSpritesLine);
+	LuaPushTableInt(lua, "maxDrawsLine", vdpState.MaxDrawsLine);
+	LuaPushTableInt(lua, "sprCellBudget", vdpState.SprCellBudget);
+	LuaPushTableBool(lua, "prevLineDotOverflow", vdpState.PrevLineDotOverflow);
+
+	LuaPushByteArray(lua, "regs", vdpState.Regs, std::size(vdpState.Regs));
+	LuaPushByteArray(lua, "tmpBufA", vdpState.TmpBufA, std::size(vdpState.TmpBufA));
+	LuaPushByteArray(lua, "tmpBufB", vdpState.TmpBufB, std::size(vdpState.TmpBufB));
+	LuaPushByteArray(lua, "linebuf", vdpState.Linebuf, std::size(vdpState.Linebuf));
+	LuaPushByteArray(lua, "compositebuf", vdpState.Compositebuf, std::size(vdpState.Compositebuf));
+
+	lua_pushstring(lua, "spriteInfos");
+	lua_newtable(lua);
+	for(size_t i = 0; i < std::size(vdpState.SpriteInfos); i++) {
+		lua_pushinteger(lua, (lua_Integer)i + 1);
+		lua_newtable(lua);
+		LuaPushTableInt(lua, "index", vdpState.SpriteInfos[i].Index);
+		LuaPushTableInt(lua, "y", vdpState.SpriteInfos[i].Y);
+		LuaPushTableInt(lua, "size", vdpState.SpriteInfos[i].Size);
+		lua_settable(lua, -3);
+	}
+	lua_settable(lua, -3);
+
+	lua_pushstring(lua, "spriteDrawList");
+	lua_newtable(lua);
+	for(size_t i = 0; i < std::size(vdpState.SpriteDrawList); i++) {
+		lua_pushinteger(lua, (lua_Integer)i + 1);
+		lua_newtable(lua);
+		LuaPushTableInt(lua, "xPos", vdpState.SpriteDrawList[i].XPos);
+		LuaPushTableInt(lua, "address", vdpState.SpriteDrawList[i].Address);
+		LuaPushTableInt(lua, "palPri", vdpState.SpriteDrawList[i].PalPri);
+		LuaPushTableInt(lua, "hFlip", vdpState.SpriteDrawList[i].HFlip);
+		LuaPushTableInt(lua, "width", vdpState.SpriteDrawList[i].Width);
+		LuaPushTableInt(lua, "height", vdpState.SpriteDrawList[i].Height);
+		LuaPushTableInt(lua, "baseTile", vdpState.SpriteDrawList[i].BaseTile);
+		LuaPushTableInt(lua, "cellRow", vdpState.SpriteDrawList[i].CellRow);
+		LuaPushTableInt(lua, "pixRow", vdpState.SpriteDrawList[i].PixRow);
+		LuaPushTableInt(lua, "satIndex", vdpState.SpriteDrawList[i].SatIndex);
+		lua_settable(lua, -3);
+	}
+	lua_settable(lua, -3);
+
+	lua_pushstring(lua, "backend");
+	lua_newtable(lua);
+	if(hasBackendState) {
+		LuaPushTableInt(lua, "masterClock", (int64_t)backendState.MasterClock);
+		LuaPushTableInt(lua, "frameWidth", backendState.FrameWidth);
+		LuaPushTableInt(lua, "frameHeight", backendState.FrameHeight);
+		LuaPushTableInt(lua, "activeWidth", backendState.ActiveWidth);
+		LuaPushTableInt(lua, "activeHeight", backendState.ActiveHeight);
+		LuaPushTableInt(lua, "vdpMclkPos", backendState.VdpMclkPos);
+		LuaPushTableInt(lua, "dmaSource", backendState.DmaSource);
+		LuaPushTableInt(lua, "dmaLength", backendState.DmaLength);
+		LuaPushTableInt(lua, "scanline", backendState.Scanline);
+		LuaPushTableInt(lua, "hClock", backendState.HClock);
+		LuaPushTableInt(lua, "vdpStatus", backendState.VdpStatus);
+		LuaPushTableInt(lua, "dmaFillValue", backendState.DmaFillValue);
+		LuaPushTableInt(lua, "dmaType", backendState.DmaType);
+		LuaPushTableInt(lua, "cpuPendingIrq", backendState.CpuPendingIrq);
+		LuaPushTableBool(lua, "vintPending", backendState.VintPending != 0);
+		LuaPushTableBool(lua, "hintPending", backendState.HintPending != 0);
+		LuaPushTableBool(lua, "dmaFillPending", backendState.DmaFillPending != 0);
+		LuaPushTableBool(lua, "displayEnabled", backendState.DisplayEnabled != 0);
+		LuaPushTableBool(lua, "z80BusRequest", backendState.Z80BusRequest != 0);
+		LuaPushTableBool(lua, "z80Reset", backendState.Z80Reset != 0);
+		LuaPushTableBool(lua, "z80BusAck", backendState.Z80BusAck != 0);
+		LuaPushTableBool(lua, "pal", backendState.PAL != 0);
+	}
+	lua_settable(lua, -3);
+
+	return 1;
+}
+
+int LuaApi::GetGenesisVdpTrace(lua_State* lua)
+{
+	LuaCallHelper l(lua);
+	string kindName = l.ReadString();
+	checkparams();
+
+	if(_emu->GetConsoleType() != ConsoleType::Genesis) {
+		lua_pushnil(lua);
+		return 1;
+	}
+
+	auto* console = dynamic_cast<GenesisConsole*>(_emu->GetConsoleUnsafe());
+	if(!console) {
+		lua_pushnil(lua);
+		return 1;
+	}
+
+	GenesisTraceBufferKind kind;
+	if(kindName == "dma") {
+		kind = GenesisTraceBufferKind::Dma;
+	} else if(kindName == "sprite") {
+		kind = GenesisTraceBufferKind::Sprite;
+	} else if(kindName == "compose") {
+		kind = GenesisTraceBufferKind::Compose;
+	} else if(kindName == "scroll") {
+		kind = GenesisTraceBufferKind::Scroll;
+	} else if(kindName == "hscrollDma") {
+		kind = GenesisTraceBufferKind::HScrollDma;
+	} else {
+		error("Invalid Genesis trace buffer kind");
+	}
+
+	vector<string> lines;
+	if(!console->GetVdpTraceLines(kind, lines)) {
+		lua_pushnil(lua);
+		return 1;
+	}
+
+	lua_newtable(lua);
+	for(size_t i = 0; i < lines.size(); i++) {
+		lua_pushinteger(lua, (lua_Integer)i + 1);
+		lua_pushlstring(lua, lines[i].c_str(), lines[i].size());
 		lua_settable(lua, -3);
 	}
 	return 1;

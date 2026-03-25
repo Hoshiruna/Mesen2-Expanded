@@ -44,6 +44,7 @@ namespace Mesen.Config
 		[Reactive] public bool AssociatePceRomFiles { get; set; } = false;
 		[Reactive] public bool AssociatePceMusicFiles { get; set; } = false;
 		[Reactive] public bool AssociateSmsRomFiles { get; set; } = false;
+		[Reactive] public bool AssociateGenesisRomFiles { get; set; } = false;
 		[Reactive] public bool AssociateGameGearRomFiles { get; set; } = false;
 		[Reactive] public bool AssociateSgRomFiles { get; set; } = false;
 		[Reactive] public bool AssociateCvRomFiles { get; set; } = false;
