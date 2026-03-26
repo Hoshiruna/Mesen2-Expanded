@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <cstdarg>
 #include <cstdlib>
-#include <filesystem>
 #include "Genesis/GenesisVdp.h"
 #include "Genesis/GenesisNativeBackend.h"
 #include "Shared/Emulator.h"
@@ -60,12 +59,6 @@ namespace {
 		bool VFlip = false;
 	};
 
-	static constexpr const char* kTraceDirectory = "reference";
-	static constexpr const char* kDmaTracePath = "reference/dma_trace.log";
-	static constexpr const char* kSpriteTracePath = "reference/sprite_trace.log";
-	static constexpr const char* kComposeTracePath = "reference/compose_trace.log";
-	static constexpr const char* kScrollTracePath = "reference/scroll_trace.log";
-	static constexpr const char* kHScrollDmaTracePath = "reference/hscroll_dma_trace.log";
 	static vector<string> sDmaTraceBuffer;
 	static vector<string> sSpriteTraceBuffer;
 	static vector<string> sComposeTraceBuffer;
@@ -877,14 +870,20 @@ void GenesisVdp::SlotRenderMapOutput(int16_t column)
 		uint8_t pB = _tmpBufB[(uint8_t)(bSampleOff + i) & SCROLL_BUF_MASK];
 		uint8_t pS = (px < LINEBUF_SIZE) ? _linebuf[px] : 0u;
 
-		// Window source: if this column was flagged as window, pA has window flag
+		// In the active slot path, tmpBufA contains either window or plane A
+		// for the current column. Keep them logically separate here so the final
+		// priority chain still matches the older compositor:
+		//   hi window > hi sprite > hi plane A > hi plane B
+		//   lo window > lo sprite > lo plane A > lo plane B
+		bool layerAHi  = (pA & 0x80u) != 0;
+		bool layerAVis = (pA & 0x0Fu) != 0;
 		bool winSrc = _windowActive;
-		bool winVis = winSrc && ((pA & 0x0Fu) != 0);
-		bool winHi  = winSrc && ((pA & 0x80u) != 0);
+		bool winHi  = winSrc && layerAHi;
+		bool winVis = winSrc && layerAVis;
+		bool pAHi   = !winSrc && layerAHi;
+		bool pAVis  = !winSrc && layerAVis;
 		bool sprHi  = (pS & 0x80u) != 0;
 		bool sprVis = (pS & 0x0Fu) != 0;
-		bool pAHi   = !winSrc && ((pA & 0x80u) != 0);
-		bool pAVis  = !winSrc && ((pA & 0x0Fu) != 0);
 		bool pBHi   = (pB & 0x80u) != 0;
 		bool pBVis  = (pB & 0x0Fu) != 0;
 
@@ -908,31 +907,34 @@ void GenesisVdp::SlotRenderMapOutput(int16_t column)
 			}
 		}
 
-		// Priority chain
+		bool effSprVis = sprVis && !sprIsOp;
+		uint8_t winner = 0; // 0=backdrop, 1=planeA/window, 2=sprite, 3=planeB
 		uint8_t cramIdx = bgIdx;
-		char src = 'G';
-		if      (winHi && winVis)               { cramIdx = (uint8_t)(((pA >> 4) & 3u) * 16u + (pA & 0x0Fu)); src = 'W'; }
-		else if (sprHi && sprVis && !sprIsOp)   { cramIdx = (uint8_t)(((pS >> 4) & 3u) * 16u + (pS & 0x0Fu)); src = 'S'; }
-		else if (pAHi  && pAVis)                { cramIdx = (uint8_t)(((pA >> 4) & 3u) * 16u + (pA & 0x0Fu)); src = 'A'; }
-		else if (pBHi  && pBVis)                { cramIdx = (uint8_t)(((pB >> 4) & 3u) * 16u + (pB & 0x0Fu)); src = 'B'; }
-		else if (!winHi && winVis)              { cramIdx = (uint8_t)(((pA >> 4) & 3u) * 16u + (pA & 0x0Fu)); src = 'W'; }
-		else if (!sprHi && sprVis && !sprIsOp)  { cramIdx = (uint8_t)(((pS >> 4) & 3u) * 16u + (pS & 0x0Fu)); src = 'S'; }
-		else if (!pAHi  && pAVis)               { cramIdx = (uint8_t)(((pA >> 4) & 3u) * 16u + (pA & 0x0Fu)); src = 'A'; }
-		else if (!pBHi  && pBVis)               { cramIdx = (uint8_t)(((pB >> 4) & 3u) * 16u + (pB & 0x0Fu)); src = 'B'; }
-
+		if      (winHi && winVis)              { winner = 1; cramIdx = (uint8_t)(((pA >> 4) & 3u) * 16u + (pA & 0x0Fu)); }
+		else if (sprHi && effSprVis)           { winner = 2; cramIdx = (uint8_t)(((pS >> 4) & 3u) * 16u + (pS & 0x0Fu)); }
+		else if (pAHi && pAVis)                { winner = 1; cramIdx = (uint8_t)(((pA >> 4) & 3u) * 16u + (pA & 0x0Fu)); }
+		else if (pBHi && pBVis)                { winner = 3; cramIdx = (uint8_t)(((pB >> 4) & 3u) * 16u + (pB & 0x0Fu)); }
+		else if (!winHi && winVis)             { winner = 1; cramIdx = (uint8_t)(((pA >> 4) & 3u) * 16u + (pA & 0x0Fu)); }
+		else if (!sprHi && effSprVis)          { winner = 2; cramIdx = (uint8_t)(((pS >> 4) & 3u) * 16u + (pS & 0x0Fu)); }
+		else if (!pAHi && pAVis)               { winner = 1; cramIdx = (uint8_t)(((pA >> 4) & 3u) * 16u + (pA & 0x0Fu)); }
+		else if (!pBHi && pBVis)               { winner = 3; cramIdx = (uint8_t)(((pB >> 4) & 3u) * 16u + (pB & 0x0Fu)); }
 		cramIdx &= 0x3Fu;
 
 		// Encode shade into compositebuf: bits 7:6 = shade, bits 5:0 = cramIdx
 		uint8_t enc = (uint8_t)((shade << 6) | cramIdx);
 		_compositebuf[px] = enc;
 
-		bool winPix = IsWindowPixel(_scanline, px);
-		ComposeTraceLog(_frameCount, _scanline, px,
-			"CMP f=%04u l=%03u x=%03u pA=%02X pB=%02X pS=%02X winCol=%u winPix=%u src=%c shade=%u idx=%02X enc=%02X",
-			(unsigned)_frameCount, (unsigned)_scanline, (unsigned)px,
-			(unsigned)pA, (unsigned)pB, (unsigned)pS,
-			(unsigned)(_windowActive ? 1u : 0u), (unsigned)(winPix ? 1u : 0u),
-			src, (unsigned)shade, (unsigned)cramIdx, (unsigned)enc);
+		if(ComposeTraceEnabled(_frameCount, _scanline, px)) {
+			char srcCh = "GASB"[winner];
+			if(winner == 1 && _windowActive) srcCh = 'W';
+			bool winPix = IsWindowPixel(_scanline, px);
+			ComposeTraceLog(_frameCount, _scanline, px,
+				"CMP f=%04u l=%03u x=%03u pA=%02X pB=%02X pS=%02X winCol=%u winPix=%u src=%c shade=%u idx=%02X enc=%02X",
+				(unsigned)_frameCount, (unsigned)_scanline, (unsigned)px,
+				(unsigned)pA, (unsigned)pB, (unsigned)pS,
+				(unsigned)(_windowActive ? 1u : 0u), (unsigned)(winPix ? 1u : 0u),
+				srcCh, (unsigned)shade, (unsigned)cramIdx, (unsigned)enc);
+		}
 	}
 
 	// Advance circular buffers
@@ -1046,10 +1048,9 @@ void GenesisVdp::SlotReadSpriteX()
 
 void GenesisVdp::SlotSpriteRender()
 {
-	// First, advance sprite table scan
-	SlotScanSpriteTable();
-
-	// Then render one sprite cell into _linebuf
+	// Render one sprite cell into _linebuf. The active path batches sprite
+	// scan + X-read in BeginLine(), so re-scanning here disturbs BlastEm-style
+	// ordering without adding useful state.
 	uint8_t drawCount = (uint8_t)(_maxSpritesLine - _sprDraws);
 	if(_sprRenderIdx >= drawCount) {
 		// (x_pos=0) continue to be processed by render_sprite_cells, and the first
@@ -1128,9 +1129,10 @@ void GenesisVdp::SlotSpriteRender()
 	}
 
 	if(!isMaskSprite && !_sprMasked) {
+		int16_t sprWidth = (int16_t)ActiveWidth();
 		for(uint8_t px = 0; px < 8; px++) {
 			int16_t sx = screenX + px;
-			if(sx < 0 || sx >= (int16_t)ActiveWidth()) continue;
+			if(sx < 0 || sx >= sprWidth) continue;
 
 			uint8_t col = draw.hFlip ? (uint8_t)(7u - px) : px;
 			uint8_t b = _vram[(patAddr + (col >> 1)) & 0xFFFFu];
@@ -1317,56 +1319,8 @@ void GenesisVdp::Init(Emulator* emu, GenesisNativeBackend* backend, bool isPal)
 	_emu     = emu;
 	_backend = backend;
 	LoadTraceConfigFromEnv();
-	std::error_code fsErr;
-	std::filesystem::create_directories(kTraceDirectory, fsErr);
 	BuildHCounterTables();
 	Reset(isPal);
-	if(!_dmaTraceFile) {
-		_dmaTraceFile = fopen(kDmaTracePath, "w");
-		if(_dmaTraceFile) fprintf(_dmaTraceFile, "# DMA trace log\n");
-	}
-	if(!sSpriteTraceFile) {
-		sSpriteTraceFile = fopen(kSpriteTracePath, "w");
-		if(sSpriteTraceFile) {
-			fprintf(sSpriteTraceFile, "# Sprite tile diagnostic trace\n");
-			fprintf(sSpriteTraceFile, "# frameRange=%u-%u lineRange=%u-%u maxLines=%u\n",
-				kSpriteTraceFrameStart, kSpriteTraceFrameEnd,
-				kSpriteTraceLineStart, kSpriteTraceLineEnd, kSpriteTraceMaxLines);
-			fflush(sSpriteTraceFile);
-		}
-	}
-	if(!sComposeTraceFile) {
-		sComposeTraceFile = fopen(kComposeTracePath, "w");
-		if(sComposeTraceFile) {
-			fprintf(sComposeTraceFile, "# Compositor diagnostic trace\n");
-			fprintf(sComposeTraceFile, "# frameRange=%u-%u lineRange=%u-%u xRange=%u-%u maxLines=%u\n",
-				kComposeTraceFrameStart, kComposeTraceFrameEnd,
-				kComposeTraceLineStart, kComposeTraceLineEnd,
-				kComposeTraceXStart, kComposeTraceXEnd, kComposeTraceMaxLines);
-			fflush(sComposeTraceFile);
-		}
-	}
-	if(!sScrollTraceFile) {
-		sScrollTraceFile = fopen(kScrollTracePath, "w");
-		if(sScrollTraceFile) {
-			fprintf(sScrollTraceFile, "# Horizontal scroll diagnostic trace\n");
-			fprintf(sScrollTraceFile, "# frameRange=%u-%u lineRange=%u-%u colRange=%u-%u maxLines=%u\n",
-				kScrollTraceFrameStart, kScrollTraceFrameEnd,
-				kScrollTraceLineStart, kScrollTraceLineEnd,
-				kScrollTraceColumnStart, kScrollTraceColumnEnd, kScrollTraceMaxLines);
-			fflush(sScrollTraceFile);
-		}
-	}
-	if(!sHScrollDmaTraceFile) {
-		sHScrollDmaTraceFile = fopen(kHScrollDmaTracePath, "w");
-		if(sHScrollDmaTraceFile) {
-			fprintf(sHScrollDmaTraceFile, "# H-scroll DMA write trace (VRAM destination filter)\n");
-			fprintf(sHScrollDmaTraceFile, "# frameRange=%u-%u dstRange=%04X-%04X maxLines=%u\n",
-				kHScrollDmaTraceFrameStart, kHScrollDmaTraceFrameEnd,
-				(unsigned)kHScrollDmaTraceDstStart, (unsigned)kHScrollDmaTraceDstEnd, kHScrollDmaTraceMaxLines);
-			fflush(sHScrollDmaTraceFile);
-		}
-	}
 }
 
 void GenesisVdp::Reset(bool isPal)
@@ -1431,6 +1385,7 @@ void GenesisVdp::Reset(bool isPal)
 	_mclkPos        = 0;
 	_lineBegun      = false;
 	_vintFiredFrame = false;
+	_vblankSetMclk  = UINT32_MAX;
 	_frameFb        = nullptr;
 	_frameFbW       = 320;
 	_frameFbH       = 224;
@@ -2838,8 +2793,8 @@ void GenesisVdp::BeginLine(uint16_t line, uint32_t* fb, uint32_t fbW, uint32_t f
 			memset(_tmpBufA, 0, sizeof(_tmpBufA));
 			memset(_tmpBufB, 0, sizeof(_tmpBufB));
 
-			// Clear sprite linebuf + composite buffer for this line
-			memset(_compositebuf, 0, sizeof(_compositebuf));
+			// Clear sprite linebuf for this line (_compositebuf is fully
+			// overwritten by SlotRenderMapOutput — no memset needed).
 			SlotClearLinebuf();
 
 			// Load hscroll for this line
@@ -2857,7 +2812,6 @@ void GenesisVdp::BeginLine(uint16_t line, uint32_t* fb, uint32_t fbW, uint32_t f
 			// Sprites are processed atomically so that column slots can read from
 			// a fully-populated _linebuf. Per-slot sprite timing is a future step.
 			_sprInfoCount = 0;
-			memset(_spriteDrawList, 0, sizeof(_spriteDrawList));
 			_sprDraws = _maxSpritesLine;
 			_sprCurSlot = 0;
 			_sprRenderIdx = 0;
@@ -2869,8 +2823,11 @@ void GenesisVdp::BeginLine(uint16_t line, uint32_t* fb, uint32_t fbW, uint32_t f
 			for(uint16_t s = 0; s < (IsH40() ? 80u : 64u) && !_sprScanDone; s++) {
 				SlotScanSpriteTable();
 			}
-			for(int8_t s = 0; s < (int8_t)_sprInfoCount; s++) {
-				_sprCurSlot = s;
+			// Match BlastEm's mode-5 sprite-X ordering:
+			// start from the scanned slot count, wrap, then consume entries during
+			// a full max-sprites-line pass instead of reading 0..count-1 directly.
+			_sprCurSlot = (int8_t)_sprInfoCount;
+			for(uint8_t s = 0; s < _maxSpritesLine; s++) {
 				SlotReadSpriteX();
 			}
 			_sprRenderIdx = 0;
@@ -2889,9 +2846,13 @@ void GenesisVdp::BeginLine(uint16_t line, uint32_t* fb, uint32_t fbW, uint32_t f
 		}
 	} else if(line == activeH) {
 		// First V-blank line.
-		_status |= 0x0008u;
+		// V-int fires immediately at the start of this line (hslot 0),
+		// but V-blank status flag (bit 3) is deferred to hslot 167 (H40) / 135 (H32).
 		if(VIntEnabled()) { _vintPending = true; _vintNew = true; }
 		_vintFiredFrame = true;  // V-blank start processed; suppress further NextVIntMclk events
+		uint16_t vblankSlot = IsH40() ? VBLANK_START_SLOT_H40 : VBLANK_START_SLOT_H32;
+		uint16_t slotWidth  = IsH40() ? 16u : 20u;
+		_vblankSetMclk = (uint32_t)line * MCLKS_PER_LINE + (uint32_t)vblankSlot * slotWidth;
 	} else {
 		// Remaining V-blank lines.
 		_status |= 0x0008u;
@@ -2975,6 +2936,7 @@ void GenesisVdp::BeginFrame(uint32_t* fb, uint32_t fbW, uint32_t fbH)
 	_mclkPos        = 0;
 	_lineBegun      = false;
 	_vintFiredFrame = false;
+	_vblankSetMclk  = UINT32_MAX;
 	if(_dmaTraceFile && _frameCount <= 160) {
 		fprintf(_dmaTraceFile, "--- FRAME %u dmaType=%d dmaLen=%u status=%04X ---\n",
 			_frameCount, (int)_dmaType, _dmaLen, _status);
@@ -3099,6 +3061,12 @@ bool GenesisVdp::GetDebugTraceLines(GenesisTraceBufferKind kind, vector<string>&
 void GenesisVdp::AdvanceToMclk(uint32_t targetMclk)
 {
 	while(_mclkPos < targetMclk) {
+		// Deferred V-blank flag: set status bit 3 once we reach the scheduled mclk.
+		if(_mclkPos >= _vblankSetMclk) {
+			_status |= 0x0008u;
+			_vblankSetMclk = UINT32_MAX;
+		}
+
 		uint32_t currentLine = _mclkPos / MCLKS_PER_LINE;
 		uint32_t lineEnd     = (currentLine + 1u) * MCLKS_PER_LINE;
 
@@ -3116,30 +3084,18 @@ void GenesisVdp::AdvanceToMclk(uint32_t targetMclk)
 			while(_mclkPos < targetMclk && _slotIndex < slotCount) {
 				const SlotDescriptor& slot = table[_slotIndex];
 
-				// Dispatch all slot types except sprite ops (already batched in BeginLine)
+				// Direct dispatch — inlined to avoid double-switch through DispatchSlot.
+				// Sprite/clear ops are already batched in BeginLine.
 				switch(slot.op) {
-					case SlotOp::ReadMapScrollA:
-					case SlotOp::ReadMapScrollB:
-					case SlotOp::RenderMap1:
-					case SlotOp::RenderMap2:
-					case SlotOp::RenderMap3:
-					case SlotOp::RenderMapOutput:
-					case SlotOp::HScrollLoad:
-						DispatchSlot(slot);
-						break;
-					case SlotOp::ExternalSlot:
-						SlotExternalSlot();
-						break;
-					case SlotOp::SpriteRender:
-					case SlotOp::ReadSpriteX:
-					case SlotOp::ClearLinebuf:
-						// Sprites already processed in BeginLine batch
-						// and the sprite line buffer must remain valid through the
-						// tail column composite at the end of the active area.
-						break;
-					case SlotOp::Refresh:
-					case SlotOp::Nop:
-						break;
+					case SlotOp::ReadMapScrollA:  SlotReadMapScrollA(slot.column); break;
+					case SlotOp::ReadMapScrollB:  SlotReadMapScrollB(slot.column); break;
+					case SlotOp::RenderMap1:      SlotRenderMap1(); break;
+					case SlotOp::RenderMap2:      SlotRenderMap2(); break;
+					case SlotOp::RenderMap3:      SlotRenderMap3(); break;
+					case SlotOp::RenderMapOutput: SlotRenderMapOutput(slot.column); break;
+					case SlotOp::HScrollLoad:     SlotHScrollLoad(); break;
+					case SlotOp::ExternalSlot:    SlotExternalSlot(); break;
+					default: break; // SpriteRender, ReadSpriteX, ClearLinebuf, Refresh, Nop
 				}
 
 				_mclkPos += _slotCycles;
@@ -3210,6 +3166,12 @@ void GenesisVdp::AdvanceToMclk(uint32_t targetMclk)
 			_lineBegun = true;
 		}
 	}
+
+	// Final deferred V-blank flag check after all advancement is done.
+	if(_mclkPos >= _vblankSetMclk) {
+		_status |= 0x0008u;
+		_vblankSetMclk = UINT32_MAX;
+	}
 }
 
 uint32_t GenesisVdp::NextVIntMclk() const
@@ -3279,6 +3241,7 @@ void GenesisVdp::SaveState(vector<uint8_t>& out) const
 	AppV(out, _mclkPos);
 	AppV(out, _lineBegun);
 	AppV(out, _vintFiredFrame);
+	AppV(out, _vblankSetMclk);
 	AppV(out, _dmaAddr);
 	AppV(out, _dmaCode);
 	// Sprite mask carry-over (added in version 33)
@@ -3339,6 +3302,7 @@ bool GenesisVdp::LoadState(const vector<uint8_t>& data, size_t& offset)
 	if(!RdV(data, offset, _mclkPos))      return false;
 	if(!RdV(data, offset, _lineBegun))    return false;
 	if(!RdV(data, offset, _vintFiredFrame)) return false;
+	if(!RdV(data, offset, _vblankSetMclk)) return false;
 	if(offset + sizeof(_dmaAddr) + sizeof(_dmaCode) <= data.size()) {
 		if(!RdV(data, offset, _dmaAddr)) return false;
 		if(!RdV(data, offset, _dmaCode)) return false;

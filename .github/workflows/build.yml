@@ -44,7 +44,7 @@ jobs:
         run: msbuild -nologo -v:d -clp:ForceConsoleColor -m -p:Configuration=Release -p:Platform=x64 -t:Clean,UI -p:TargetFramework="${{ matrix.platform.targetframework }}"
 
       - name: Publish Mesen
-        run: dotnet publish --no-restore -c Release -p:PublishAot="${{ matrix.platform.aot }}" -p:SelfContained="${{ matrix.platform.aot }}" -p:PublishSingleFile="${{ matrix.platform.singleFile }}" -p:OptimizeUi="true" -p:Platform="Any CPU" -p:TargetFramework="${{ matrix.platform.targetframework }}" -r win-x64 Mesen.sln /p:PublishProfile=UI\Properties\PublishProfiles\Release.pubxml
+        run: dotnet publish --no-restore -c Release -p:PublishAot="${{ matrix.platform.aot }}" -p:SelfContained="${{ matrix.platform.aot }}" -p:PublishSingleFile="${{ matrix.platform.singleFile }}" -p:OptimizeUi="true" -p:Platform="Any CPU" -p:TargetFramework="${{ matrix.platform.targetframework }}" -r win-x64 UI\UI.csproj /p:PublishProfile=Properties\PublishProfiles\Release.pubxml
 
       - name: Upload Mesen
         uses: actions/upload-artifact@v4
@@ -144,7 +144,7 @@ jobs:
 
       - name: Build Mesen (AppImage)
         run: |
-          ${{ matrix.platform.script }}
+          bash ${{ matrix.platform.script }}
       - name: Upload Mesen (AppImage)
         uses: actions/upload-artifact@v4
         with:
@@ -157,7 +157,7 @@ jobs:
       matrix:
         compiler: [clang, clang_aot]
         platform: [
-          {os: macos-13, arch: x64},
+          {os: macos-15-intel, arch: x64},
           {os: macos-14, arch: arm64}
         ]
         include:
@@ -201,7 +201,21 @@ jobs:
         run: |
           ${{ matrix.make_flags }} make -j$(sysctl -n hw.logicalcpu)
 
+      - name: Check signing secrets
+        id: macos_signing
+        env:
+          CERT_DATA: ${{ secrets.MACOS_CERTIFICATE }}
+          CERT_PASS: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+        run: |
+          if [ -n "$CERT_DATA" ] && [ -n "$CERT_PASS" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "[INFO] macOS signing skipped because MACOS_CERTIFICATE or MACOS_CERTIFICATE_PWD is not configured."
+          fi
+
       - name: Sign binary
+        if: steps.macos_signing.outputs.enabled == 'true'
         env:
           APP_NAME: bin/osx-${{ matrix.platform.arch }}/Release/osx-${{ matrix.platform.arch }}/publish/Mesen.app
           CERT_DATA: ${{ secrets.MACOS_CERTIFICATE }}

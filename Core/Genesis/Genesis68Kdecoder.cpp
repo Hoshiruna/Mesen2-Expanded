@@ -1144,18 +1144,20 @@ void GenesisCpu68k::I_Group4()
 
 		case 10:  // TST / ILLEGAL ($4AFC)
 			if(sz == 3) {  // TAS
-				SetFaultPCForEA(mode, reg, 1u);
-				uint32_t ea = CalcEA(mode, reg, 1);
-				uint8_t v = ReadResolvedEA8(ea);
-				UpdateFlagsNZ8(v); SetC(false); SetV(false);
 				if(mode == 0) {
-					// Dn destination: still set bit 7 in register.
+					uint8_t v = (uint8_t)_state.D[reg];
+					UpdateFlagsNZ8(v); SetC(false); SetV(false);
 					_state.D[reg] = (_state.D[reg] & 0xFFFFFF00u) | (uint32_t)((uint8_t)(v | 0x80));
+					_cycles += 4;
 				} else {
+					SetFaultPCForEA(mode, reg, 1u);
+					uint32_t ea = CalcEA(mode, reg, 1);
+					uint8_t v = ReadResolvedEA8(ea);
+					UpdateFlagsNZ8(v); SetC(false); SetV(false);
 					// Genesis/68000 "broken TAS" behavior: memory destinations do not
 					// perform the final write-back cycle.
+					_cycles += 14;
 				}
-				_cycles += 14;
 			} else {
 				SetFaultPCForEA(mode, reg, (uint8_t)(1u << sz));
 				if(sz == 0) { UpdateFlagsNZ8 (ReadEA8 (mode,reg)); }
@@ -1375,6 +1377,75 @@ void GenesisCpu68k::I_Moveq()
 }
 
 // ===========================================================================
+// Data-dependent cycle helpers for multiply / divide
+// ===========================================================================
+
+static uint32_t Popcount16(uint16_t v)
+{
+	v = v - ((v >> 1) & 0x5555u);
+	v = (v & 0x3333u) + ((v >> 2) & 0x3333u);
+	return ((v + (v >> 4)) & 0x0F0Fu) * 0x0101u >> 8;
+}
+
+// MULU.W: 38 + 2 per set bit in 16-bit source operand.  Range 38-70.
+static uint32_t CalcMuluCycles(uint16_t source)
+{
+	return 38 + 2 * Popcount16(source);
+}
+
+// MULS.W: 38 + 2 per 0<->1 transition in {source, 0} (17-bit).  Range 38-70.
+static uint32_t CalcMulsCycles(uint16_t source)
+{
+	// XOR adjacent bits; bit 0 compares source[0] with the appended zero.
+	uint32_t transitions = (uint32_t)source ^ ((uint32_t)source << 1);
+	return 38 + 2 * Popcount16((uint16_t)(transitions & 0xFFFFu));
+}
+
+// DIVU.W: restoring-division loop on the actual dividend/divisor.
+// Overflow early-out: 10 cycles.  Normal range: 76-136.
+// Algorithm from the Musashi 68000 core (Jorge Cwik).
+static uint32_t CalcDivuCycles(uint32_t dividend, uint16_t divisor)
+{
+	if((dividend >> 16) >= divisor) return 10; // overflow
+
+	uint32_t mcycles = 38; // half-cycles
+	uint32_t hdivisor = (uint32_t)divisor << 16;
+
+	for(int i = 0; i < 15; i++) {
+		if((int32_t)dividend < 0) {
+			dividend = (dividend << 1) - hdivisor;
+		} else {
+			dividend <<= 1;
+			if(dividend >= hdivisor) {
+				dividend -= hdivisor;
+				mcycles++;
+			} else {
+				mcycles += 2;
+			}
+		}
+	}
+	return mcycles * 2;
+}
+
+// DIVS.W: signed division.  Overflow early-out: 18 cycles.
+// Normal range: ~120-158.  Uses the DIVU loop on absolute values,
+// then scales the variable portion to match the documented DIVS range.
+static uint32_t CalcDivsCycles(int32_t dividend, int16_t divisor)
+{
+	int32_t quot = dividend / (int32_t)divisor;
+	if(quot > 32767 || quot < -32768) return 18; // overflow
+
+	uint32_t absDividend = (uint32_t)(dividend < 0 ? -dividend : dividend);
+	uint16_t absDivisor  = (uint16_t)(divisor  < 0 ? -divisor  : divisor);
+
+	uint32_t divuCycles = CalcDivuCycles(absDividend, absDivisor);
+	// DIVU normal range 76-136 → DIVS normal range 120-158.
+	// Linear interpolation: DIVS = 120 + (DIVU - 76) * 38 / 60
+	uint32_t divuVar = (divuCycles > 76) ? (divuCycles - 76) : 0;
+	return 120 + divuVar * 38 / 60;
+}
+
+// ===========================================================================
 // I_Group8  $80-$8F  — OR / DIVU / SBCD / DIVS
 // ===========================================================================
 
@@ -1464,10 +1535,11 @@ void GenesisCpu68k::I_Group8()
 			uint32_t dividend = _state.D[dn];
 		uint32_t quot = dividend / (uint32_t)divisor;
 		uint32_t rem  = dividend % (uint32_t)divisor;
-		if(quot > 0xFFFF) { SetV(true); SetN(true); SetZ(false); SetC(false); _cycles += 90; return; }
+		uint32_t divCycles = CalcDivuCycles(dividend, divisor);
+		if(quot > 0xFFFF) { SetV(true); SetN(true); SetZ(false); SetC(false); _cycles += divCycles; return; }
 		_state.D[dn] = ((rem & 0xFFFF) << 16) | (quot & 0xFFFF);
 		UpdateFlagsNZ16((uint16_t)quot); SetC(false); SetV(false);
-		_cycles += 90; return;
+		_cycles += divCycles; return;
 	}
 
 	// DIVS <ea>,Dn  $81C0-$81FF
@@ -1492,10 +1564,11 @@ void GenesisCpu68k::I_Group8()
 		int32_t dividend = (int32_t)_state.D[dn];
 		int32_t quot = dividend / (int32_t)divisor;
 		int32_t rem  = dividend % (int32_t)divisor;
-		if(quot > 32767 || quot < -32768) { SetV(true); SetN(true); SetZ(false); SetC(false); _cycles += 120; return; }
+		uint32_t divCycles = CalcDivsCycles(dividend, divisor);
+		if(quot > 32767 || quot < -32768) { SetV(true); SetN(true); SetZ(false); SetC(false); _cycles += divCycles; return; }
 		_state.D[dn] = ((uint32_t)(uint16_t)(int16_t)rem << 16) | (uint16_t)(int16_t)quot;
 		UpdateFlagsNZ16((uint16_t)(int16_t)quot); SetC(false); SetV(false);
-		_cycles += 120; return;
+		_cycles += divCycles; return;
 	}
 
 	// OR: 1000 ddd s mm mmm rrr (destination: Dn if sz<3, memory if sz<3 and bit 8 set)
@@ -1988,7 +2061,7 @@ void GenesisCpu68k::I_GroupC()
 			uint32_t r = (uint32_t)a * (uint32_t)b;
 			_state.D[dn] = r;
 		UpdateFlagsNZ32(r); SetC(false); SetV(false);
-		_cycles += 70; return;
+		_cycles += CalcMuluCycles(b); return;
 	}
 
 	// MULS <ea>,Dn
@@ -2014,7 +2087,7 @@ void GenesisCpu68k::I_GroupC()
 		int32_t r = (int32_t)a * (int32_t)b;
 		_state.D[dn] = (uint32_t)r;
 		UpdateFlagsNZ32((uint32_t)r); SetC(false); SetV(false);
-		_cycles += 70; return;
+		_cycles += CalcMulsCycles((uint16_t)b); return;
 	}
 
 	// AND: 1100 ddd s mm mmm rrr
