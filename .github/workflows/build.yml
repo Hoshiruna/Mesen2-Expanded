@@ -157,7 +157,7 @@ jobs:
       matrix:
         compiler: [clang, clang_aot]
         platform: [
-          {os: macos-13, arch: x64},
+          {os: macos-15-intel, arch: x64},
           {os: macos-14, arch: arm64}
         ]
         include:
