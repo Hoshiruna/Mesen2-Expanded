@@ -52,6 +52,7 @@ private:
 	int32_t  _cycles     = 0;   // cycles consumed this Run() call
 	bool     _exceptionTaken = false; // latched when current instruction takes an exception
 	bool     _suppressWrites = false; // decode helper: run instruction without bus writes
+	bool     _wordAccessActive = false; // when true, BusRead8/BusWrite8 skip wait states (already applied by word caller)
 	uint8_t  _fetchBytes = 0;         // decode helper: opcode/operand bytes fetched
 	bool     _faultFramePending = false;
 	uint32_t _faultAddress = 0;

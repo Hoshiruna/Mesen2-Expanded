@@ -24,6 +24,11 @@ public:
 	static constexpr uint16_t LinesPal     = 313;
 	static constexpr uint32_t MCLKS_PER_LINE = 3420u; // master clocks per scanline
 
+	// V-blank status flag (bit 3) goes active at hslot 167 (H40) / 135 (H32)
+	// within the first V-blank line — NOT at the start of the line where V-int fires.
+	static constexpr uint16_t VBLANK_START_SLOT_H40 = 167u;
+	static constexpr uint16_t VBLANK_START_SLOT_H32 = 135u;
+
 private:
 	Emulator*             _emu     = nullptr;
 	GenesisNativeBackend* _backend = nullptr;
@@ -147,6 +152,7 @@ private:
 	uint32_t  _mclkPos        = 0;      // master-clock position within current frame
 	bool      _lineBegun      = false;  // BeginLine called for _mclkPos/MCLKS_PER_LINE
 	bool      _vintFiredFrame = false;  // V-int already fired this frame
+	uint32_t  _vblankSetMclk  = UINT32_MAX; // mclk at which V-blank flag (status bit 3) should go active
 	uint32_t* _frameFb        = nullptr;
 	uint32_t  _frameFbW       = 320;
 	uint32_t  _frameFbH       = 224;
@@ -444,6 +450,7 @@ public:
 	uint16_t GetStatus()     const { return _status; }
 	uint32_t GetFrameCount() const { return _frameCount; }
 	bool     IsDisplayEnabled() const { return DispEnabled(); }
+	bool     IsBlanking() const { return !DispEnabled() || (_status & 0x0008u) != 0; }
 	void     GetDebugState(GenesisVdpDebugState& state) const;
 	bool     GetDebugTraceLines(GenesisTraceBufferKind kind, vector<string>& lines) const;
 	uint8_t  GetRegister(uint8_t index) const { return index < 24 ? _reg[index] : 0; }

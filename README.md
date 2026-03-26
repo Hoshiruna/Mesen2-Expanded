@@ -29,6 +29,8 @@ The latest stable version is available from the [GitHub Releases page](https://g
 
 ## Development Builds
 
+[![Build Mesen](https://github.com/Hoshiruna/Mesen2-Expanded/actions/workflows/build.yml/badge.svg)](https://github.com/Hoshiruna/Mesen2-Expanded/actions/workflows/build.yml)
+
 Development artifacts are produced by CI and can be downloaded from the [GitHub Actions page](https://github.com/Hoshiruna/Mesen2-Expanded/actions).
 
 Notes:

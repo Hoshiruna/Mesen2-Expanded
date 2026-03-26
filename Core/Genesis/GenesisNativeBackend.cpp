@@ -1398,8 +1398,9 @@ uint8_t GenesisNativeBackend::CpuBusWaitStates(uint32_t address, bool isWrite) c
 			// Access to Z80 address space incurs a wait state on the 68K bus.
 			return 1u;
 		case BusRegion::VdpPorts:
-			// Coarse contention model for VDP/PSG port traffic on the 68K bus.
-			return 2u;
+			// During V-blank or display-off the VDP bus is free; minimal penalty.
+			// During active display the 68K must wait for an external access slot.
+			return _vdp.IsBlanking() ? 1u : 4u;
 		default:
 			return 0u;
 	}

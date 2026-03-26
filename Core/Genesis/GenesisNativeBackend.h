@@ -50,7 +50,7 @@ public:
 			// Save-state identity
 			// -----------------------------------------------------------------------
 			static constexpr uint32_t NativeStateMagic   = 0x314E444Du; // MDN1
-			static constexpr uint32_t NativeStateVersion = 33;          // Sprite mask carry-over fix
+			static constexpr uint32_t NativeStateVersion = 34;          // Deferred V-blank flag timing
 
 	// -----------------------------------------------------------------------
 	// Platform callbacks / emulator

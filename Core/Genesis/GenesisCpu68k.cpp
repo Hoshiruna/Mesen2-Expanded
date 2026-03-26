@@ -290,7 +290,9 @@ uint8_t GenesisCpu68k::BusRead8(uint32_t addr, MemoryOperationType opType)
 	}
 
 	addr &= 0x00FFFFFFu;
-	_cycles += _backend->CpuBusWaitStates(addr, false);
+	if(!_wordAccessActive) {
+		_cycles += _backend->CpuBusWaitStates(addr, false);
+	}
 	uint8_t value = _backend->CpuBusRead8(addr);
 	if(_suppressWrites) {
 		if(opType == MemoryOperationType::ExecOpCode || opType == MemoryOperationType::ExecOperand) {
@@ -308,8 +310,12 @@ uint16_t GenesisCpu68k::BusRead16(uint32_t addr, MemoryOperationType opType)
 		return 0;
 	}
 	addr &= 0x00FFFFFFu;
+	// Apply wait states once for the word-wide bus cycle (not per byte).
+	_cycles += _backend->CpuBusWaitStates(addr, false);
+	_wordAccessActive = true;
 	uint16_t hi = BusRead8(addr,     opType);
 	uint16_t lo = BusRead8(addr + 1, opType);
+	_wordAccessActive = false;
 	return (hi << 8) | lo;
 }
 
@@ -331,7 +337,9 @@ void GenesisCpu68k::BusWrite8(uint32_t addr, uint8_t value)
 	}
 
 	addr &= 0x00FFFFFFu;
-	_cycles += _backend->CpuBusWaitStates(addr, true);
+	if(!_wordAccessActive) {
+		_cycles += _backend->CpuBusWaitStates(addr, true);
+	}
 	if(_emu) {
 		if(!_emu->ProcessMemoryWrite<CpuType::GenesisMain>(addr, value, MemoryOperationType::Write))
 			return;
@@ -345,8 +353,12 @@ void GenesisCpu68k::BusWrite16(uint32_t addr, uint16_t value)
 		return;
 	}
 	addr &= 0x00FFFFFFu;
+	// Apply wait states once for the word-wide bus cycle (not per byte).
+	_cycles += _backend->CpuBusWaitStates(addr, true);
+	_wordAccessActive = true;
 	BusWrite8(addr,     (uint8_t)(value >> 8));
 	BusWrite8(addr + 1, (uint8_t)(value));
+	_wordAccessActive = false;
 }
 
 void GenesisCpu68k::BusWrite32(uint32_t addr, uint32_t value)
