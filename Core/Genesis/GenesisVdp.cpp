@@ -170,19 +170,14 @@ namespace {
 
 	static bool TryParseEnvU32(const char* name, uint32_t minVal, uint32_t maxVal, uint32_t& outVal)
 	{
-		char* raw = nullptr;
-		size_t rawLen = 0;
-		if(_dupenv_s(&raw, &rawLen, name) != 0 || !raw || !*raw) {
-			if(raw) {
-				std::free(raw);
-			}
+		const char* raw = std::getenv(name);
+		if(!raw || !*raw) {
 			return false;
 		}
 
 		char* end = nullptr;
 		unsigned long v = std::strtoul(raw, &end, 10);
 		bool ok = (end != raw && *end == '\0' && v >= minVal && v <= maxVal);
-		std::free(raw);
 		if(!ok) return false;
 
 		outVal = (uint32_t)v;
@@ -967,7 +962,6 @@ void GenesisVdp::SlotScanSpriteTable()
 
 	int16_t sprY = (int16_t)(w0 & 0x01FFu) - 128;
 	uint8_t vertCells = (uint8_t)(((w1 >> 8) & 0x03u) + 1u);
-	uint8_t horizCells = (uint8_t)(((w1 >> 10) & 0x03u) + 1u);
 	uint8_t link = (uint8_t)(w1 & 0x7Fu);
 	uint16_t sprH = (uint16_t)vertCells * cellPixH;
 
