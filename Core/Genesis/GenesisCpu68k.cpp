@@ -469,7 +469,7 @@ uint32_t GenesisCpu68k::CalcEA(uint8_t mode, uint8_t reg, uint8_t size)
 				}
 				case 1: {
 					uint32_t a = FetchExtLong();
-					_cycles += 8;
+					// Extension fetch already covers the absolute-long operand timing.
 					return a;
 				}
 				case 2: {
@@ -813,6 +813,9 @@ void GenesisCpu68k::CheckInterrupts()
 		// Acknowledge interrupt. Pass newIPL to TakeException so it raises
 		// the IPL *after* saving the original SR to the stack frame.
 		uint8_t level = _pendingIrq;
+		if(_backend && (level == 4 || level == 6)) {
+			_backend->VdpInterruptAcknowledge();
+		}
 		_pendingIrq   = 0;
 		// Autovector: level 1-7 → vector 25-31
 		TakeException((uint8_t)(24 + level), level);
@@ -1152,4 +1155,3 @@ uint8_t GenesisCpu68k::Sbcd(uint8_t a, uint8_t b, bool& carry, bool& zero, bool 
 	if(result) zero = false;
 	return result;
 }
-

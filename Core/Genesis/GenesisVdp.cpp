@@ -171,12 +171,14 @@ namespace {
 	static bool TryParseEnvU32(const char* name, uint32_t minVal, uint32_t maxVal, uint32_t& outVal)
 	{
 		const char* raw = std::getenv(name);
-		if(!raw || !*raw) return false;
+		if(!raw || !*raw) {
+			return false;
+		}
 
 		char* end = nullptr;
 		unsigned long v = std::strtoul(raw, &end, 10);
-		if(end == raw || *end != '\0') return false;
-		if(v < minVal || v > maxVal) return false;
+		bool ok = (end != raw && *end == '\0' && v >= minVal && v <= maxVal);
+		if(!ok) return false;
 
 		outVal = (uint32_t)v;
 		return true;
@@ -960,7 +962,6 @@ void GenesisVdp::SlotScanSpriteTable()
 
 	int16_t sprY = (int16_t)(w0 & 0x01FFu) - 128;
 	uint8_t vertCells = (uint8_t)(((w1 >> 8) & 0x03u) + 1u);
-	uint8_t horizCells = (uint8_t)(((w1 >> 10) & 0x03u) + 1u);
 	uint8_t link = (uint8_t)(w1 & 0x7Fu);
 	uint16_t sprH = (uint16_t)vertCells * cellPixH;
 
@@ -1351,9 +1352,11 @@ void GenesisVdp::Reset(bool isPal)
 	_vintPending = false;
 	_vintNew     = false;
 	_hintPending = false;
+	_hintNew     = false;
 	_hintCounter = 0;
 	_statusReadLatch = 0;
 	_statusReadLatchValid = false;
+	_vintSetMclk = UINT32_MAX;
 
 	_dmaType     = DmaType::None;
 	_dmaSrc      = 0;
@@ -1510,10 +1513,28 @@ void GenesisVdp::WriteReg(uint8_t r, uint8_t val)
 				_hvLatch = ReadHVCounter();
 				_reg[0] = val;
 			}
+			if(!(oldVal & 0x10u) && (val & 0x10u) && _hintPending && !_hintNew) {
+				if(_backend) {
+					if(!_backend->RaiseVdpIrq(4)) {
+						_hintNew = true;
+					}
+				} else {
+					_hintNew = true;
+				}
+			}
 			break;
 		case 1:
 			// Display enable / V-int enable / DMA enable — update status PAL bit
 			_status = (_status & ~0x0001u) | (_isPal ? 0x0001u : 0x0000u);
+			if(!(oldVal & 0x20u) && (val & 0x20u) && _vintPending && !_vintNew) {
+				if(_backend) {
+					if(!_backend->RaiseVdpIrq(6)) {
+						_vintNew = true;
+					}
+				} else {
+					_vintNew = true;
+				}
+			}
 #ifdef _DEBUG
 			{
 				bool oldDisp = (oldVal & 0x40u) != 0;
@@ -2745,6 +2766,42 @@ void GenesisVdp::Composite(uint16_t line,
 	}
 }
 
+uint32_t GenesisVdp::GetVIntEventOffsetMclk() const
+{
+	if(IsH40()) {
+		// Match BlastEm's VINT scheduler for H40 mode.
+		return MCLKS_PER_LINE - (LINE_CHANGE_SLOT_H40 - VINT_SLOT_H40) * 16u;
+	}
+
+	// H32 wraps from hslot 147 to 233 before reaching hslot 0.
+	return (VINT_SLOT_H32 + 256u - 233u + 148u - LINE_CHANGE_SLOT_H32) * 20u;
+}
+
+uint32_t GenesisVdp::GetVBlankFlagOffsetMclk() const
+{
+	if(IsH40()) {
+		return (VBLANK_START_SLOT_H40 - LINE_CHANGE_SLOT_H40) * 16u;
+	}
+	return (VBLANK_START_SLOT_H32 - LINE_CHANGE_SLOT_H32) * 20u;
+}
+
+void GenesisVdp::ProcessDeferredInterruptFlags()
+{
+	if(_mclkPos >= _vintSetMclk) {
+		_vintPending = true;
+		if(VIntEnabled()) {
+			_vintNew = true;
+		}
+		_vintFiredFrame = true;
+		_vintSetMclk = UINT32_MAX;
+	}
+
+	if(_mclkPos >= _vblankSetMclk) {
+		_status |= 0x0008u;
+		_vblankSetMclk = UINT32_MAX;
+	}
+}
+
 // ===========================================================================
 // BeginLine / EndLine / RunLine
 // ===========================================================================
@@ -2846,13 +2903,10 @@ void GenesisVdp::BeginLine(uint16_t line, uint32_t* fb, uint32_t fbW, uint32_t f
 		}
 	} else if(line == activeH) {
 		// First V-blank line.
-		// V-int fires immediately at the start of this line (hslot 0),
-		// but V-blank status flag (bit 3) is deferred to hslot 167 (H40) / 135 (H32).
-		if(VIntEnabled()) { _vintPending = true; _vintNew = true; }
-		_vintFiredFrame = true;  // V-blank start processed; suppress further NextVIntMclk events
-		uint16_t vblankSlot = IsH40() ? VBLANK_START_SLOT_H40 : VBLANK_START_SLOT_H32;
-		uint16_t slotWidth  = IsH40() ? 16u : 20u;
-		_vblankSetMclk = (uint32_t)line * MCLKS_PER_LINE + (uint32_t)vblankSlot * slotWidth;
+		// Our mclk line origin is BlastEm's line-change slot, not hslot 0.
+		// Schedule VINT and the V-blank status flag at their actual in-line offsets.
+		_vintSetMclk   = (uint32_t)line * MCLKS_PER_LINE + GetVIntEventOffsetMclk();
+		_vblankSetMclk = (uint32_t)line * MCLKS_PER_LINE + GetVBlankFlagOffsetMclk();
 	} else {
 		// Remaining V-blank lines.
 		_status |= 0x0008u;
@@ -2883,7 +2937,10 @@ void GenesisVdp::EndLine()
 	// V-blank (line >= ActiveHeight): reload every line; do NOT fire interrupt.
 	if(_scanline < ActiveHeight()) {
 		if(_hintCounter <= 0) {
-			if(HIntEnabled()) _hintPending = true;
+			_hintPending = true;
+			if(HIntEnabled()) {
+				_hintNew = true;
+			}
 			_hintCounter = (int)HIntReload();
 		} else {
 			_hintCounter--;
@@ -2911,11 +2968,25 @@ bool GenesisVdp::ConsumeVInt()
 
 bool GenesisVdp::ConsumeHInt()
 {
-	if(_hintPending) {
-		_hintPending = false;
+	if(_hintNew) {
+		_hintNew = false;
 		return true;
 	}
 	return false;
+}
+
+void GenesisVdp::InterruptAcknowledge()
+{
+	// Match BlastEm's interrupt controller quirk: clear whichever enabled VDP
+	// interrupt source is currently asserted, regardless of which level the 68K
+	// started acknowledging.
+	if(this->_vintPending && this->VIntEnabled()) {
+		this->_vintPending = false;
+		this->_vintNew = false;
+	} else if(this->_hintPending && this->HIntEnabled()) {
+		this->_hintPending = false;
+		this->_hintNew = false;
+	}
 }
 
 // ===========================================================================
@@ -2936,6 +3007,7 @@ void GenesisVdp::BeginFrame(uint32_t* fb, uint32_t fbW, uint32_t fbH)
 	_mclkPos        = 0;
 	_lineBegun      = false;
 	_vintFiredFrame = false;
+	_vintSetMclk    = UINT32_MAX;
 	_vblankSetMclk  = UINT32_MAX;
 	if(_dmaTraceFile && _frameCount <= 160) {
 		fprintf(_dmaTraceFile, "--- FRAME %u dmaType=%d dmaLen=%u status=%04X ---\n",
@@ -3061,11 +3133,7 @@ bool GenesisVdp::GetDebugTraceLines(GenesisTraceBufferKind kind, vector<string>&
 void GenesisVdp::AdvanceToMclk(uint32_t targetMclk)
 {
 	while(_mclkPos < targetMclk) {
-		// Deferred V-blank flag: set status bit 3 once we reach the scheduled mclk.
-		if(_mclkPos >= _vblankSetMclk) {
-			_status |= 0x0008u;
-			_vblankSetMclk = UINT32_MAX;
-		}
+		ProcessDeferredInterruptFlags();
 
 		uint32_t currentLine = _mclkPos / MCLKS_PER_LINE;
 		uint32_t lineEnd     = (currentLine + 1u) * MCLKS_PER_LINE;
@@ -3157,8 +3225,8 @@ void GenesisVdp::AdvanceToMclk(uint32_t targetMclk)
 	}
 
 	// If we stopped exactly at a line boundary without having begun the line,
-	// call BeginLine now so that start-of-line events (e.g. V-int at VBlank)
-	// are fired before the caller delivers interrupts.
+	// call BeginLine now so the new line's deferred events are scheduled before
+	// the caller delivers interrupts.
 	if(_mclkPos == targetMclk && !_lineBegun && (_mclkPos % MCLKS_PER_LINE == 0u)) {
 		uint32_t line = _mclkPos / MCLKS_PER_LINE;
 		if(line < (uint32_t)TotalScanlines()) {
@@ -3167,17 +3235,29 @@ void GenesisVdp::AdvanceToMclk(uint32_t targetMclk)
 		}
 	}
 
-	// Final deferred V-blank flag check after all advancement is done.
-	if(_mclkPos >= _vblankSetMclk) {
-		_status |= 0x0008u;
-		_vblankSetMclk = UINT32_MAX;
-	}
+	// Final deferred interrupt/blanking check after all advancement is done.
+	ProcessDeferredInterruptFlags();
 }
 
 uint32_t GenesisVdp::NextVIntMclk() const
 {
 	if(!VIntEnabled() || _vintFiredFrame) return UINT32_MAX;
-	uint32_t vblankMclk = (uint32_t)ActiveHeight() * MCLKS_PER_LINE;
+	if(_vintSetMclk != UINT32_MAX) {
+		return (_mclkPos <= _vintSetMclk) ? _vintSetMclk : UINT32_MAX;
+	}
+
+	uint32_t vintMclk = (uint32_t)ActiveHeight() * MCLKS_PER_LINE + GetVIntEventOffsetMclk();
+	return (_mclkPos <= vintMclk) ? vintMclk : UINT32_MAX;
+}
+
+uint32_t GenesisVdp::NextVBlankFlagMclk() const
+{
+	if((_status & 0x0008u) != 0) return UINT32_MAX;
+	if(_vblankSetMclk != UINT32_MAX) {
+		return (_mclkPos <= _vblankSetMclk) ? _vblankSetMclk : UINT32_MAX;
+	}
+
+	uint32_t vblankMclk = (uint32_t)ActiveHeight() * MCLKS_PER_LINE + GetVBlankFlagOffsetMclk();
 	return (_mclkPos <= vblankMclk) ? vblankMclk : UINT32_MAX;
 }
 
@@ -3258,6 +3338,10 @@ void GenesisVdp::SaveState(vector<uint8_t>& out) const
 	}
 	// HV latch (added in version 32)
 	AppV(out, _hvLatch);
+	// Deferred VINT scheduler state (added in version 34)
+	AppV(out, _vintSetMclk);
+	// Deferred HINT delivery state (added in version 35)
+	AppV(out, _hintNew);
 }
 
 bool GenesisVdp::LoadState(const vector<uint8_t>& data, size_t& offset)
@@ -3339,6 +3423,18 @@ bool GenesisVdp::LoadState(const vector<uint8_t>& data, size_t& offset)
 		if(!RdV(data, offset, _hvLatch)) return false;
 	} else {
 		_hvLatch = 0;
+	}
+	// Deferred VINT scheduler state (version 34+)
+	if(offset + sizeof(_vintSetMclk) <= data.size()) {
+		if(!RdV(data, offset, _vintSetMclk)) return false;
+	} else {
+		_vintSetMclk = UINT32_MAX;
+	}
+	// Deferred HINT delivery state (version 35+)
+	if(offset + sizeof(_hintNew) <= data.size()) {
+		if(!RdV(data, offset, _hintNew)) return false;
+	} else {
+		_hintNew = false;
 	}
 
 	// Debug register is not serialized; clear to power-on default on load.

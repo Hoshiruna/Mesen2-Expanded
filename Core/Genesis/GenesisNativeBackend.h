@@ -130,6 +130,10 @@ public:
 		uint32_t _slice68kStartMclk = 0;
 		uint32_t _apuSliceSyncedMclk = 0;
 		ExecContext _execContext = ExecContext::None;
+		uint64_t _diag68kSliceOverrunCycles = 0;
+		uint32_t _diag68kSliceOverrunCount = 0;
+		uint32_t _diag68kMaxSliceOverrun = 0;
+		uint64_t _diagFrameCounter = 0;
 
 	// -----------------------------------------------------------------------
 	// I/O registers
@@ -198,6 +202,8 @@ public:
 	uint8_t ReadBusForZ80 (uint32_t physAddr);
 	void    WriteBusForZ80(uint32_t physAddr, uint8_t val);
 	uint8_t GetZ80To68kBusPenaltyCycles() const;
+	bool    RaiseVdpIrq(uint8_t level);
+	void    VdpInterruptAcknowledge();
 
 	// IGenesisCoreBackend --------------------------------------------------
 	GenesisCoreType GetCoreType() const override;
