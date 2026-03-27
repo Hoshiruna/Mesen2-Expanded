@@ -274,19 +274,14 @@ namespace
 
 	static bool TryParseEnvU32AutoBase(const char* name, uint32_t minVal, uint32_t maxVal, uint32_t& outVal)
 	{
-		char* raw = nullptr;
-		size_t rawLen = 0;
-		if(_dupenv_s(&raw, &rawLen, name) != 0 || !raw || !*raw) {
-			if(raw) {
-				std::free(raw);
-			}
+		const char* raw = std::getenv(name);
+		if(!raw || !*raw) {
 			return false;
 		}
 
 		char* end = nullptr;
 		unsigned long v = std::strtoul(raw, &end, 0);
 		bool ok = (end != raw && *end == '\0' && v >= minVal && v <= maxVal);
-		std::free(raw);
 		if(!ok) return false;
 		outVal = (uint32_t)v;
 		return true;
@@ -318,9 +313,7 @@ namespace
 		LoadCpuRamTraceConfigFromEnv();
 		std::error_code fsErr;
 		std::filesystem::create_directories(kCpuRamTraceDirectory, fsErr);
-		if(fopen_s(&sCpuRamTraceFile, kCpuRamTracePath, "w") != 0) {
-			sCpuRamTraceFile = nullptr;
-		}
+		sCpuRamTraceFile = fopen(kCpuRamTracePath, "w");
 		if(sCpuRamTraceFile) {
 			fprintf(sCpuRamTraceFile, "# CPU work-RAM write trace\n");
 			fprintf(sCpuRamTraceFile, "# frameRange=%u-%u addrRange=%06X-%06X maxLines=%u\n",
