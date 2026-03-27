@@ -468,7 +468,12 @@ void GenesisCpu68k::I_Group0()
 				WriteResolvedEA32(ea, r);
 				UpdateFlagsNZ32(r);
 			}
-			SetC(carry); SetV(overflow); SetX(carry); _cycles += 8; break;
+			SetC(carry); SetV(overflow); SetX(carry);
+			// Under Mesen's interpreter the opcode/immediate fetches are charged
+			// separately, so long immediate-to-Dn ADDI should only add the ALU
+			// body cost here to stay aligned with BlastEm's total timing.
+			_cycles += (sz == 2 && mode == 0) ? 4 : 8;
+			break;
 		}
 		case 5: {  // EORI
 			if(handleCcrSr()) return;
@@ -1155,8 +1160,11 @@ void GenesisCpu68k::I_Group4()
 					uint8_t v = ReadResolvedEA8(ea);
 					UpdateFlagsNZ8(v); SetC(false); SetV(false);
 					// Genesis/68000 "broken TAS" behavior: memory destinations do not
-					// perform the final write-back cycle.
-					_cycles += 14;
+					// perform the final write-back cycle. BlastEm accounts for this
+					// as BUS*2 + 2 (10 cycles with BUS=4), which matches the trace
+					// delta for the benchmark hot loop more closely than the older
+					// flat 14-cycle charge.
+					_cycles += 10;
 				}
 			} else {
 				SetFaultPCForEA(mode, reg, (uint8_t)(1u << sz));
@@ -1208,13 +1216,13 @@ void GenesisCpu68k::I_Group5()
 							_state.D[reg] = (_state.D[reg] & 0xFFFF0000u) | (uint16_t)next;
 							_state.PC = target;
 						}
-						_cycles += 10;
+						_cycles += 6;
 					} else {
 						_state.D[reg] = (_state.D[reg] & 0xFFFF0000u) | (uint16_t)next;
-						_cycles += 14;
+						_cycles += 10;
 					}
 				} else {
-					_cycles += 12;
+					_cycles += 8;
 				}
 		} else {
 			// Scc <ea>
@@ -1427,22 +1435,50 @@ static uint32_t CalcDivuCycles(uint32_t dividend, uint16_t divisor)
 	return mcycles * 2;
 }
 
-// DIVS.W: signed division.  Overflow early-out: 18 cycles.
-// Normal range: ~120-158.  Uses the DIVU loop on absolute values,
-// then scales the variable portion to match the documented DIVS range.
+// DIVS.W: signed division timing matched to BlastEm's 68000 path.
+// Absolute-overflow early-out occurs before the full internal divide loop.
+// Signed-result overflow still runs the normal timing path.
 static uint32_t CalcDivsCycles(int32_t dividend, int16_t divisor)
 {
-	int32_t quot = dividend / (int32_t)divisor;
-	if(quot > 32767 || quot < -32768) return 18; // overflow
+	uint32_t dividendMag = (uint32_t)dividend;
+	uint32_t divisorShift = ((uint32_t)(uint16_t)divisor) << 16;
+	uint32_t origDividend = dividendMag;
+	uint32_t origDivisor = divisorShift;
 
-	uint32_t absDividend = (uint32_t)(dividend < 0 ? -dividend : dividend);
-	uint16_t absDivisor  = (uint16_t)(divisor  < 0 ? -divisor  : divisor);
+	if(divisorShift & 0x80000000u) {
+		divisorShift = 0u - divisorShift;
+	}
 
-	uint32_t divuCycles = CalcDivuCycles(absDividend, absDivisor);
-	// DIVU normal range 76-136 → DIVS normal range 120-158.
-	// Linear interpolation: DIVS = 120 + (DIVU - 76) * 38 / 60
-	uint32_t divuVar = (divuCycles > 76) ? (divuCycles - 76) : 0;
-	return 120 + divuVar * 38 / 60;
+	uint32_t cycles = 8u;
+	if(dividendMag & 0x80000000u) {
+		dividendMag = 0u - dividendMag;
+		cycles += 2u;
+	}
+
+	if(divisorShift <= dividendMag) {
+		return cycles + 4u;
+	}
+
+	for(int i = 0; i < 15; i++) {
+		dividendMag <<= 1;
+		if(dividendMag >= divisorShift) {
+			dividendMag -= divisorShift;
+			cycles += 6u;
+		} else {
+			cycles += 8u;
+		}
+	}
+
+	cycles += 4u;
+	if(origDivisor & 0x80000000u) {
+		cycles += 16u;
+	} else if(origDividend & 0x80000000u) {
+		cycles += 18u;
+	} else {
+		cycles += 14u;
+	}
+
+	return cycles;
 }
 
 // ===========================================================================

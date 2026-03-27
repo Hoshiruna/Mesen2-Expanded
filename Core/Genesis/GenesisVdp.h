@@ -24,8 +24,14 @@ public:
 	static constexpr uint16_t LinesPal     = 313;
 	static constexpr uint32_t MCLKS_PER_LINE = 3420u; // master clocks per scanline
 
+	// Mesen's line origin is BlastEm's line-change slot, not hslot 0.
+	static constexpr uint16_t LINE_CHANGE_SLOT_H40 = 165u;
+	static constexpr uint16_t LINE_CHANGE_SLOT_H32 = 133u;
+	static constexpr uint16_t VINT_SLOT_H40 = 0u;
+	static constexpr uint16_t VINT_SLOT_H32 = 0u;
+
 	// V-blank status flag (bit 3) goes active at hslot 167 (H40) / 135 (H32)
-	// within the first V-blank line — NOT at the start of the line where V-int fires.
+	// within the first V-blank line, relative to BlastEm's H-counter numbering.
 	static constexpr uint16_t VBLANK_START_SLOT_H40 = 167u;
 	static constexpr uint16_t VBLANK_START_SLOT_H32 = 135u;
 
@@ -90,6 +96,7 @@ private:
 	bool _vintPending = false; // VDP status bit 7: set at VBlank, cleared when CPU reads status
 	bool _vintNew     = false; // one-shot: set at VBlank, cleared by ConsumeVInt() → delivers IRQ6
 	bool _hintPending = false;
+	bool _hintNew     = false; // one-shot: set when H-int should assert IRQ4
 	int  _hintCounter = 0;   // counts down each active line; fires at 0
 	uint16_t _statusReadLatch = 0; // latched status word for control-port high->low byte reads
 	bool _statusReadLatchValid = false;
@@ -152,6 +159,7 @@ private:
 	uint32_t  _mclkPos        = 0;      // master-clock position within current frame
 	bool      _lineBegun      = false;  // BeginLine called for _mclkPos/MCLKS_PER_LINE
 	bool      _vintFiredFrame = false;  // V-int already fired this frame
+	uint32_t  _vintSetMclk    = UINT32_MAX; // mclk at which V-int pending should go active
 	uint32_t  _vblankSetMclk  = UINT32_MAX; // mclk at which V-blank flag (status bit 3) should go active
 	uint32_t* _frameFb        = nullptr;
 	uint32_t  _frameFbW       = 320;
@@ -394,6 +402,9 @@ private:
 	uint16_t HScrollBase() const { return (uint16_t)(_reg[13] & 0x3F) << 10; }
 	uint8_t  AutoInc()     const { return _reg[15]; }
 	uint8_t  HIntReload()  const { return _reg[10]; }
+	uint32_t GetVIntEventOffsetMclk() const;
+	uint32_t GetVBlankFlagOffsetMclk() const;
+	void     ProcessDeferredInterruptFlags();
 
 public:
 	void Init(Emulator* emu, GenesisNativeBackend* backend, bool isPal);
@@ -402,11 +413,12 @@ public:
 	// Event-driven master-clock scheduler interface
 	// Call BeginFrame once per frame before the event loop.
 	// AdvanceToMclk processes all scanlines up to targetMclk.
-	// NextVIntMclk / NextHIntMclk predict the next interrupt event point.
+	// NextVIntMclk / NextHIntMclk / NextVBlankFlagMclk predict the next VDP event point.
 	void     BeginFrame(uint32_t* fb, uint32_t fbW, uint32_t fbH);
 	void     AdvanceToMclk(uint32_t targetMclk);
 	uint32_t NextVIntMclk() const;
 	uint32_t NextHIntMclk() const;
+	uint32_t NextVBlankFlagMclk() const;
 	uint32_t GetMclkPos()   const { return _mclkPos; }
 
 	uint16_t ActiveWidth()  const { return (_reg[12] & 0x01) ? 320u : 256u; }
@@ -426,9 +438,14 @@ public:
 	void EndLine();
 	void RunLine(uint16_t line, uint32_t* fb, uint32_t fbW, uint32_t fbH);
 
-	// Interrupt consumption — call after RunLine
+	// Interrupt delivery / acknowledge helpers
 	bool ConsumeVInt();
 	bool ConsumeHInt();
+	bool HasNewVInt() const { return _vintNew; }
+	bool HasNewHInt() const { return _hintNew; }
+	void MarkVIntDelivered() { _vintNew = false; }
+	void MarkHIntDelivered() { _hintNew = false; }
+	void InterruptAcknowledge();
 
 	// DMA — backend calls these
 	bool HasPendingDma()  const { return _dmaType != DmaType::None || _dmaFillPend; }

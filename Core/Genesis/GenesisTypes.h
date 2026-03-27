@@ -40,6 +40,8 @@ struct GenesisState : public BaseState
 struct GenesisBackendState : public BaseState
 {
 	uint64_t MasterClock = 0;
+	uint64_t SchedulerFrameCounter = 0;
+	uint64_t SliceOverrunCycles = 0;
 	uint32_t FrameWidth = 0;
 	uint32_t FrameHeight = 0;
 	uint32_t ActiveWidth = 0;
@@ -61,6 +63,9 @@ struct GenesisBackendState : public BaseState
 	uint8_t  Z80Reset = 0;
 	uint8_t  Z80BusAck = 0;
 	uint8_t  PAL = 0;
+	uint8_t  LineSlicesEnabled = 0;
+	uint32_t SliceOverrunCount = 0;
+	uint32_t MaxSliceOverrun = 0;
 };
 
 enum class GenesisTraceBufferKind : uint8_t

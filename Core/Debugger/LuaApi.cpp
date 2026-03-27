@@ -1314,6 +1314,8 @@ int LuaApi::GetGenesisVdpDebugState(lua_State* lua)
 	lua_newtable(lua);
 	if(hasBackendState) {
 		LuaPushTableInt(lua, "masterClock", (int64_t)backendState.MasterClock);
+		LuaPushTableInt(lua, "schedulerFrameCounter", (int64_t)backendState.SchedulerFrameCounter);
+		LuaPushTableInt(lua, "sliceOverrunCycles", (int64_t)backendState.SliceOverrunCycles);
 		LuaPushTableInt(lua, "frameWidth", backendState.FrameWidth);
 		LuaPushTableInt(lua, "frameHeight", backendState.FrameHeight);
 		LuaPushTableInt(lua, "activeWidth", backendState.ActiveWidth);
@@ -1335,6 +1337,9 @@ int LuaApi::GetGenesisVdpDebugState(lua_State* lua)
 		LuaPushTableBool(lua, "z80Reset", backendState.Z80Reset != 0);
 		LuaPushTableBool(lua, "z80BusAck", backendState.Z80BusAck != 0);
 		LuaPushTableBool(lua, "pal", backendState.PAL != 0);
+		LuaPushTableBool(lua, "lineSlicesEnabled", backendState.LineSlicesEnabled != 0);
+		LuaPushTableInt(lua, "sliceOverrunCount", backendState.SliceOverrunCount);
+		LuaPushTableInt(lua, "maxSliceOverrun", backendState.MaxSliceOverrun);
 	}
 	lua_settable(lua, -3);
 

@@ -39,17 +39,30 @@
 #ifndef MD_NATIVE_TRACE_PAD
 #define MD_NATIVE_TRACE_PAD MD_NATIVE_TRACE
 #endif
+#ifndef MD_NATIVE_TRACE_SCHED
+#define MD_NATIVE_TRACE_SCHED 0
+#endif
 #define MD_TRACE_CAT(ENABLED, CAT, MSG) \
 	do { if((ENABLED) != 0) LogDebug(string("[MD Native][") + CAT + "] " + MSG); } while(0)
 #define MD_TRACE_BUS(MSG) MD_TRACE_CAT(MD_NATIVE_TRACE_BUS, "BUS", MSG)
 #define MD_TRACE_VDP(MSG) MD_TRACE_CAT(MD_NATIVE_TRACE_VDP, "VDP", MSG)
 #define MD_TRACE_IRQ(MSG) MD_TRACE_CAT(MD_NATIVE_TRACE_IRQ, "IRQ", MSG)
 #define MD_TRACE_PAD(MSG) MD_TRACE_CAT(MD_NATIVE_TRACE_PAD, "PAD", MSG)
+#define MD_TRACE_SCHED(MSG) MD_TRACE_CAT(MD_NATIVE_TRACE_SCHED, "SCHED", MSG)
 #else
 #define MD_TRACE_BUS(MSG) do { } while(0)
 #define MD_TRACE_VDP(MSG) do { } while(0)
 #define MD_TRACE_IRQ(MSG) do { } while(0)
 #define MD_TRACE_PAD(MSG) do { } while(0)
+#define MD_TRACE_SCHED(MSG) do { } while(0)
+#define MD_NATIVE_TRACE_SCHED 0
+#endif
+
+#ifndef MD_NATIVE_DISABLE_LINE_SLICES
+// Forced scanline slices amplify 68K instruction-boundary overruns and skew
+// throughput-sensitive code such as the GenTest benchmark. Leave them off by
+// default and only re-enable for A/B timing experiments.
+#define MD_NATIVE_DISABLE_LINE_SLICES 0
 #endif
 
 // ===========================================================================
@@ -261,13 +274,20 @@ namespace
 
 	static bool TryParseEnvU32AutoBase(const char* name, uint32_t minVal, uint32_t maxVal, uint32_t& outVal)
 	{
-		const char* raw = std::getenv(name);
-		if(!raw || !*raw) return false;
+		char* raw = nullptr;
+		size_t rawLen = 0;
+		if(_dupenv_s(&raw, &rawLen, name) != 0 || !raw || !*raw) {
+			if(raw) {
+				std::free(raw);
+			}
+			return false;
+		}
 
 		char* end = nullptr;
 		unsigned long v = std::strtoul(raw, &end, 0);
-		if(end == raw || *end != '\0') return false;
-		if(v < minVal || v > maxVal) return false;
+		bool ok = (end != raw && *end == '\0' && v >= minVal && v <= maxVal);
+		std::free(raw);
+		if(!ok) return false;
 		outVal = (uint32_t)v;
 		return true;
 	}
@@ -298,7 +318,9 @@ namespace
 		LoadCpuRamTraceConfigFromEnv();
 		std::error_code fsErr;
 		std::filesystem::create_directories(kCpuRamTraceDirectory, fsErr);
-		sCpuRamTraceFile = fopen(kCpuRamTracePath, "w");
+		if(fopen_s(&sCpuRamTraceFile, kCpuRamTracePath, "w") != 0) {
+			sCpuRamTraceFile = nullptr;
+		}
 		if(sCpuRamTraceFile) {
 			fprintf(sCpuRamTraceFile, "# CPU work-RAM write trace\n");
 			fprintf(sCpuRamTraceFile, "# frameRange=%u-%u addrRange=%06X-%06X maxLines=%u\n",
@@ -619,20 +641,38 @@ void GenesisNativeBackend::UpdateFrameGeometry()
 
 void GenesisNativeBackend::DeliverPendingVdpInterrupts()
 {
-	if(_vdp.ConsumeVInt()) {
+	if(_vdp.HasNewVInt() && RaiseVdpIrq(6)) {
 		MD_TRACE_IRQ("VINT asserted -> IRQ6"
 			" mclk=" + std::to_string(_masterClock) +
 			" line=" + std::to_string(_vdp.GetScanline()));
-		_cpu.SetPendingIrq(6);
+		_vdp.MarkVIntDelivered();
 	}
-	if(_vdp.ConsumeHInt()) {
+	if(_vdp.HasNewHInt() && RaiseVdpIrq(4)) {
 		MD_TRACE_IRQ("HINT asserted -> IRQ4"
 			" mclk=" + std::to_string(_masterClock) +
 			" line=" + std::to_string(_vdp.GetScanline()));
-		if(_cpu.GetPendingIrq() < 4) {
-			_cpu.SetPendingIrq(4);
-		}
+		_vdp.MarkHIntDelivered();
 	}
+}
+
+bool GenesisNativeBackend::RaiseVdpIrq(uint8_t level)
+{
+	if(level == 6) {
+		if(_cpu.GetPendingIrq() < 6) {
+			_cpu.SetPendingIrq(6);
+			return true;
+		}
+		return false;
+	} else if(level == 4 && _cpu.GetPendingIrq() < 4) {
+		_cpu.SetPendingIrq(4);
+		return true;
+	}
+	return false;
+}
+
+void GenesisNativeBackend::VdpInterruptAcknowledge()
+{
+	_vdp.InterruptAcknowledge();
 }
 
 uint32_t GenesisNativeBackend::GetCurrentSliceOffsetMclk() const
@@ -716,8 +756,21 @@ void GenesisNativeBackend::RunMasterClockSlice(uint32_t masterClocks)
 	_cpuClockRemainder = (uint8_t)(cpuAccum % 7u);
 	if(cpuCycles > 0u) {
 		_execContext = ExecContext::Cpu68k;
-		_cpu.Run((int32_t)cpuCycles);
+		int32_t actualCpuCycles = _cpu.Run((int32_t)cpuCycles);
 		_execContext = ExecContext::None;
+		if(actualCpuCycles > (int32_t)cpuCycles) {
+			uint32_t overrun = (uint32_t)(actualCpuCycles - (int32_t)cpuCycles);
+			_diag68kSliceOverrunCycles += overrun;
+			_diag68kSliceOverrunCount++;
+			_diag68kMaxSliceOverrun = std::max(_diag68kMaxSliceOverrun, overrun);
+			MD_TRACE_SCHED("68K slice overrun"
+				" frame=" + std::to_string(_diagFrameCounter) +
+				" mclk=" + std::to_string(_masterClock) +
+				" sliceMclk=" + std::to_string(masterClocks) +
+				" budget=" + std::to_string(cpuCycles) +
+				" actual=" + std::to_string(actualCpuCycles) +
+				" overrun=" + std::to_string(overrun));
+		}
 	}
 
 	uint32_t z80Accum = (uint32_t)_z80ClockRemainder + masterClocks;
@@ -894,13 +947,21 @@ void GenesisNativeBackend::RunFrame()
 	_vdp.BeginFrame(_frameBuffer.data(), _frameWidth, _frameHeight);
 
 	uint32_t frameMclkDone = 0;
+	_diag68kSliceOverrunCycles = 0;
+	_diag68kSliceOverrunCount = 0;
+	_diag68kMaxSliceOverrun = 0;
+	_diagFrameCounter++;
 	while(frameMclkDone < frameMclk) {
-		// Query next interrupt event from VDP.
+		uint32_t sliceStartMclk = frameMclkDone;
+
+		// Query the next timing boundary from the VDP.
 		uint32_t nextVInt  = _vdp.NextVIntMclk();
 		uint32_t nextHInt  = _vdp.NextHIntMclk();
+		uint32_t nextVBlank = _vdp.NextVBlankFlagMclk();
 		uint32_t nextEvent = frameMclk;
 		if(nextVInt != UINT32_MAX && nextVInt < nextEvent) nextEvent = nextVInt;
 		if(nextHInt != UINT32_MAX && nextHInt < nextEvent) nextEvent = nextHInt;
+		if(nextVBlank != UINT32_MAX && nextVBlank < nextEvent) nextEvent = nextVBlank;
 		if(_z80Reset) {
 			uint32_t nextBusArb = UINT32_MAX;
 			if(_z80BusRequest && !_z80BusAck && _z80BusReqDelayMclk > 0u) {
@@ -916,7 +977,7 @@ void GenesisNativeBackend::RunFrame()
 		if(nextLineBoundary > frameMclk) {
 			nextLineBoundary = frameMclk;
 		}
-		if(nextLineBoundary < nextEvent) {
+		if(MD_NATIVE_DISABLE_LINE_SLICES == 0 && nextLineBoundary < nextEvent) {
 			nextEvent = nextLineBoundary;
 		}
 
@@ -925,8 +986,6 @@ void GenesisNativeBackend::RunFrame()
 			nextEvent = frameMclkDone + GenesisVdp::MCLKS_PER_LINE;
 			if(nextEvent > frameMclk) nextEvent = frameMclk;
 		}
-		bool reachedLineBoundary = (nextEvent == nextLineBoundary);
-
 		// Run CPU and Z80 up to the event point.
 		// Interrupts generated at nextEvent must not be visible before this slice
 		// is executed, otherwise polling code can observe future VDP state.
@@ -942,7 +1001,10 @@ void GenesisNativeBackend::RunFrame()
 
 		frameMclkDone = nextEvent;
 
-		if(reachedLineBoundary) {
+		uint32_t crossedLineBoundaries =
+			(frameMclkDone / GenesisVdp::MCLKS_PER_LINE) -
+			(sliceStartMclk / GenesisVdp::MCLKS_PER_LINE);
+		for(uint32_t i = 0; i < crossedLineBoundaries; i++) {
 			for(uint32_t port = 0; port < 2; port++) {
 				if(_ioSixButton[port] && ++_ioPadTimeout[port] > 25u) {
 					_ioPadCounter[port] = 0;
@@ -950,6 +1012,15 @@ void GenesisNativeBackend::RunFrame()
 				}
 			}
 		}
+	}
+
+	if(_diag68kSliceOverrunCount > 0 || MD_NATIVE_TRACE_SCHED != 0) {
+		MD_TRACE_SCHED("frame summary"
+			" frame=" + std::to_string(_diagFrameCounter) +
+			" lineSlices=" + string(MD_NATIVE_DISABLE_LINE_SLICES ? "off" : "on") +
+			" overrunSlices=" + std::to_string(_diag68kSliceOverrunCount) +
+			" overrunCycles=" + std::to_string(_diag68kSliceOverrunCycles) +
+			" maxOverrun=" + std::to_string(_diag68kMaxSliceOverrun));
 	}
 
 	_cpuState    = _cpu.GetState();
@@ -1073,6 +1144,8 @@ bool GenesisNativeBackend::GetBackendDebugState(GenesisBackendState& state) cons
 {
 	state = {};
 	state.MasterClock = GetMasterClock();
+	state.SchedulerFrameCounter = _diagFrameCounter;
+	state.SliceOverrunCycles = _diag68kSliceOverrunCycles;
 	state.FrameWidth = _frameWidth;
 	state.FrameHeight = _frameHeight;
 	state.ActiveWidth = _vdp.ActiveWidth();
@@ -1094,6 +1167,9 @@ bool GenesisNativeBackend::GetBackendDebugState(GenesisBackendState& state) cons
 	state.Z80Reset = _z80Reset ? 1 : 0;
 	state.Z80BusAck = _z80BusAck ? 1 : 0;
 	state.PAL = _isPal ? 1 : 0;
+	state.LineSlicesEnabled = MD_NATIVE_DISABLE_LINE_SLICES ? 0 : 1;
+	state.SliceOverrunCount = _diag68kSliceOverrunCount;
+	state.MaxSliceOverrun = _diag68kMaxSliceOverrun;
 	return true;
 }
 
