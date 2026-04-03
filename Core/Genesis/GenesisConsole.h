@@ -30,7 +30,6 @@ private:
 	vector<uint32_t>             _frameBuffer;
 	uint32_t                     _frameWidth  = 320;
 	uint32_t                     _frameHeight = 224;
-	uint32_t                     _frameCount  = 0;
 
 	ConsoleRegion                _region = ConsoleRegion::Ntsc;
 	bool                         _isPAL  = false;

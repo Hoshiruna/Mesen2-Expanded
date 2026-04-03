@@ -15,7 +15,9 @@ namespace Mesen.Debugger.Utilities
 	// line → one response line, both compact / newline-free).
 	public class DebugPipeServer
 	{
+		private readonly object _lock = new();
 		private Thread? _thread;
+		private NamedPipeServerStream? _currentPipe;
 		private volatile bool _running;
 		private const string PipeName = "MesenDebug";
 		private const string ServerName = "Mesen2-MCP";
@@ -32,6 +34,14 @@ namespace Mesen.Debugger.Utilities
 		public void Stop()
 		{
 			_running = false;
+			lock(_lock) {
+				_currentPipe?.Dispose();
+				_currentPipe = null;
+			}
+			try {
+				_thread?.Join(1000);
+			} catch {
+			}
 		}
 
 		// Accept one client at a time; loop to accept the next after disconnect.
@@ -42,6 +52,9 @@ namespace Mesen.Debugger.Utilities
 				try {
 					pipe = new NamedPipeServerStream(PipeName, PipeDirection.InOut, 1,
 						PipeTransmissionMode.Byte, PipeOptions.None, 65536, 65536);
+					lock(_lock) {
+						_currentPipe = pipe;
+					}
 					pipe.WaitForConnection();
 
 					// Use UTF-8 without BOM so every line is plain JSON text.
@@ -56,6 +69,11 @@ namespace Mesen.Debugger.Utilities
 					}
 				} catch { }
 				finally {
+					lock(_lock) {
+						if(ReferenceEquals(_currentPipe, pipe)) {
+							_currentPipe = null;
+						}
+					}
 					pipe?.Dispose();
 				}
 			}

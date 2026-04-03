@@ -1091,6 +1091,7 @@ const uint8_t* GenesisNativeBackend::GetSaveEeprom(uint32_t& size)
 
 bool     GenesisNativeBackend::IsPAL()           const { return _isPal; }
 double   GenesisNativeBackend::GetFps()           const { return _isPal ? 49.701460 : 59.922743; }
+uint32_t GenesisNativeBackend::GetFrameCount()    const { return _vdp.GetFrameCount(); }
 uint64_t GenesisNativeBackend::GetMasterClock()   const
 {
 	if(_execContext != ExecContext::None && _sliceMasterClocks > 0u) {

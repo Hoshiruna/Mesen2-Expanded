@@ -220,6 +220,7 @@ public:
 
 	bool     IsPAL()            const override;
 	double   GetFps()           const override;
+	uint32_t GetFrameCount()    const override;
 	uint64_t GetMasterClock()   const override;
 	uint32_t GetMasterClockRate() const override;
 

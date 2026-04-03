@@ -24,6 +24,7 @@ public:
 
 	virtual bool IsPAL() const = 0;
 	virtual double GetFps() const = 0;
+	virtual uint32_t GetFrameCount() const = 0;
 	virtual uint64_t GetMasterClock() const = 0;
 	virtual uint32_t GetMasterClockRate() const = 0;
 

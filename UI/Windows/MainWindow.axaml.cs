@@ -64,7 +64,6 @@ namespace Mesen.Windows
 		private Dictionary<Key, IDisposable> _pendingKeyUpEvents = new();
 		private bool _isLinux = false;
 
-		private DebugPipeServer? _debugPipeServer;
 		private Stopwatch _stopWatch = Stopwatch.StartNew();
 		private Dictionary<Key, long> _keyPressedStamp = new();
 		private bool _focusInMenu;
@@ -163,6 +162,7 @@ namespace Mesen.Windows
 			}
 
 			_timerBackgroundFlag.Stop();
+			McpServerManager.Stop();
 			EmuApi.Stop();
 			_listener?.Dispose();
 			EmuApi.Release();
@@ -257,9 +257,6 @@ namespace Mesen.Windows
 				_listener.OnNotification += OnNotification;
 
 				_model.Init(this);
-
-				_debugPipeServer = new DebugPipeServer();
-				_debugPipeServer.Start();
 
 				ConfigManager.Config.ApplyConfig();
 

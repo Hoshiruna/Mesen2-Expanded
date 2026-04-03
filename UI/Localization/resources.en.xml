@@ -820,6 +820,17 @@
 			<Control ID="btnOK">OK</Control>
 			<Control ID="btnCancel">Cancel</Control>
 		</Form>
+		<Form ID="McpServerWindow">
+			<Control ID="wndTitle">MCP Server</Control>
+			<Control ID="lblIntro">Start the local HTTP MCP bridge on demand. The bridge binds to localhost and stays attached to this emulator session.</Control>
+			<Control ID="lblPort">Port:</Control>
+			<Control ID="btnCopyUrl">Copy URL</Control>
+			<Control ID="lblUrl">URL:</Control>
+			<Control ID="lblStatus">Status:</Control>
+			<Control ID="btnStart">Start</Control>
+			<Control ID="btnStop">Stop</Control>
+			<Control ID="btnClose">Close</Control>
+		</Form>
 		<Form ID="CheatListWindow">
 			<Control ID="wndTitle">Cheats</Control>
 			<Control ID="tabCheats">Cheats</Control>
@@ -3531,7 +3542,7 @@ E
 			<Value ID="OpenSpriteViewer">Sprite Viewer</Value>
 			<Value ID="OpenPaletteViewer">Palette Viewer</Value>
 			<Value ID="OpenDebugSettings">Settings</Value>
-			<Value ID="OpenMcpServer">MCP Server Info</Value>
+			<Value ID="OpenMcpServer">MCP Server</Value>
 
 			<Value ID="Tools">Tools</Value>
 			<Value ID="HistoryViewer">History Viewer</Value>

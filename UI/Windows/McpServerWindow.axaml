@@ -1,0 +1,46 @@
+﻿<Window
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:m="clr-namespace:Mesen"
+	xmlns:c="using:Mesen.Controls"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:vm="using:Mesen.ViewModels"
+	mc:Ignorable="d"
+	d:DesignWidth="520"
+	d:DesignHeight="290"
+	x:Class="Mesen.Windows.McpServerWindow"
+	x:DataType="vm:McpServerWindowViewModel"
+	Width="520"
+	Height="200"
+	MinWidth="520"
+	MinHeight="200"
+	CanResize="False"
+	Title="{l:Translate wndTitle}"
+>
+	<DockPanel Margin="8">
+		<StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
+			<Button MinWidth="85" Click="Start_OnClick" IsEnabled="{Binding CanStart}" Content="{l:Translate btnStart}" />
+			<Button MinWidth="85" Click="Stop_OnClick" IsEnabled="{Binding CanStop}" Content="{l:Translate btnStop}" />
+			<Button MinWidth="85" Click="Close_OnClick" IsCancel="True" Content="{l:Translate btnClose}" />
+		</StackPanel>
+
+		<StackPanel Spacing="10">
+			<TextBlock Text="{l:Translate lblIntro}" TextWrapping="Wrap" />
+
+			<Grid ColumnDefinitions="Auto,130,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+				<TextBlock Text="{l:Translate lblPort}" VerticalAlignment="Center" />
+				<c:MesenNumericUpDown Grid.Column="1" Value="{Binding Port}" Minimum="1" Maximum="65535" IsEnabled="{Binding CanEditPort}" />
+				<Button Grid.Column="2" MinWidth="90" Click="CopyUrl_OnClick" Content="{l:Translate btnCopyUrl}" />
+
+				<TextBlock Grid.Row="1" Text="{l:Translate lblUrl}" VerticalAlignment="Top" />
+				<TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" IsReadOnly="True" IsTabStop="False" Text="{Binding ServerUrl}" />
+
+				<TextBlock Grid.Row="2" Text="{l:Translate lblStatus}" VerticalAlignment="Top" />
+				<TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Status}" TextWrapping="Wrap" />
+			</Grid>
+
+		</StackPanel>
+	</DockPanel>
+</Window>

@@ -306,7 +306,6 @@ void GenesisConsole::OnVideoFrame(const uint32_t* pixels, uint32_t pitch,
 
 	_frameWidth = targetWidth;
 	_frameHeight = targetHeight;
-	_frameCount++;
 
 	uint32_t pitchPixels = pitch / sizeof(uint32_t);
 	uint32_t needed = _frameWidth * _frameHeight;
@@ -385,7 +384,7 @@ void GenesisConsole::RunFrame()
 	_emu->ProcessEvent(EventType::EndFrame, CpuType::GenesisMain);
 
 	if(!_frameBuffer.empty() && _frameWidth > 0 && _frameHeight > 0) {
-		RenderedFrame frame((void*)_frameBuffer.data(), _frameWidth, _frameHeight, 1.0, _frameCount);
+		RenderedFrame frame((void*)_frameBuffer.data(), _frameWidth, _frameHeight, 1.0, _backend->GetFrameCount());
 		_emu->GetVideoDecoder()->UpdateFrame(frame, false, false);
 	}
 
@@ -450,7 +449,7 @@ PpuFrameInfo GenesisConsole::GetPpuFrame()
 {
 	PpuFrameInfo frame = {};
 	frame.FirstScanline = 0;
-	frame.FrameCount = _frameCount;
+	frame.FrameCount = _backend ? _backend->GetFrameCount() : 0;
 	frame.Width = _frameWidth;
 	frame.Height = _frameHeight;
 	frame.ScanlineCount = _isPAL ? 313 : 262;

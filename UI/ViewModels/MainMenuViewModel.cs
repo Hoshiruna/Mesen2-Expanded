@@ -1129,22 +1129,9 @@ namespace Mesen.ViewModels
 			DebugShortcutManager.RegisterActions(wnd, DebugMenuItems);
 		}
 
-		private static readonly string McpServerUrl = "http://127.0.0.1:51234/mcp/";
-		private static readonly string McpServerExe = Path.Combine(AppContext.BaseDirectory, "MCPServer.exe");
-
-		private async void OpenMcpServer(Window wnd)
+		private void OpenMcpServer(Window wnd)
 		{
-			ApplicationHelper.GetMainWindow()?.Clipboard?.SetTextAsync(McpServerUrl);
-
-			string bridgePath = File.Exists(McpServerExe) ? McpServerExe : "path\\to\\MCPServer.exe";
-
-			await MessageBox.Show(
-				wnd,
-				$"MCP bridge URL copied to clipboard:\n\n{McpServerUrl}\n\nMesen Expanded exposes the debugger over a named pipe when the main window is open.\n\nFor Codex, use the stdio bridge:\n  codex mcp add mesen-debugger -- \"{bridgePath}\" --stdio\n\nFor Claude Code over HTTP, start MCPServer.exe and run:\n  claude mcp add --transport http mesen-debugger {McpServerUrl}\n\nFor Claude Desktop, start MCPServer.exe and add:\n  {{\"mcpServers\":{{\"mesen-debugger\":{{\"url\":\"{McpServerUrl}\"}}}}}}",
-				"Mesen Expanded - MCP Server",
-				MessageBoxButtons.OK,
-				MessageBoxIcon.Info
-			);
+			ApplicationHelper.GetOrCreateUniqueWindow((Control)wnd, () => new McpServerWindow());
 		}
 
 		private void InitHelpMenu(Window wnd)
