@@ -139,24 +139,28 @@ namespace {
 	static uint16_t kHScrollDmaTraceDstEnd = kHScrollDmaTraceDstEndDefault;
 	static uint32_t kHScrollDmaTraceMaxLines = kHScrollDmaTraceMaxLinesDefault;
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4996)
+#endif
 	static bool TryParseEnvU32(const char* name, uint32_t minVal, uint32_t maxVal, uint32_t& outVal)
 	{
-		char* raw = nullptr;
-		size_t rawLen = 0;
-		if(_dupenv_s(&raw, &rawLen, name) != 0 || !raw || !*raw) {
-			free(raw);
+		const char* raw = std::getenv(name);
+		if(!raw || !*raw) {
 			return false;
 		}
 
 		char* end = nullptr;
 		unsigned long v = std::strtoul(raw, &end, 10);
 		bool ok = (end != raw && *end == '\0' && v >= minVal && v <= maxVal);
-		free(raw);
 		if(!ok) return false;
 
 		outVal = (uint32_t)v;
 		return true;
 	}
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 	static void LoadTraceConfigFromEnv()
 	{

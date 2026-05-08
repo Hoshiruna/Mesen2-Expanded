@@ -988,7 +988,7 @@
 
 		<Form ID="SelectBinFileConsoleTypeWindow">
 			<Control ID="wndTitle">Select Console Type</Control>
-			<Control ID="lblPrompt">Select the Console Type to use for this .bin file.</Control>
+			<Control ID="lblPrompt">Select the Console Type to open for this .bin file.</Control>
 			<Control ID="lblConsoleType">Console Type:</Control>
 			<Control ID="chkRememberSelection">Remember this selection for this .bin file</Control>
 			<Control ID="btnOK">OK</Control>

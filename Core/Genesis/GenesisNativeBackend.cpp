@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
 #include <algorithm>
+#include <cstdio>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
@@ -272,19 +273,20 @@ namespace
 	static uint32_t kCpuRamTraceAddrEnd = 0xFFCFFFu;
 	static uint32_t kCpuRamTraceMaxLines = 300000u;
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4996)
+#endif
 	static bool TryParseEnvU32AutoBase(const char* name, uint32_t minVal, uint32_t maxVal, uint32_t& outVal)
 	{
-		char* raw = nullptr;
-		size_t rawLen = 0;
-		if(_dupenv_s(&raw, &rawLen, name) != 0 || !raw || !*raw) {
-			free(raw);
+		const char* raw = std::getenv(name);
+		if(!raw || !*raw) {
 			return false;
 		}
 
 		char* end = nullptr;
 		unsigned long v = std::strtoul(raw, &end, 0);
 		bool ok = (end != raw && *end == '\0' && v >= minVal && v <= maxVal);
-		free(raw);
 		if(!ok) return false;
 		outVal = (uint32_t)v;
 		return true;
@@ -317,7 +319,8 @@ namespace
 		std::error_code fsErr;
 		std::filesystem::create_directories(kCpuRamTraceDirectory, fsErr);
 		FILE* traceFile = nullptr;
-		if(fopen_s(&traceFile, kCpuRamTracePath, "w") == 0) {
+		traceFile = std::fopen(kCpuRamTracePath, "w");
+		if(traceFile) {
 			sCpuRamTraceFile = traceFile;
 		}
 		if(sCpuRamTraceFile) {
@@ -328,6 +331,9 @@ namespace
 			fflush(sCpuRamTraceFile);
 		}
 	}
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 	static bool CpuRamTraceShouldLog(uint32_t frame, uint32_t addr)
 	{
