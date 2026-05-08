@@ -507,6 +507,9 @@
     <Compile Update="Windows\SelectRomWindow.axaml.cs">
       <DependentUpon>SelectRomWindow.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Windows\SelectBinFileConsoleTypeWindow.axaml.cs">
+      <DependentUpon>SelectBinFileConsoleTypeWindow.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Windows\NetplayConnectWindow.axaml.cs">
       <DependentUpon>NetplayConnectWindow.axaml</DependentUpon>
     </Compile>

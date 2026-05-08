@@ -985,6 +985,15 @@
 			<Control ID="btnOK">OK</Control>
 			<Control ID="btnCancel">Cancel</Control>
 		</Form>
+
+		<Form ID="SelectBinFileConsoleTypeWindow">
+			<Control ID="wndTitle">Select Console Type</Control>
+			<Control ID="lblPrompt">Select the Console Type to use for this .bin file.</Control>
+			<Control ID="lblConsoleType">Console Type:</Control>
+			<Control ID="chkRememberSelection">Remember this selection for this .bin file</Control>
+			<Control ID="btnOK">OK</Control>
+			<Control ID="btnCancel">Cancel</Control>
+		</Form>
 		
 		<Form ID="CheatDatabaseWindow">
 			<Control ID="wndTitle">Import cheats from cheat database...</Control>
@@ -2573,10 +2582,6 @@ E
 			<Value ID="Compatibility">Compatibility (default)</Value>
 			<Value ID="Sms1">SMS 1</Value>
 			<Value ID="Sms2">SMS 2</Value>
-		</Enum>
-
-		<Enum ID="GenesisCoreType">
-			<Value ID="Native">Native</Value>
 		</Enum>
 
 		<Enum ID="GbaSaveType">

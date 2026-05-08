@@ -360,11 +360,11 @@ void Emulator::PowerCycle()
 	ReloadRom(true);
 }
 
-bool Emulator::LoadRom(VirtualFile romFile, VirtualFile patchFile, bool stopRom, bool forPowerCycle)
+bool Emulator::LoadRom(VirtualFile romFile, VirtualFile patchFile, bool stopRom, bool forPowerCycle, optional<ConsoleType> forcedConsoleType)
 {
 	bool result = false;
 	try {
-		result = InternalLoadRom(romFile, patchFile, stopRom, forPowerCycle);
+		result = InternalLoadRom(romFile, patchFile, stopRom, forPowerCycle, forcedConsoleType);
 	} catch(std::exception& ex) {
 		_videoDecoder->StartThread();
 		_videoRenderer->StartThread();
@@ -380,7 +380,7 @@ bool Emulator::LoadRom(VirtualFile romFile, VirtualFile patchFile, bool stopRom,
 	return result;
 }
 
-bool Emulator::InternalLoadRom(VirtualFile romFile, VirtualFile patchFile, bool stopRom, bool forPowerCycle)
+bool Emulator::InternalLoadRom(VirtualFile romFile, VirtualFile patchFile, bool stopRom, bool forPowerCycle, optional<ConsoleType> forcedConsoleType)
 {
 	if(!romFile.IsValid()) {
 		MessageManager::DisplayMessage("Error", "CouldNotLoadFile", romFile.GetFileName());
@@ -436,9 +436,13 @@ bool Emulator::InternalLoadRom(VirtualFile romFile, VirtualFile patchFile, bool 
 	unique_ptr<IConsole> console;
 	LoadRomResult result = LoadRomResult::UnknownType;
 
-	//Try loading the rom, give priority to file extension, then trying to check for file signatures if extension is unknown
-	TryLoadRom(romFile, result, console, false);
-	TryLoadRom(romFile, result, console, true);
+	if(forcedConsoleType.has_value()) {
+		TryLoadRom(romFile, result, console, forcedConsoleType.value());
+	} else {
+		//Try loading the rom, give priority to file extension, then trying to check for file signatures if extension is unknown
+		TryLoadRom(romFile, result, console, false);
+		TryLoadRom(romFile, result, console, true);
+	}
 	
 	if(result != LoadRomResult::Success) {
 		MessageManager::DisplayMessage("Error", "CouldNotLoadFile", romFile.GetFileName());
@@ -572,13 +576,27 @@ void Emulator::TryLoadRom(VirtualFile& romFile, LoadRomResult& result, unique_pt
 	TryLoadRom<GenesisConsole>(romFile, result, console, useFileSignature);
 }
 
+void Emulator::TryLoadRom(VirtualFile& romFile, LoadRomResult& result, unique_ptr<IConsole>& console, ConsoleType consoleType)
+{
+	switch(consoleType) {
+		case ConsoleType::Nes: TryLoadRom<NesConsole>(romFile, result, console, false, true); break;
+		case ConsoleType::Snes: TryLoadRom<SnesConsole>(romFile, result, console, false, true); break;
+		case ConsoleType::Gameboy: TryLoadRom<Gameboy>(romFile, result, console, false, true); break;
+		case ConsoleType::PcEngine: TryLoadRom<PceConsole>(romFile, result, console, false, true); break;
+		case ConsoleType::Sms: TryLoadRom<SmsConsole>(romFile, result, console, false, true); break;
+		case ConsoleType::Gba: TryLoadRom<GbaConsole>(romFile, result, console, false, true); break;
+		case ConsoleType::Ws: TryLoadRom<WsConsole>(romFile, result, console, false, true); break;
+		case ConsoleType::Genesis: TryLoadRom<GenesisConsole>(romFile, result, console, false, true); break;
+	}
+}
+
 template<typename T>
-void Emulator::TryLoadRom(VirtualFile& romFile, LoadRomResult& result, unique_ptr<IConsole>& console, bool useFileSignature)
+void Emulator::TryLoadRom(VirtualFile& romFile, LoadRomResult& result, unique_ptr<IConsole>& console, bool useFileSignature, bool forceConsoleType)
 {
 	if(result == LoadRomResult::UnknownType) {
 		string romExt = romFile.GetFileExtension();
 		vector<string> extensions = T::GetSupportedExtensions();
-		if(std::find(extensions.begin(), extensions.end(), romExt) != extensions.end() || (useFileSignature && romFile.CheckFileSignature(T::GetSupportedSignatures()))) {
+		if(forceConsoleType || std::find(extensions.begin(), extensions.end(), romExt) != extensions.end() || (useFileSignature && romFile.CheckFileSignature(T::GetSupportedSignatures()))) {
 			//Keep a copy of the current state of _consoleMemory
 			ConsoleMemoryInfo consoleMemory[DebugUtilities::GetMemoryTypeCount()] = {};
 			memcpy(consoleMemory, _consoleMemory, sizeof(_consoleMemory));

@@ -30,6 +30,7 @@
 #include "Utilities/magic_enum.hpp"
 #include "Shared/MemoryOperationType.h"
 #include "Genesis/GenesisConsole.h"
+#include "Genesis/GenesisVdp.h"
 
 #ifdef _MSC_VER
 //TODO MSVC seems to trigger this by mistake because of the macros?
@@ -255,6 +256,7 @@ int LuaApi::GetLibrary(lua_State *lua)
 		{ "getLogWindowLog", LuaApi::GetLogWindowLog },
 		{ "getGenesisVdpDebugState", LuaApi::GetGenesisVdpDebugState },
 		{ "getGenesisVdpTrace", LuaApi::GetGenesisVdpTrace },
+		{ "setGenesisVdpTraceConfig", LuaApi::SetGenesisVdpTraceConfig },
 		{ NULL,NULL }
 	};
 
@@ -1390,6 +1392,61 @@ int LuaApi::GetGenesisVdpTrace(lua_State* lua)
 		lua_pushlstring(lua, lines[i].c_str(), lines[i].size());
 		lua_settable(lua, -3);
 	}
+	return 1;
+}
+
+int LuaApi::SetGenesisVdpTraceConfig(lua_State* lua)
+{
+	lua_settop(lua, 2);
+	string kindName = luaL_checkstring(lua, 1);
+
+	GenesisTraceBufferKind kind;
+	if(kindName == "sprite") {
+		kind = GenesisTraceBufferKind::Sprite;
+	} else if(kindName == "compose") {
+		kind = GenesisTraceBufferKind::Compose;
+	} else if(kindName == "scroll") {
+		kind = GenesisTraceBufferKind::Scroll;
+	} else if(kindName == "hscrollDma") {
+		kind = GenesisTraceBufferKind::HScrollDma;
+	} else {
+		error("Invalid or unsupported Genesis trace buffer kind");
+	}
+
+	GenesisTraceConfig config = GenesisVdp::GetDefaultTraceConfig(kind);
+	if(!lua_isnoneornil(lua, 2)) {
+		luaL_checktype(lua, 2, LUA_TTABLE);
+
+		auto readOptionalU32 = [&](const char* field, uint32_t& value) {
+			lua_getfield(lua, 2, field);
+			if(lua_isinteger(lua, -1)) {
+				value = (uint32_t)lua_tointeger(lua, -1);
+			}
+			lua_pop(lua, 1);
+		};
+
+		auto readOptionalU16 = [&](const char* field, uint16_t& value) {
+			lua_getfield(lua, 2, field);
+			if(lua_isinteger(lua, -1)) {
+				value = (uint16_t)lua_tointeger(lua, -1);
+			}
+			lua_pop(lua, 1);
+		};
+
+		readOptionalU32("frameStart", config.FrameStart);
+		readOptionalU32("frameEnd", config.FrameEnd);
+		readOptionalU16("lineStart", config.LineStart);
+		readOptionalU16("lineEnd", config.LineEnd);
+		readOptionalU16("xStart", config.XStart);
+		readOptionalU16("xEnd", config.XEnd);
+		readOptionalU16("columnStart", config.ColumnStart);
+		readOptionalU16("columnEnd", config.ColumnEnd);
+		readOptionalU16("dstStart", config.DstStart);
+		readOptionalU16("dstEnd", config.DstEnd);
+		readOptionalU32("maxLines", config.MaxLines);
+	}
+
+	lua_pushboolean(lua, GenesisVdp::ConfigureTrace(kind, config) ? 1 : 0);
 	return 1;
 }
 

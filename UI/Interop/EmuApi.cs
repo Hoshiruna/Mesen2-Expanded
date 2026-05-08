@@ -61,6 +61,12 @@ namespace Mesen.Interop
 			[MarshalAs(UnmanagedType.LPUTF8Str)]string? patchFile = null
 		);
 
+		[DllImport(DllPath)] [return: MarshalAs(UnmanagedType.I1)] public static extern bool LoadRomWithConsoleType(
+			[MarshalAs(UnmanagedType.LPUTF8Str)]string filepath,
+			[MarshalAs(UnmanagedType.LPUTF8Str)]string? patchFile,
+			ConsoleType consoleType
+		);
+
 		[DllImport(DllPath, EntryPoint = "GetRomInfo")] private static extern void GetRomInfoWrapper(out InteropRomInfo romInfo);
 		public static RomInfo GetRomInfo()
 		{

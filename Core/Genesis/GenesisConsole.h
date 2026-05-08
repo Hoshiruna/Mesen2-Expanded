@@ -4,12 +4,12 @@
 #include "Shared/SettingTypes.h"
 #include "Genesis/GenesisTypes.h"
 #include "Genesis/IGenesisPlatformCallbacks.h"
-#include "Genesis/IGenesisCoreBackend.h"
 
 class Emulator;
 class VirtualFile;
 class BaseControlManager;
 class GenesisControlManager;
+class GenesisNativeBackend;
 class BaseVideoFilter;
 
 // ---------------------------------------------------------------------------
@@ -23,7 +23,7 @@ private:
 	static GenesisConsole* _activeConsole;
 
 	Emulator*                    _emu = nullptr;
-	unique_ptr<IGenesisCoreBackend> _backend;
+	unique_ptr<GenesisNativeBackend> _backend;
 	unique_ptr<GenesisControlManager> _controlManager;
 
 	// Last rendered frame (ARGB8888)
@@ -39,7 +39,7 @@ private:
 
 	void DetermineRegion(const string& filename, const vector<uint8_t>& romData);
 	void RefreshDebuggerMemoryViews();
-	void CreateBackend(GenesisCoreType coreType);
+	void CreateBackend();
 
 	// IGenesisPlatformCallbacks -----------------------------------------------
 	void OnVideoFrame(const uint32_t* pixels, uint32_t pitch,

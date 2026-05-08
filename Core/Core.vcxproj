@@ -94,7 +94,6 @@
     <ClInclude Include="Genesis\GenesisVdp.h" />
     <ClInclude Include="Genesis\GenesisCpu68k.h" />
     <ClInclude Include="Genesis\GenesisCpuZ80.h" />
-    <ClInclude Include="Genesis\IGenesisCoreBackend.h" />
     <ClInclude Include="Genesis\IGenesisPlatformCallbacks.h" />
     <ClInclude Include="Genesis\Input\GenesisController.h" />
     <ClInclude Include="Genesis\Debugger\GenesisDebugger.h" />

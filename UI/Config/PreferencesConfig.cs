@@ -92,6 +92,8 @@ namespace Mesen.Config
 		[Reactive] public string ScreenshotFolder { get; set; } = "";
 		[Reactive] public string WaveFolder { get; set; } = "";
 
+		[Reactive] public Dictionary<string, ConsoleType> RememberedBinFileConsoleTypes { get; set; } = new();
+
 		public PreferencesConfig()
 		{
 		}

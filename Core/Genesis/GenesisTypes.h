@@ -77,6 +77,21 @@ enum class GenesisTraceBufferKind : uint8_t
 	HScrollDma
 };
 
+struct GenesisTraceConfig : public BaseState
+{
+	uint32_t FrameStart = 0;
+	uint32_t FrameEnd = 0;
+	uint16_t LineStart = 0;
+	uint16_t LineEnd = 0;
+	uint16_t XStart = 0;
+	uint16_t XEnd = 0;
+	uint16_t ColumnStart = 0;
+	uint16_t ColumnEnd = 0;
+	uint16_t DstStart = 0;
+	uint16_t DstEnd = 0;
+	uint32_t MaxLines = 0;
+};
+
 static constexpr uint32_t GenesisDebugScrollBufferSize = 32;
 static constexpr uint32_t GenesisDebugLineBufferSize = 347;
 static constexpr uint32_t GenesisDebugMaxSpritesLine = 20;
