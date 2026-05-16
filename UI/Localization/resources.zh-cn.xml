@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Resources>
+	<Forms>
+		<Form ID="MainMenuView">
+			<Control ID="mnuFile">文件(_F)</Control>
+			<Control ID="mnuGame">游戏(_G)</Control>
+			<Control ID="mnuOptions">设置(_S)</Control>
+			<Control ID="mnuTools">工具(_T)</Control>
+			<Control ID="mnuDebug">调试(_D)</Control>
+			<Control ID="mnuHelp">帮助(_H)</Control>
+		</Form>
+
+		<Form ID="PreferencesConfigView">
+			<Control ID="tpgGeneral">常规</Control>
+			<Control ID="lblTheme">主题：</Control>
+			<Control ID="lblRequiresRestart">（需要重启）</Control>
+			<Control ID="lblDisplayLanguage">显示语言：</Control>
+			<Control ID="chkSingleInstance">一次只允许运行一个 Mesen 实例</Control>
+			<Control ID="chkAutomaticallyCheckForUpdates">自动检查更新</Control>
+			<Control ID="chkDeveloperMode">启用开发者模式</Control>
+
+			<Control ID="lblPauseBackgroundSettings">暂停/后台设置</Control>
+			<Control ID="lblMiscSettings">其他设置</Control>
+			<Control ID="chkAutoHideMenu">自动隐藏菜单栏</Control>
+			<Control ID="chkDisplayTitleBarInfo">在标题栏显示附加信息</Control>
+			<Control ID="chkConfirmExitResetPower">重置 / 重新开机 / 关机 / 退出前显示确认对话框</Control>
+			<Control ID="chkPauseOnMovieEnd">录像播放结束后暂停</Control>
+			<Control ID="chkShowMovieIcons">播放或录制录像时显示播放/暂停图标</Control>
+			<Control ID="chkShowTurboRewindIcons">快进/倒带时显示图标</Control>
+			<Control ID="chkAllowBackgroundInput">后台时允许输入（仅控制器）</Control>
+			<Control ID="chkPauseWhenInBackground">后台时暂停</Control>
+			<Control ID="chkPauseInMenuAndConfig">打开菜单和设置对话框时暂停</Control>
+			<Control ID="chkPauseInDebugger">调试工具</Control>
+			<Control ID="chkAutoLoadIps">自动加载 IPS/BPS 补丁</Control>
+			<Control ID="chkHidePauseOverlay">隐藏暂停画面</Control>
+			<Control ID="chkDisplayMovieIcons">播放或录制录像时显示播放/录制图标</Control>
+
+			<Control ID="tpgFiles">文件夹/文件</Control>
+			<Control ID="grpFileAssociations">文件关联</Control>
+			<Control ID="chkSnesRomFiles">SNES ROM：.sfc, .smc, .swc, .fig, .bs</Control>
+			<Control ID="chkSnesMusicFiles">SNES 音乐：.spc</Control>
+			<Control ID="chkNesRomFiles">NES ROM：.nes, .unif, .fds, .qd, .studybox</Control>
+			<Control ID="chkNesMusicFiles">NES 音乐：.nsf, .nsfe</Control>
+			<Control ID="chkGbRomFiles">Game Boy ROM：.gb, .gbc, .gbx</Control>
+			<Control ID="chkGbMusicFiles">Game Boy 音乐：.gbs</Control>
+			<Control ID="chkGbaRomFiles">Game Boy Advance ROM：.gba</Control>
+			<Control ID="chkPceRomFiles">PC Engine ROM：.pce, .sgx</Control>
+			<Control ID="chkPceMusicFiles">PC Engine 音乐：.hes</Control>
+			<Control ID="chkSmsRomFiles">SMS ROM：.sms</Control>
+			<Control ID="chkGenesisRomFiles">Genesis ROM：.md</Control>
+			<Control ID="chkGameGearRomFiles">Game Gear ROM：.gg</Control>
+			<Control ID="chkSgRomFiles">SG-1000 ROM：.sg</Control>
+			<Control ID="chkCvRomFiles">ColecoVision ROM：.col</Control>
+			<Control ID="chkWsRomFiles">WonderSwan ROM：.ws, .wsc</Control>
+
+			<Control ID="grpDataStorageLocation">数据存储文件夹</Control>
+			<Control ID="btnChangeStorageFolder">更改文件夹...</Control>
+			<Control ID="lblDataLocation">文件夹：</Control>
+			<Control ID="grpPathOverrides">文件夹覆盖</Control>
+			<Control ID="chkGameOverride">游戏：</Control>
+			<Control ID="chkAviOverride">视频：</Control>
+			<Control ID="chkScreenshotsOverride">截图：</Control>
+			<Control ID="chkSaveDataOverride">存档数据：</Control>
+			<Control ID="chkWaveOverride">音频：</Control>
+			<Control ID="chkSaveStatesOverride">即时存档：</Control>
+			<Control ID="chkMoviesOverride">录像：</Control>
+
+			<Control ID="tpgAdvanced">高级</Control>
+			<Control ID="chkShowFullPathInRecents">在最近文件列表中显示完整路径</Control>
+			<Control ID="chkShowFrameCounter">显示帧计数器</Control>
+			<Control ID="chkShowGameTimer">显示游戏计时器</Control>
+			<Control ID="chkShowLagCounter">显示延迟计数器</Control>
+			<Control ID="btnResetLagCounter">重置延迟计数器</Control>
+			<Control ID="chkShowVsConfigOnLoad">加载 VS System 游戏时显示游戏配置对话框</Control>
+			<Control ID="lblFontSettings">字体设置</Control>
+			<Control ID="lblFontAntialiasing">字体抗锯齿：</Control>
+			<Control ID="lblRegularFont">默认字体：</Control>
+			<Control ID="lblMenuFont">菜单字体：</Control>
+			<Control ID="lblAdvancedMisc">其他设置</Control>
+			<Control ID="chkEnableAutoSaveState">每隔 </Control>
+			<Control ID="lblSaveStateMinutes">分钟自动创建即时存档（游戏时间）</Control>
+			<Control ID="lblRewind">允许倒带最多使用 </Control>
+			<Control ID="lblRewindMinutes">MB 内存（内存占用约 5MB/分钟）</Control>
+			<Control ID="tpgShortcuts">快捷键</Control>
+			<Control ID="lblUiDisplaySettings">界面显示设置</Control>
+			<Control ID="lblWindowSettings">窗口设置</Control>
+			<Control ID="chkDisableMouseResize">不允许用鼠标调整主窗口大小</Control>
+			<Control ID="lblGameSelectionScreenSettings">游戏选择界面设置</Control>
+			<Control ID="chkGameSelectionScreenResetGame">从开机状态启动游戏，而不是恢复上次游玩会话</Control>
+			<Control ID="lblGameSelectionScreen">游戏选择界面：</Control>
+			<Control ID="chkDisableGameDatabase">禁用游戏数据库</Control>
+			<Control ID="chkDisableHighResolutionTimer">禁用高精度计时器</Control>
+			<Control ID="chkDisableOsd">隐藏屏幕消息</Control>
+			<Control ID="chkAlwaysOnTop">始终置顶显示</Control>
+			<Control ID="chkShowFps">显示 FPS</Control>
+			<Control ID="lblHudDisplaySize">HUD 显示大小：</Control>
+			<Control ID="chkShowDebugInformation">显示调试信息</Control>
+			<Control ID="lblLastFolderUsed">上次使用的文件夹</Control>
+			<Control ID="btnOK">确定</Control>
+			<Control ID="btnCancel">取消</Control>
+		</Form>
+
+		<Form ID="SelectBinFileConsoleTypeWindow">
+			<Control ID="wndTitle">选择主机类型</Control>
+			<Control ID="lblPrompt">选择用于打开此 .bin 文件的主机类型。</Control>
+			<Control ID="lblConsoleType">主机类型：</Control>
+			<Control ID="chkRememberSelection">记住此 .bin 文件的选择</Control>
+			<Control ID="btnOK">确定</Control>
+			<Control ID="btnCancel">取消</Control>
+		</Form>
+
+		<Form ID="SelectRomWindow">
+			<Control ID="wndTitle">选择 ROM...</Control>
+			<Control ID="lblSearch">搜索：</Control>
+			<Control ID="btnOK">确定</Control>
+			<Control ID="btnCancel">取消</Control>
+		</Form>
+
+		<Form ID="SelectStorageFolderWindow">
+			<Control ID="wndTitle">选择数据存储文件夹</Control>
+			<Control ID="lblStorageHint">选择 Mesen 数据的存储位置：</Control>
+			<Control ID="lblDocuments">用户配置文件</Control>
+			<Control ID="lblDocumentsLocation">存储到“文档”文件夹中。</Control>
+			<Control ID="lblPortable">便携模式</Control>
+			<Control ID="lblPortableLocation">存储到 Mesen 所在文件夹中。</Control>
+			<Control ID="btnOK">确定</Control>
+			<Control ID="btnCancel">取消</Control>
+		</Form>
+
+		<Form ID="FirmwareSelect">
+			<Control ID="btnSelect">选择...</Control>
+			<Control ID="btnDelete">删除文件</Control>
+		</Form>
+	</Forms>
+
+	<Messages>
+		<Message ID="LastSession">上次会话</Message>
+		<Message ID="AutoSave">自动存档</Message>
+		<Message ID="SlotNumber">槽位 #{0}</Message>
+		<Message ID="LoadStateDialog">读取即时存档菜单</Message>
+		<Message ID="SaveStateDialog">保存即时存档菜单</Message>
+		<Message ID="LoadFromFile">从文件读取...</Message>
+		<Message ID="SaveToFile">保存到文件...</Message>
+		<Message ID="VideoLayerDisabled">{0} 已禁用。</Message>
+		<Message ID="VideoLayerEnabled">{0} 已启用。</Message>
+		<Message ID="AllLayersEnabled">所有背景/精灵图层已启用。</Message>
+		<Message ID="PromptSaveChanges">是否保存更改？</Message>
+		<Message ID="PromptKeepChanges">是否保留更改？</Message>
+		<Message ID="PromptLoadSufamiTurbo">是否加载第二个 Sufami Turbo ROM 并插入到槽位 B？</Message>
+		<Message ID="UnknownFirmwareHash">此文件与任何已知固件都不匹配，可能无法正常工作。&#xA;&#xA;预期值 (SHA256)：{0}&#xA;当前值 (SHA256)：{1}</Message>
+		<Message ID="InvalidFirmwareSize">此文件大小不符合要求。&#xA;&#xA;预期：{0} 字节&#xA;当前：{1} 字节</Message>
+		<Message ID="PromptDeleteFirmware">以下文件将被永久删除。确定要继续吗？&#xA;&#xA;{0}</Message>
+		<Message ID="OverwriteFirmware">以下文件已存在并将被覆盖。此操作无法撤销。确定要继续吗？&#xA;&#xA;{0}</Message>
+		<Message ID="MovieSegment">片段 #{0}</Message>
+		<Message ID="MovieExportEntireSegment">导出整个片段</Message>
+		<Message ID="MovieExportSpecificRange">导出指定范围...</Message>
+		<Message ID="MovieSaveError">尝试保存录像文件时发生错误。</Message>
+		<Message ID="FileSaveError">尝试保存文件时发生错误。</Message>
+		<Message ID="SetKeyHint">按下键盘上的任意按键来设置新的绑定。</Message>
+		<Message ID="SetKeyMouseHint">按下键盘、控制器或鼠标上的任意按键来设置新的绑定。</Message>
+		<Message ID="ClearHistory">清除历史记录</Message>
+		<Message ID="FirmwareNotFound">此游戏需要以下固件文件：{0}&#xA;&#xA;  文件名：{1}&#xA;  大小：{2} 字节&#xA;&#xA;是否现在选择？</Message>
+		<Message ID="FirmwareMismatch">所选文件与所需固件不匹配：{0}&#xA;&#xA;固件 SHA-256：&#xA;{1}&#xA;&#xA;所选文件 SHA-256：&#xA;{2}&#xA;&#xA;仍要使用此文件吗？</Message>
+		<Message ID="FirmwareFileWrongSize">所选文件不符合所需大小（{0} 字节），无法使用。</Message>
+		<Message ID="MouseModeEnabled">鼠标已启用 - 暂停以释放光标</Message>
+		<Message ID="RightClickToClearBinding">右键清除绑定</Message>
+		<Message ID="Resume">继续</Message>
+		<Message ID="Pause">暂停</Message>
+		<Message ID="StartServer">启动服务器</Message>
+		<Message ID="StopServer">停止服务器</Message>
+		<Message ID="ConnectToServer">连接到服务器</Message>
+		<Message ID="Disconnect">断开连接</Message>
+		<Message ID="PlayerNumber">玩家 {0}</Message>
+		<Message ID="ExpansionDevice">扩展设备</Message>
+		<Message ID="PressToExitFullscreen">按 {0} 退出全屏</Message>
+		<Message ID="DefaultResolution">默认</Message>
+		<Message ID="RomsFound">找到 {0} 个 ROM</Message>
+		<Message ID="ResetSettingsConfirmation">警告：这将重置所有设置，且无法撤销！&#xA;&#xA;继续吗？</Message>
+		<Message ID="FileNotFound">找不到文件：{0}</Message>
+		<Message ID="CouldNotLoadFile">无法加载文件：{0}</Message>
+		<Message ID="UnexpectedError">发生意外错误：{0}</Message>
+		<Message ID="ApplyingPatch">正在应用补丁：{0}</Message>
+		<Message ID="PatchFailed">补丁应用失败：{0}</Message>
+		<Message ID="SelectRomIps">请为此补丁文件选择一个 ROM。</Message>
+		<Message ID="PatchAndReset">是否为当前 ROM 应用补丁并重置？</Message>
+		<Message ID="btnOK">确定</Message>
+		<Message ID="btnCancel">取消</Message>
+		<Message ID="btnYes">是</Message>
+		<Message ID="btnNo">否</Message>
+	</Messages>
+
+	<Enums>
+		<Enum ID="MesenTheme">
+			<Value ID="Light">浅色</Value>
+			<Value ID="Dark">深色</Value>
+		</Enum>
+		<Enum ID="GameSelectionMode">
+			<Value ID="Disabled">禁用</Value>
+			<Value ID="ResumeState">恢复状态</Value>
+			<Value ID="PowerOn">开机启动</Value>
+		</Enum>
+		<Enum ID="HudDisplaySize">
+			<Value ID="Fixed">固定</Value>
+			<Value ID="Scaled">缩放</Value>
+		</Enum>
+		<Enum ID="FontAntialiasing">
+			<Value ID="Disabled">禁用</Value>
+			<Value ID="Antialias">抗锯齿</Value>
+			<Value ID="SubPixelAntialias">亚像素抗锯齿</Value>
+		</Enum>
+		<Enum ID="PceConsoleType">
+			<Value ID="Auto">自动（推荐）</Value>
+			<Value ID="PcEngine">PC Engine（日本）</Value>
+			<Value ID="SuperGrafx">PC Engine SuperGrafx（日本）</Value>
+			<Value ID="TurboGrafx">TurboGrafx-16（北美）</Value>
+		</Enum>
+		<Enum ID="PceCdRomType">
+			<Value ID="CdRom">CD-ROM²</Value>
+			<Value ID="SuperCdRom">Super CD-ROM²</Value>
+			<Value ID="Arcade">Arcade CD-ROM²（推荐）</Value>
+		</Enum>
+		<Enum ID="RamState">
+			<Value ID="Random">随机值</Value>
+			<Value ID="AllZeros">全 0</Value>
+			<Value ID="AllOnes">全 1</Value>
+		</Enum>
+	</Enums>
+</Resources>

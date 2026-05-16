@@ -1,0 +1,49 @@
+<Window
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:l="using:Mesen.Localization"
+	xmlns:w="using:Mesen.Windows"
+	mc:Ignorable="d"
+	Width="360"
+	SizeToContent="Height"
+	CanResize="False"
+	x:Class="Mesen.Windows.SelectBinFileConsoleTypeWindow"
+	Title="{l:Translate wndTitle}"
+	x:DataType="w:SelectBinFileConsoleTypeViewModel"
+>
+	<DockPanel>
+		<Panel Height="40" Background="{StaticResource MesenGrayBackgroundColor}" HorizontalAlignment="Stretch" DockPanel.Dock="Bottom">
+			<StackPanel VerticalAlignment="Center" HorizontalAlignment="Right" Orientation="Horizontal">
+				<StackPanel.Styles>
+					<Style Selector="Button">
+						<Setter Property="Margin" Value="5"/>
+						<Setter Property="Width" Value="73"/>
+						<Setter Property="HorizontalContentAlignment" Value="Center"/>
+					</Style>
+				</StackPanel.Styles>
+				<Button Content="{l:Translate btnOK}" Click="OnOkClick" />
+				<Button Content="{l:Translate btnCancel}" Click="OnCancelClick" IsCancel="True" />
+			</StackPanel>
+		</Panel>
+
+		<StackPanel Margin="15" Spacing="10">
+			<TextBlock Text="{l:Translate lblPrompt}" TextWrapping="Wrap" />
+			<TextBlock Text="{Binding FileName}" FontWeight="Bold" TextWrapping="Wrap" />
+
+			<Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto">
+				<TextBlock Text="{l:Translate lblConsoleType}" VerticalAlignment="Center" Margin="0 0 8 0" />
+				<ComboBox Grid.Column="1" ItemsSource="{Binding ConsoleTypes}" SelectedItem="{Binding SelectedConsoleType}">
+					<ComboBox.ItemTemplate>
+						<DataTemplate DataType="w:BinFileConsoleTypeOption">
+							<TextBlock Text="{Binding DisplayName}" />
+						</DataTemplate>
+					</ComboBox.ItemTemplate>
+				</ComboBox>
+			</Grid>
+
+			<CheckBox Content="{l:Translate chkRememberSelection}" IsChecked="{Binding RememberSelection}" />
+		</StackPanel>
+	</DockPanel>
+</Window>

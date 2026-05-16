@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
 #include <algorithm>
+#include <cstdio>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
@@ -272,6 +273,10 @@ namespace
 	static uint32_t kCpuRamTraceAddrEnd = 0xFFCFFFu;
 	static uint32_t kCpuRamTraceMaxLines = 300000u;
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4996)
+#endif
 	static bool TryParseEnvU32AutoBase(const char* name, uint32_t minVal, uint32_t maxVal, uint32_t& outVal)
 	{
 		const char* raw = std::getenv(name);
@@ -313,7 +318,11 @@ namespace
 		LoadCpuRamTraceConfigFromEnv();
 		std::error_code fsErr;
 		std::filesystem::create_directories(kCpuRamTraceDirectory, fsErr);
-		sCpuRamTraceFile = fopen(kCpuRamTracePath, "w");
+		FILE* traceFile = nullptr;
+		traceFile = std::fopen(kCpuRamTracePath, "w");
+		if(traceFile) {
+			sCpuRamTraceFile = traceFile;
+		}
 		if(sCpuRamTraceFile) {
 			fprintf(sCpuRamTraceFile, "# CPU work-RAM write trace\n");
 			fprintf(sCpuRamTraceFile, "# frameRange=%u-%u addrRange=%06X-%06X maxLines=%u\n",
@@ -322,6 +331,9 @@ namespace
 			fflush(sCpuRamTraceFile);
 		}
 	}
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 	static bool CpuRamTraceShouldLog(uint32_t frame, uint32_t addr)
 	{
@@ -456,15 +468,6 @@ uint16_t GenesisNativeBackend::GetHVCounter() const
 }
 
 // ===========================================================================
-// IGenesisCoreBackend — identity
-// ===========================================================================
-
-GenesisCoreType GenesisNativeBackend::GetCoreType() const
-{
-	return GenesisCoreType::Native;
-}
-
-// ===========================================================================
 // Cart header parsing
 // ===========================================================================
 
@@ -584,41 +587,176 @@ bool GenesisNativeBackend::IsZ80BusGranted() const
 	return _z80BusAck || !_z80Reset;
 }
 
-void GenesisNativeBackend::AdvanceZ80BusArbitration(uint32_t masterClocks)
+uint8_t GenesisNativeBackend::GetOpenBusByte(uint32_t address) const
 {
-	if(masterClocks == 0u) {
-		return;
+	return (address & 1u) ? (uint8_t)_openBusValue : (uint8_t)(_openBusValue >> 8);
+}
+
+void GenesisNativeBackend::UpdateOpenBusByte(uint32_t address, uint8_t value)
+{
+	if(address & 1u) {
+		_openBusValue = (uint16_t)((_openBusValue & 0xFF00u) | value);
+	} else {
+		_openBusValue = (uint16_t)((_openBusValue & 0x00FFu) | ((uint16_t)value << 8));
+	}
+}
+
+bool GenesisNativeBackend::IsRefreshFreeAccess(BusRegion region) const
+{
+	switch(region) {
+		case BusRegion::IoRegs:
+		case BusRegion::MemoryMode:
+		case BusRegion::Z80BusReq:
+		case BusRegion::Z80Reset:
+		case BusRegion::MapperRegs:
+		case BusRegion::Tmss:
+		case BusRegion::TmssCart:
+		case BusRegion::VdpPorts:
+			return true;
+		default:
+			return false;
+	}
+}
+
+uint8_t GenesisNativeBackend::GetRefreshWaitStates(BusRegion region) const
+{
+	static constexpr uint32_t RefreshIntervalMclk = 7u * 128u;
+	static constexpr uint8_t RefreshDelayCycles = 2u;
+
+	uint64_t accessClock = GetCurrentExecutionMasterClock();
+	if(_refreshLastAccessClock == 0u || accessClock < _refreshLastAccessClock) {
+		_refreshLastAccessClock = accessClock;
+		return 0u;
 	}
 
-	// While reset is asserted, Z80 is halted and bus can be treated as granted
-	// when BUSREQ is asserted.
+	uint64_t delta = accessClock - _refreshLastAccessClock;
+	if(delta > 0u) {
+		_refreshCounterMclk = (uint32_t)std::min<uint64_t>(_refreshCounterMclk + delta, UINT32_MAX);
+	}
+	_refreshLastAccessClock = accessClock;
+
+	uint8_t waitStates = 0u;
+	if(!IsRefreshFreeAccess(region)) {
+		waitStates = (uint8_t)std::min<uint32_t>(RefreshDelayCycles * (_refreshCounterMclk / RefreshIntervalMclk), 0xFFu);
+	}
+	_refreshCounterMclk %= RefreshIntervalMclk;
+	return waitStates;
+}
+
+uint64_t GenesisNativeBackend::GetCurrentExecutionMasterClock() const
+{
+	if(_sliceMasterClocks == 0u) {
+		return _masterClock;
+	}
+	return _sliceStartMasterClock + GetCurrentSliceOffsetMclk();
+}
+
+uint32_t GenesisNativeBackend::GetRemainingZ80CycleMclk() const
+{
+	uint8_t remainder = (_sliceMasterClocks == 0u) ? _z80ClockRemainder : _z80SliceClockRemainder;
+	return remainder == 0u ? 15u : (uint32_t)(15u - remainder);
+}
+
+void GenesisNativeBackend::UpdateZ80ArbitrationState(uint64_t accessClock)
+{
 	if(!_z80Reset) {
-		_z80BusReqDelayMclk = 0;
-		_z80ResumeDelayMclk = 0;
 		_z80BusAck = _z80BusRequest;
+		_z80BusReqDelayMclk = 0u;
+		_z80ResumeDelayMclk = 0u;
 		return;
 	}
 
 	if(_z80BusRequest) {
-		_z80ResumeDelayMclk = 0;
-		if(!_z80BusAck && _z80BusReqDelayMclk > 0u) {
-			if(masterClocks >= _z80BusReqDelayMclk) {
-				_z80BusReqDelayMclk = 0;
-				_z80BusAck = true;
-			} else {
-				_z80BusReqDelayMclk -= (uint16_t)masterClocks;
-			}
+		if(!_z80BusAck && accessClock >= _z80BusReqReadyClock) {
+			_z80BusAck = true;
 		}
+		_z80ResumeDelayMclk = 0u;
+		_z80BusReqDelayMclk = _z80BusAck ? 0u : (uint16_t)std::min<uint64_t>(_z80BusReqReadyClock - accessClock, 0xFFFFu);
 	} else {
-		_z80BusReqDelayMclk = 0;
-		if(_z80ResumeDelayMclk > 0u) {
-			if(masterClocks >= _z80ResumeDelayMclk) {
-				_z80ResumeDelayMclk = 0;
+		_z80BusAck = false;
+		_z80BusReqDelayMclk = 0u;
+		_z80ResumeDelayMclk = (accessClock >= _z80ResumeReadyClock) ? 0u : (uint16_t)std::min<uint64_t>(_z80ResumeReadyClock - accessClock, 0xFFFFu);
+	}
+}
+
+void GenesisNativeBackend::SyncZ80ToSliceOffset(uint32_t offsetMclk)
+{
+	if(_sliceMasterClocks == 0u) {
+		return;
+	}
+
+	if(offsetMclk > _sliceMasterClocks) {
+		offsetMclk = _sliceMasterClocks;
+	}
+
+	auto advanceWindow = [&](uint32_t deltaMclk, bool allowRun) {
+		uint32_t accum = (uint32_t)_z80SliceClockRemainder + deltaMclk;
+		uint32_t cycles = accum / 15u;
+		_z80SliceClockRemainder = (uint8_t)(accum % 15u);
+		if(allowRun && cycles > 0u) {
+			_z80.Run((int32_t)cycles);
+		}
+		_z80SliceSyncedMclk += deltaMclk;
+	};
+
+	while(_z80SliceSyncedMclk < offsetMclk) {
+		uint64_t currentClock = _sliceStartMasterClock + _z80SliceSyncedMclk;
+		UpdateZ80ArbitrationState(currentClock);
+
+		uint64_t targetClock = _sliceStartMasterClock + offsetMclk;
+		bool allowRun = false;
+
+		if(!_z80Reset) {
+			allowRun = false;
+		} else if(_z80BusRequest) {
+			if(!_z80BusAck) {
+				allowRun = true;
+				if(_z80BusReqReadyClock < targetClock) {
+					targetClock = _z80BusReqReadyClock;
+				}
+			}
+		} else {
+			if(currentClock < _z80ResumeReadyClock) {
+				if(_z80ResumeReadyClock < targetClock) {
+					targetClock = _z80ResumeReadyClock;
+				}
 			} else {
-				_z80ResumeDelayMclk -= (uint16_t)masterClocks;
+				allowRun = true;
 			}
 		}
+
+		if(targetClock <= currentClock) {
+			UpdateZ80ArbitrationState(currentClock);
+			if(_z80SliceSyncedMclk >= offsetMclk) {
+				break;
+			}
+			if(_z80BusRequest && !_z80BusAck && currentClock >= _z80BusReqReadyClock) {
+				continue;
+			}
+			if(!_z80BusRequest && currentClock >= _z80ResumeReadyClock) {
+				continue;
+			}
+			break;
+		}
+
+		advanceWindow((uint32_t)(targetClock - currentClock), allowRun);
 	}
+
+	UpdateZ80ArbitrationState(_sliceStartMasterClock + _z80SliceSyncedMclk);
+}
+
+void GenesisNativeBackend::SyncZ80ToCurrentExecution()
+{
+	if(_sliceMasterClocks == 0u) {
+		UpdateZ80ArbitrationState(_masterClock);
+		return;
+	}
+	SyncZ80ToSliceOffset(GetCurrentSliceOffsetMclk());
+}
+
+void GenesisNativeBackend::AdvanceZ80BusArbitration(uint32_t masterClocks)
+{
+	SyncZ80ToSliceOffset(masterClocks);
 }
 
 void GenesisNativeBackend::UpdateFrameGeometry()
@@ -731,6 +869,8 @@ void GenesisNativeBackend::RunMasterClockSlice(uint32_t masterClocks)
 	_sliceMasterClocks = masterClocks;
 	_slice68kStartMclk = 0u;
 	_apuSliceSyncedMclk = 0u;
+	_z80SliceSyncedMclk = 0u;
+	_z80SliceClockRemainder = _z80ClockRemainder;
 	_execContext = ExecContext::None;
 	_masterClock += masterClocks;
 
@@ -766,20 +906,16 @@ void GenesisNativeBackend::RunMasterClockSlice(uint32_t masterClocks)
 		}
 	}
 
-	uint32_t z80Accum = (uint32_t)_z80ClockRemainder + masterClocks;
-	uint32_t z80Cycles = z80Accum / 15u;
-	_z80ClockRemainder = (uint8_t)(z80Accum % 15u);
-	if(z80Cycles > 0u && _z80Reset && !_z80BusAck && _z80ResumeDelayMclk == 0u) {
-		_execContext = ExecContext::Z80;
-		_z80.Run((int32_t)z80Cycles);
-		_execContext = ExecContext::None;
-	}
+	_execContext = ExecContext::Z80;
+	AdvanceZ80BusArbitration(masterClocks);
+	_execContext = ExecContext::None;
+	_z80ClockRemainder = _z80SliceClockRemainder;
 
 	SyncApuToSliceOffset(masterClocks);
-	AdvanceZ80BusArbitration(masterClocks);
 	_sliceMasterClocks = 0u;
 	_slice68kStartMclk = 0u;
 	_apuSliceSyncedMclk = 0u;
+	_z80SliceSyncedMclk = 0u;
 	_execContext = ExecContext::None;
 }
 
@@ -851,6 +987,10 @@ bool GenesisNativeBackend::LoadRom(const vector<uint8_t>& romData, const char* r
 	_z80BusAck = false;
 	_z80BusReqDelayMclk = 0;
 	_z80ResumeDelayMclk = 0;
+	_z80BusReqReadyClock = 0;
+	_z80ResumeReadyClock = 0;
+	_z80SliceSyncedMclk = 0;
+	_z80SliceClockRemainder = 0;
 	_ioData[0] = _ioData[1] = _ioData[2] = 0x00;
 	// data/control registers start cleared, with TH/TR pins configured as inputs.
 	_ioCtrl[0] = _ioCtrl[1] = _ioCtrl[2] = 0x00u;
@@ -871,6 +1011,9 @@ bool GenesisNativeBackend::LoadRom(const vector<uint8_t>& romData, const char* r
 	_bootStallFrames = 0;
 	_bootInjectFrames = 0;
 	_bootInjectCount = 0;
+	_openBusValue = 0xFFFFu;
+	_refreshCounterMclk = 0u;
+	_refreshLastAccessClock = 0u;
 
 	// --- Region / timing ---
 	_isPal = region && (StringUtilities::ToLower(region) == "pal");
@@ -951,10 +1094,12 @@ void GenesisNativeBackend::RunFrame()
 		uint32_t nextVInt  = _vdp.NextVIntMclk();
 		uint32_t nextHInt  = _vdp.NextHIntMclk();
 		uint32_t nextVBlank = _vdp.NextVBlankFlagMclk();
+		uint32_t nextDmaRelease = _vdp.Next68kBusDmaReleaseMclk();
 		uint32_t nextEvent = frameMclk;
 		if(nextVInt != UINT32_MAX && nextVInt < nextEvent) nextEvent = nextVInt;
 		if(nextHInt != UINT32_MAX && nextHInt < nextEvent) nextEvent = nextHInt;
 		if(nextVBlank != UINT32_MAX && nextVBlank < nextEvent) nextEvent = nextVBlank;
+		if(nextDmaRelease != UINT32_MAX && nextDmaRelease < nextEvent) nextEvent = nextDmaRelease;
 		if(_z80Reset) {
 			uint32_t nextBusArb = UINT32_MAX;
 			if(_z80BusRequest && !_z80BusAck && _z80BusReqDelayMclk > 0u) {
@@ -1091,6 +1236,7 @@ const uint8_t* GenesisNativeBackend::GetSaveEeprom(uint32_t& size)
 
 bool     GenesisNativeBackend::IsPAL()           const { return _isPal; }
 double   GenesisNativeBackend::GetFps()           const { return _isPal ? 49.701460 : 59.922743; }
+uint32_t GenesisNativeBackend::GetFrameCount()    const { return _vdp.GetFrameCount(); }
 uint64_t GenesisNativeBackend::GetMasterClock()   const
 {
 	if(_execContext != ExecContext::None && _sliceMasterClocks > 0u) {
@@ -1455,24 +1601,29 @@ uint8_t GenesisNativeBackend::CpuBusWaitStates(uint32_t address, bool isWrite) c
 	if(_cpuTestBusEnabled) {
 		return 0u;
 	}
+	BusRegion region = DecodeBusRegion(address & 0x00FFFFFFu);
 	// 68K->VDP DMA freezes the 68K bus until DMA progress frees it again.
 	// Apply a strong per-access penalty so the CPU effectively stalls while
 	// RunMasterClockSlice() advances DMA at the start of each slice.
 	if(_vdp.Is68kBusDmaActive()) {
 		return 0xFFu;
 	}
-	(void)isWrite;
-	switch(DecodeBusRegion(address & 0x00FFFFFFu)) {
+	uint8_t refreshWait = GetRefreshWaitStates(region);
+	uint8_t waitStates = 0u;
+	switch(region) {
 		case BusRegion::Z80Space:
 			// Access to Z80 address space incurs a wait state on the 68K bus.
-			return 1u;
+			waitStates = 1u;
+			break;
 		case BusRegion::VdpPorts:
-			// During V-blank or display-off the VDP bus is free; minimal penalty.
-			// During active display the 68K must wait for an external access slot.
-			return _vdp.IsBlanking() ? 1u : 4u;
+			waitStates = _vdp.GetPortWaitStates(address, isWrite);
+			break;
 		default:
-			return 0u;
+			waitStates = 0u;
+			break;
 	}
+	uint16_t totalWait = (uint16_t)waitStates + refreshWait;
+	return (uint8_t)std::min<uint16_t>(totalWait, 0xFFu);
 }
 
 uint8_t GenesisNativeBackend::ReadBusForZ80(uint32_t physAddr)
@@ -1560,13 +1711,21 @@ void GenesisNativeBackend::EepromWrite(uint32_t address, uint8_t value)
 uint8_t GenesisNativeBackend::ReadCartBus(uint32_t address)
 {
 	address &= 0x00FFFFFFu;
+	auto returnRead = [&](uint8_t value) -> uint8_t {
+		UpdateOpenBusByte(address, value);
+		return value;
+	};
+	auto returnOpenBus = [&]() -> uint8_t {
+		return returnRead(GetOpenBusByte(address));
+	};
+
 	switch(DecodeBusRegion(address)) {
 		case BusRegion::Cart: {
 			// SRAM / EEPROM window takes priority if enabled.
 			if(_hasEeprom && _ramEnable &&
 			   address >= _eepromBusStart && address <= _eepromBusEnd)
 			{
-				return EepromRead(address);
+				return returnRead(EepromRead(address));
 			}
 
 			if(_sramMode != SramMode::None && _ramEnable &&
@@ -1576,17 +1735,17 @@ uint8_t GenesisNativeBackend::ReadCartBus(uint32_t address)
 				uint32_t off = address - _sramStart;
 				switch(_sramMode) {
 					case SramMode::Word:
-						return (off < _saveRam.size()) ? _saveRam[off] : 0xFFu;
+						return returnRead((off < _saveRam.size()) ? _saveRam[off] : GetOpenBusByte(address));
 					case SramMode::UpperByte:
 						// Upper byte at even addresses; odd addresses open-bus.
 						if((address & 1u) == 0u && (off >> 1) < _saveRam.size())
-							return _saveRam[off >> 1];
-						return 0xFFu;
+							return returnRead(_saveRam[off >> 1]);
+						return returnOpenBus();
 					case SramMode::LowerByte:
 						// Lower byte at odd addresses; even addresses open-bus.
 						if((address & 1u) == 1u && (off >> 1) < _saveRam.size())
-							return _saveRam[off >> 1];
-						return 0xFFu;
+							return returnRead(_saveRam[off >> 1]);
+						return returnOpenBus();
 					default: break;
 				}
 			}
@@ -1594,24 +1753,25 @@ uint8_t GenesisNativeBackend::ReadCartBus(uint32_t address)
 			// ROM — apply SSF2 bank table.
 			uint32_t window   = address >> 19; // 512 KB window index (0-7)
 			uint32_t bank     = _romBank[window];
-			if(bank == 0xFFu) return 0xFFu;
+			if(bank == 0xFFu) return returnOpenBus();
 			uint32_t physAddr = (static_cast<uint32_t>(bank) << 19) | (address & 0x7FFFFu);
-			return (physAddr < _rom.size()) ? _rom[physAddr] : 0xFFu;
+			return returnRead((physAddr < _rom.size()) ? _rom[physAddr] : GetOpenBusByte(address));
 		}
 
 		case BusRegion::CartOverflow:
 			// $400000-$7FFFFF is reserved in the documented map.
-			return 0xFFu;
+			return returnOpenBus();
 
 		case BusRegion::Z80Space:
+			SyncZ80ToCurrentExecution();
 			if((address & 0xFFFFFCu) == 0xA04000u) {
 				// YM2612 register interface uses the standard 4-byte layout:
 				// $A04000=addr0, $A04001=data0, $A04002=addr1, $A04003=data1.
 				uint8_t part = (uint8_t)((address >> 1) & 1u);
 				if((address & 1u) == 0u) {
-					return _apu.ReadYmStatus(part);
+					return returnRead(_apu.ReadYmStatus(part));
 				}
-				return 0x00u;
+				return returnRead(0x00u);
 			}
 			// 68K can access Z80 bus when:
 			//   1. BUSREQ is asserted and Z80 has released the bus, or
@@ -1619,69 +1779,70 @@ uint8_t GenesisNativeBackend::ReadCartBus(uint32_t address)
 			// The latter is the common startup pattern: write Z80 program with
 			// reset held, then release reset.
 			if(IsZ80BusGranted()) {
-				return _z80.BusRead((uint16_t)(address & 0xFFFFu));
+				return returnRead(_z80.BusRead((uint16_t)(address & 0xFFFFu)));
 			}
-			return 0xFFu;
+			return returnOpenBus();
 
 		case BusRegion::IoRegs:
 			// I/O device registers are on odd addresses ($A10001,$03,...,$1F).
 			// Even addresses are effectively open bus for this block.
-			return (address & 1u) ? ReadIoRegister((address >> 1) & 0x0Fu) : 0x00u;
+			return (address & 1u) ? returnRead(ReadIoRegister((address >> 1) & 0x0Fu)) : returnOpenBus();
 
 		case BusRegion::MemoryMode:
 			// $A11000 memory mode register (32X/MCD path). Not modeled here.
-			return 0x00u;
+			return returnOpenBus();
 
 			case BusRegion::Z80BusReq: {
+				SyncZ80ToCurrentExecution();
 				// Some software polls $A11101 with BTST while others read $A11100.
 				// Mirror bit0 on both lanes for compatibility.
 				//   bit0=0 => 68K owns Z80 bus (BUSACK asserted)
 				//   bit0=1 => Z80 bus not granted
 				uint8_t status = (uint8_t)(0xFEu | (_z80BusAck ? 0x00u : 0x01u));
-				return status;
+				return returnRead(status);
 			}
 
 		case BusRegion::Z80Reset:
 			// Mirror bit0 on both lanes (same rationale as Z80BusReq above).
-			return _z80Reset ? 0x01u : 0x00u;
+			return returnRead(_z80Reset ? 0x01u : 0x00u);
 
 		case BusRegion::MapperRegs: {
 			uint32_t reg = address & 0xFFu;
 			// $A130F1 (odd) — SRAM access status; $A130F0 (even) returns 0
 			if(reg == 0xF1u) {
-				return (uint8_t)((_ramEnable ? 0x01u : 0x00u) | (_ramWritable ? 0x00u : 0x02u));
+				return returnRead((uint8_t)((_ramEnable ? 0x01u : 0x00u) | (_ramWritable ? 0x00u : 0x02u)));
 			}
-			if(reg == 0xF0u) return 0x00u;
+			if(reg == 0xF0u) return returnOpenBus();
 			// $A130F3,$A130F5,...,$A130FF (odd) — SSF2 bank registers (windows 1–7)
 			if(reg >= 0xF3u && reg <= 0xFFu && (reg & 1u) == 1u) {
 				uint32_t window = (reg - 0xF3u) / 2u + 1u;
-				return window < 8u ? _romBank[window] : 0x00u;
+				return returnRead(window < 8u ? _romBank[window] : GetOpenBusByte(address));
 			}
-			return 0x00u;
+			return returnOpenBus();
 		}
 
 		case BusRegion::Tmss:
 			// $A14000–$A14003: TMSS unlock registers — return open-bus on reads.
-			return 0xFFu;
+			return returnOpenBus();
 
 		case BusRegion::TmssCart:
 			// $A14101 TMSS/cartridge register — not modeled, return open bus.
-			return 0xFFu;
+			return returnOpenBus();
 
 		case BusRegion::VdpPorts: {
 			uint32_t regGroup = address & 0x1Cu;
 			// PSG window ($C00010-$C00017) is write-only.
 			if(regGroup == 0x10u || regGroup == 0x14u) {
-				return 0xFFu;
+				return returnOpenBus();
 			}
-			return _vdp.ReadByte(address);
+			return returnRead(_vdp.ReadByte(address));
 		}
 
 		case BusRegion::WorkRam:
-			return _workRam[address & 0xFFFFu];
+			return returnRead(_workRam[address & 0xFFFFu]);
 
 		default:
-			return 0xFFu;
+			return returnOpenBus();
 	}
 }
 
@@ -1734,24 +1895,26 @@ void GenesisNativeBackend::WriteCartBus(uint32_t address, uint8_t value)
 			// Games typically use word writes (#$0100 / #$0000); only the high byte
 			// should affect the latch so the trailing low-byte write does not undo it.
 			if((address & 1u) == 0u) {
+				SyncZ80ToCurrentExecution();
+				uint64_t accessClock = GetCurrentExecutionMasterClock();
 				bool request = (value & 0x01u) != 0;
 				if(request) {
 					_z80BusRequest = true;
-					_z80ResumeDelayMclk = 0;
+					_z80ResumeReadyClock = 0u;
 					if(_z80Reset) {
-						if(!_z80BusAck && _z80BusReqDelayMclk == 0u) {
-							_z80BusReqDelayMclk = Z80BusReqAckDelayMclk;
-						}
+						_z80BusAck = false;
+						_z80BusReqReadyClock = accessClock + GetRemainingZ80CycleMclk();
 					} else {
 						_z80BusAck = true;
-						_z80BusReqDelayMclk = 0;
+						_z80BusReqReadyClock = accessClock;
 					}
 				} else {
 					_z80BusRequest = false;
 					_z80BusAck = false;
-					_z80BusReqDelayMclk = 0;
-					_z80ResumeDelayMclk = _z80Reset ? Z80BusResumeDelayMclk : 0u;
+					_z80BusReqReadyClock = 0u;
+					_z80ResumeReadyClock = _z80Reset ? (accessClock + Z80BusResumeDelayMclk) : accessClock;
 				}
+				UpdateZ80ArbitrationState(accessClock);
 				MD_TRACE_BUS("A11100 write"
 					" req=" + std::to_string(request ? 1 : 0) +
 					" ack=" + std::to_string(_z80BusAck ? 1 : 0) +
@@ -1764,6 +1927,8 @@ void GenesisNativeBackend::WriteCartBus(uint32_t address, uint8_t value)
 		case BusRegion::Z80Reset:
 			// Same byte-lane behavior as $A11100.
 			if((address & 1u) == 0u) {
+				SyncZ80ToCurrentExecution();
+				uint64_t accessClock = GetCurrentExecutionMasterClock();
 				bool newReset = (value & 0x01u) != 0;
 				// On /RESET release, restart Z80 state (and APU core state in this
 				// simplified model). On /RESET assert, keep the CPU halted.
@@ -1773,19 +1938,20 @@ void GenesisNativeBackend::WriteCartBus(uint32_t address, uint8_t value)
 				}
 				_z80Reset = newReset;
 				if(!_z80Reset) {
-					_z80BusReqDelayMclk = 0;
-					_z80ResumeDelayMclk = 0;
 					_z80BusAck = _z80BusRequest;
+					_z80BusReqReadyClock = accessClock;
+					_z80ResumeReadyClock = 0u;
 				} else if(_z80BusRequest) {
 					_z80BusAck = false;
-					_z80BusReqDelayMclk = Z80BusReqAckDelayMclk;
-					_z80ResumeDelayMclk = 0;
+					_z80BusReqReadyClock = accessClock + GetRemainingZ80CycleMclk();
+					_z80ResumeReadyClock = 0u;
 				}
 				else {
 					_z80BusAck = false;
-					_z80BusReqDelayMclk = 0;
-					_z80ResumeDelayMclk = 0;
+					_z80BusReqReadyClock = 0u;
+					_z80ResumeReadyClock = accessClock;
 				}
+				UpdateZ80ArbitrationState(accessClock);
 				MD_TRACE_BUS("A11200 write"
 					" reset=" + std::to_string(_z80Reset ? 1 : 0) +
 					" req=" + std::to_string(_z80BusRequest ? 1 : 0) +
@@ -1811,6 +1977,7 @@ void GenesisNativeBackend::WriteCartBus(uint32_t address, uint8_t value)
 		}
 
 				case BusRegion::Z80Space:
+					SyncZ80ToCurrentExecution();
 					if((address & 0xFFFFFCu) == 0xA04000u) {
 						SyncApuToCurrentExecution();
 						uint8_t part = (uint8_t)((address >> 1) & 1u);
@@ -1863,7 +2030,7 @@ void GenesisNativeBackend::WriteCartBus(uint32_t address, uint8_t value)
 }
 
 // ===========================================================================
-// IGenesisCoreBackend — bus read / write (for debugger)
+// Bus read / write (for debugger)
 // ===========================================================================
 
 uint8_t GenesisNativeBackend::ReadMemory(MemoryType type, uint32_t address)
@@ -1996,6 +2163,9 @@ bool GenesisNativeBackend::SaveState(vector<uint8_t>& outState)
 	AppendValue(outState, _bootStallFrames);
 	AppendValue(outState, _bootInjectFrames);
 	AppendValue(outState, _bootInjectCount);
+	AppendValue(outState, _openBusValue);
+	AppendValue(outState, _refreshCounterMclk);
+	AppendValue(outState, _refreshLastAccessClock);
 
 	// EEPROM scalar state
 	AppendValue(outState, _hasEeprom);
@@ -2077,6 +2247,9 @@ bool GenesisNativeBackend::LoadState(const vector<uint8_t>& state)
 	if(!ReadValue(state, offset, _bootStallFrames)) return false;
 	if(!ReadValue(state, offset, _bootInjectFrames)) return false;
 	if(!ReadValue(state, offset, _bootInjectCount)) return false;
+	if(!ReadValue(state, offset, _openBusValue)) return false;
+	if(!ReadValue(state, offset, _refreshCounterMclk)) return false;
+	if(!ReadValue(state, offset, _refreshLastAccessClock)) return false;
 
 	// EEPROM scalar state
 	if(!ReadValue(state, offset, _hasEeprom))      return false;
@@ -2115,7 +2288,12 @@ bool GenesisNativeBackend::LoadState(const vector<uint8_t>& state)
 	_sliceMasterClocks = 0u;
 	_slice68kStartMclk = 0u;
 	_apuSliceSyncedMclk = 0u;
+	_z80SliceSyncedMclk = 0u;
+	_z80SliceClockRemainder = _z80ClockRemainder;
+	_z80BusReqReadyClock = _masterClock + _z80BusReqDelayMclk;
+	_z80ResumeReadyClock = _masterClock + _z80ResumeDelayMclk;
 	_execContext = ExecContext::None;
+	UpdateZ80ArbitrationState(_masterClock);
 
 	_cpu.GetState() = _cpuState;
 	_cpu.SetUSP(_cpuUsp);

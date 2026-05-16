@@ -140,6 +140,12 @@ extern "C" {
 		return _emu->LoadRom((VirtualFile)filename, patchFile ? (VirtualFile)patchFile : VirtualFile());
 	}
 
+	DllExport bool __stdcall LoadRomWithConsoleType(char* filename, char* patchFile, ConsoleType consoleType)
+	{
+		_emu->GetGameClient()->Disconnect();
+		return _emu->LoadRom((VirtualFile)filename, patchFile ? (VirtualFile)patchFile : VirtualFile(), true, false, consoleType);
+	}
+
 	DllExport void __stdcall AddKnownGameFolder(char* folder) { FolderUtilities::AddKnownGameFolder(folder); }
 
 	DllExport void __stdcall GetRomInfo(InteropRomInfo &info)

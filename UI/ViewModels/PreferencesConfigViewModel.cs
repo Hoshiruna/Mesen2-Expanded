@@ -3,10 +3,13 @@ using Avalonia.Controls;
 using Avalonia.Styling;
 using Mesen.Config;
 using Mesen.Config.Shortcuts;
+using Mesen.Localization;
 using Mesen.Utilities;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Mesen.ViewModels
 {
@@ -19,6 +22,8 @@ namespace Mesen.ViewModels
 		public bool IsOsx { get; }
 
 		public List<ShortcutKeyInfo> ShortcutKeys { get; set; }
+		public List<LanguageOption> AvailableLanguages { get; }
+		[Reactive] public LanguageOption? SelectedLanguage { get; set; }
 
 		public PreferencesConfigViewModel()
 		{
@@ -27,6 +32,13 @@ namespace Mesen.ViewModels
 
 			IsOsx = OperatingSystem.IsMacOS();
 			DataStorageLocation = ConfigManager.HomeFolder;
+			AvailableLanguages = ResourceHelper.GetAvailableLanguages();
+			SelectedLanguage = AvailableLanguages.FirstOrDefault(language => language.Code == Config.Language) ?? AvailableLanguages.FirstOrDefault();
+			AddDisposable(this.WhenAnyValue(x => x.SelectedLanguage).Subscribe(language => {
+				if(language != null) {
+					Config.Language = language.Code;
+				}
+			}));
 
 			EmulatorShortcut[] displayOrder = new EmulatorShortcut[] {
 				EmulatorShortcut.FastForward,

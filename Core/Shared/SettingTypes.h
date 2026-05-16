@@ -778,18 +778,12 @@ struct WsConfig
 	uint32_t Channel5Vol = 100;
 };
 
-enum class GenesisCoreType
-{
-	Native = 0
-};
-
 struct GenesisConfig
 {
 	ControllerConfig Port1;
 	ControllerConfig Port2;
 
 	ConsoleRegion Region = ConsoleRegion::Auto;
-	GenesisCoreType CoreType = GenesisCoreType::Native;
 };
 
 struct AudioPlayerConfig

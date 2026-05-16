@@ -507,6 +507,9 @@
     <Compile Update="Windows\SelectRomWindow.axaml.cs">
       <DependentUpon>SelectRomWindow.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Windows\SelectBinFileConsoleTypeWindow.axaml.cs">
+      <DependentUpon>SelectBinFileConsoleTypeWindow.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Windows\NetplayConnectWindow.axaml.cs">
       <DependentUpon>NetplayConnectWindow.axaml</DependentUpon>
     </Compile>
@@ -641,7 +644,7 @@
     <EmbeddedResource Include="Debugger\Utilities\LuaScripts\NesPianoRoll.lua" />
     <EmbeddedResource Include="Debugger\Utilities\LuaScripts\ReverseMode.lua" />
     <EmbeddedResource Include="Dependencies.zip" />
-    <EmbeddedResource Include="Localization\resources.en.xml" WithCulture="false" Type="Non-Resx" />
+    <EmbeddedResource Include="Localization\resources.*.xml" WithCulture="false" Type="Non-Resx" />
     <EmbeddedResource Include="Utilities\DipSwitchDefinitions.xml" />
   </ItemGroup>
   <ItemGroup>

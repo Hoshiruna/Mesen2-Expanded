@@ -820,6 +820,17 @@
 			<Control ID="btnOK">OK</Control>
 			<Control ID="btnCancel">Cancel</Control>
 		</Form>
+		<Form ID="McpServerWindow">
+			<Control ID="wndTitle">MCP Server</Control>
+			<Control ID="lblIntro">Start the local HTTP MCP bridge on demand. The bridge binds to localhost and stays attached to this emulator session.</Control>
+			<Control ID="lblPort">Port:</Control>
+			<Control ID="btnCopyUrl">Copy URL</Control>
+			<Control ID="lblUrl">URL:</Control>
+			<Control ID="lblStatus">Status:</Control>
+			<Control ID="btnStart">Start</Control>
+			<Control ID="btnStop">Stop</Control>
+			<Control ID="btnClose">Close</Control>
+		</Form>
 		<Form ID="CheatListWindow">
 			<Control ID="wndTitle">Cheats</Control>
 			<Control ID="tabCheats">Cheats</Control>
@@ -971,6 +982,15 @@
 		<Form ID="SelectRomWindow">
 			<Control ID="wndTitle">Select rom...</Control>
 			<Control ID="lblSearch">Search:</Control>
+			<Control ID="btnOK">OK</Control>
+			<Control ID="btnCancel">Cancel</Control>
+		</Form>
+
+		<Form ID="SelectBinFileConsoleTypeWindow">
+			<Control ID="wndTitle">Select Console Type</Control>
+			<Control ID="lblPrompt">Select the Console Type to open for this .bin file.</Control>
+			<Control ID="lblConsoleType">Console Type:</Control>
+			<Control ID="chkRememberSelection">Remember this selection for this .bin file</Control>
 			<Control ID="btnOK">OK</Control>
 			<Control ID="btnCancel">Cancel</Control>
 		</Form>
@@ -2564,10 +2584,6 @@ E
 			<Value ID="Sms2">SMS 2</Value>
 		</Enum>
 
-		<Enum ID="GenesisCoreType">
-			<Value ID="Native">Native</Value>
-		</Enum>
-
 		<Enum ID="GbaSaveType">
 			<Value ID="AutoDetect">Auto-detect</Value>
 			<Value ID="None">None</Value>
@@ -3531,7 +3547,7 @@ E
 			<Value ID="OpenSpriteViewer">Sprite Viewer</Value>
 			<Value ID="OpenPaletteViewer">Palette Viewer</Value>
 			<Value ID="OpenDebugSettings">Settings</Value>
-			<Value ID="OpenMcpServer">MCP Server Info</Value>
+			<Value ID="OpenMcpServer">MCP Server</Value>
 
 			<Value ID="Tools">Tools</Value>
 			<Value ID="HistoryViewer">History Viewer</Value>

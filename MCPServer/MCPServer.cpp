@@ -40,6 +40,94 @@
 static const char* PIPE_NAME = "\\\\.\\pipe\\MesenDebug";
 static int g_port = 51234;
 static bool g_stdioMode = false;
+static DWORD g_parentPid = 0;
+static HANDLE g_singletonMutex = nullptr;
+static HANDLE g_parentProcess = nullptr;
+static HANDLE g_parentWatcherThread = nullptr;
+
+static std::string GetExecutablePath()
+{
+	char path[MAX_PATH] = {};
+	DWORD len = GetModuleFileNameA(nullptr, path, MAX_PATH);
+	if(len == 0 || len >= MAX_PATH) {
+		return "path\\to\\MCPServer.exe";
+	}
+
+	return std::string(path, len);
+}
+
+static DWORD WINAPI ParentWatcherThreadProc(LPVOID)
+{
+	if(g_parentProcess != nullptr) {
+		WaitForSingleObject(g_parentProcess, INFINITE);
+		ExitProcess(0);
+	}
+
+	return 0;
+}
+
+static bool AcquireSingletonMutex()
+{
+	static const char* mutexName = "Local\\MesenMcpServerSingleton";
+
+	g_singletonMutex = CreateMutexA(nullptr, FALSE, mutexName);
+	if(g_singletonMutex == nullptr) {
+		fprintf(stderr, "[MCPServer] Failed to create singleton mutex.\n");
+		return false;
+	}
+
+	if(GetLastError() == ERROR_ALREADY_EXISTS) {
+		fprintf(stderr, "[MCPServer] Another MCP server process is already running.\n");
+		CloseHandle(g_singletonMutex);
+		g_singletonMutex = nullptr;
+		return false;
+	}
+
+	return true;
+}
+
+static void ReleaseSingletonMutex()
+{
+	if(g_singletonMutex != nullptr) {
+		CloseHandle(g_singletonMutex);
+		g_singletonMutex = nullptr;
+	}
+}
+
+static void StopParentWatcher()
+{
+	if(g_parentWatcherThread != nullptr) {
+		CloseHandle(g_parentWatcherThread);
+		g_parentWatcherThread = nullptr;
+	}
+
+	if(g_parentProcess != nullptr) {
+		CloseHandle(g_parentProcess);
+		g_parentProcess = nullptr;
+	}
+}
+
+static bool StartParentWatcher()
+{
+	if(g_parentPid == 0) {
+		return true;
+	}
+
+	g_parentProcess = OpenProcess(SYNCHRONIZE, FALSE, g_parentPid);
+	if(g_parentProcess == nullptr) {
+		fprintf(stderr, "[MCPServer] Failed to open parent process %lu.\n", static_cast<unsigned long>(g_parentPid));
+		return false;
+	}
+
+	g_parentWatcherThread = CreateThread(nullptr, 0, ParentWatcherThreadProc, nullptr, 0, nullptr);
+	if(g_parentWatcherThread == nullptr) {
+		fprintf(stderr, "[MCPServer] Failed to start parent watcher thread.\n");
+		StopParentWatcher();
+		return false;
+	}
+
+	return true;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Named-pipe client
@@ -353,14 +441,31 @@ static void HandleClient(SOCKET client)
 // ─────────────────────────────────────────────────────────────────────────────
 int main(int argc, char* argv[])
 {
-	if(argc >= 2 && std::string(argv[1]) == "--stdio") {
-		g_stdioMode = true;
-	} else if(argc >= 2) {
-		g_port = std::atoi(argv[1]);
+	for(int i = 1; i < argc; i++) {
+		std::string arg = argv[i];
+		if(arg == "--stdio") {
+			g_stdioMode = true;
+		} else if(arg == "--parent-pid" && i + 1 < argc) {
+			g_parentPid = static_cast<DWORD>(std::strtoul(argv[++i], nullptr, 10));
+		} else {
+			g_port = std::atoi(argv[i]);
+		}
+	}
+
+	if(!AcquireSingletonMutex()) {
+		return 1;
+	}
+
+	if(!StartParentWatcher()) {
+		ReleaseSingletonMutex();
+		return 1;
 	}
 
 	if(g_stdioMode) {
-		return RunStdio();
+		int result = RunStdio();
+		StopParentWatcher();
+		ReleaseSingletonMutex();
+		return result;
 	}
 
 	printf("[MCPServer] Mesen2 MCP Server\n");
@@ -369,6 +474,8 @@ int main(int argc, char* argv[])
 	WSADATA wsa{};
 	if(const int wsaResult = WSAStartup(MAKEWORD(2, 2), &wsa); wsaResult != 0) {
 		fprintf(stderr, "[MCPServer] WSAStartup() failed: %d\n", wsaResult);
+		StopParentWatcher();
+		ReleaseSingletonMutex();
 		return 1;
 	}
 	InitializeCriticalSection(&g_pipeLock);
@@ -381,6 +488,8 @@ int main(int argc, char* argv[])
 	SOCKET srv = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if(srv == INVALID_SOCKET) {
 		fprintf(stderr, "[MCPServer] socket() failed: %d\n", WSAGetLastError());
+		StopParentWatcher();
+		ReleaseSingletonMutex();
 		return 1;
 	}
 
@@ -394,6 +503,11 @@ int main(int argc, char* argv[])
 
 	if(bind(srv, (sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR) {
 		fprintf(stderr, "[MCPServer] bind() failed: %d\n", WSAGetLastError());
+		closesocket(srv);
+		WSACleanup();
+		DeleteCriticalSection(&g_pipeLock);
+		StopParentWatcher();
+		ReleaseSingletonMutex();
 		return 1;
 	}
 	listen(srv, SOMAXCONN);
@@ -401,6 +515,8 @@ int main(int argc, char* argv[])
 	printf("[MCPServer] Listening on http://127.0.0.1:%d/mcp/\n", g_port);
 	printf("[MCPServer] To connect from Claude Code:\n");
 	printf("  claude mcp add --transport http mesen-debugger http://127.0.0.1:%d/mcp/\n", g_port);
+	printf("[MCPServer] For Codex or other stdio-based clients, use the standalone bridge command instead:\n");
+	printf("  codex mcp add mesen-debugger -- \"%s\" --stdio\n", GetExecutablePath().c_str());
 
 	while(true) {
 		SOCKET client = accept(srv, nullptr, nullptr);
@@ -411,5 +527,7 @@ int main(int argc, char* argv[])
 	closesocket(srv);
 	WSACleanup();
 	DeleteCriticalSection(&g_pipeLock);
+	StopParentWatcher();
+	ReleaseSingletonMutex();
 	return 0;
 }

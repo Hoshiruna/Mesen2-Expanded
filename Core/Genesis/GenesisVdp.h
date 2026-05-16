@@ -67,6 +67,8 @@ private:
 
 	// Read-ahead buffer — primed whenever a read address/code is set
 	uint16_t _readBuf = 0;
+	bool     _readPending = false;
+	uint64_t _readReadyClock = 0;
 
 	// Byte-write accumulator — holds the high byte of a pending word write
 	// to the data or control port.  Separate from _readBuf to avoid aliasing.
@@ -113,6 +115,7 @@ private:
 	uint16_t _dmaFillVal = 0;    // fill word (written via data port)
 	bool     _dmaFillPend = false; // fill word received, waiting to execute
 	uint8_t  _dmaBusStartDelayMclk = 0; // startup latency before first 68K DMA word
+	uint64_t _dmaBusReadyClock = 0; // absolute time when Bus68k DMA may source its first word
 	uint8_t  _dmaBusMclkRemainder = 0; // leftover master clocks for 68K DMA pacing
 	uint8_t  _dmaVdpMclkRemainder = 0; // leftover master clocks for internal VDP DMA pacing
 
@@ -125,6 +128,7 @@ private:
 		uint16_t addr    = 0;   // latched _addrReg at write time
 		uint8_t  code    = 0;   // latched _codeReg at write time (CD3:CD0)
 		uint8_t  pad     = 0;
+		uint64_t readyClock = 0;
 	};
 	FifoEntry _fifo[4]   = {};
 	uint8_t   _fifoRead  = 0;  // ring read index
@@ -157,6 +161,7 @@ private:
 	// Master-clock timeline (event-driven scheduler)
 	// -----------------------------------------------------------------------
 	uint32_t  _mclkPos        = 0;      // master-clock position within current frame
+	uint64_t  _frameStartMasterClock = 0;
 	bool      _lineBegun      = false;  // BeginLine called for _mclkPos/MCLKS_PER_LINE
 	bool      _vintFiredFrame = false;  // V-int already fired this frame
 	uint32_t  _vintSetMclk    = UINT32_MAX; // mclk at which V-int pending should go active
@@ -180,6 +185,7 @@ public:
 		ReadSpriteX,      // read sprite X position / build draw list
 		RenderMap3,       // render col_1 of plane B into _tmpBufB
 		RenderMapOutput,  // render col_2 of B, composite 16px, advance bufs
+		SpriteRenderOnly, // render_sprite_cells without advancing SAT scan
 		SpriteRender,     // render_sprite_cells + scan_sprite_table
 		HScrollLoad,      // load hscroll_a/b from HSCROLL table
 		Refresh,          // DRAM refresh (no external slot / no DMA src)
@@ -239,7 +245,7 @@ private:
 
 	struct SpriteInfo {
 		uint16_t index = 0;  // SAT entry index
-		int16_t  y     = 0;  // screen Y position
+		uint16_t y     = 0;  // raw SAT Y position (9/10-bit counter space)
 		uint8_t  size  = 0;  // SAT raw size nibble: HHVV, each field encoded as (cells-1)
 	};
 
@@ -264,21 +270,27 @@ private:
 	uint8_t     _sprRenderIdx  = 0;   // current draw entry for SpriteRender
 	uint8_t     _sprRenderCell = 0;   // current cell within sprite being rendered
 	uint8_t     _sprScanLink   = 0;   // current SAT link for scan_sprite_table
+	uint16_t    _sprSetupTargetLine = 0; // line currently being built by ReadSpriteX/SpriteRender
+	uint16_t    _sprScanTargetLine  = 0; // future line currently being scanned into _spriteInfoList
 	bool        _sprScanDone   = false;
 	bool        _sprCanMask    = false; // non-zero X sprite seen (carries across lines, NOT reset per line)
 	bool        _sprMasked     = false; // X=0 mask active
+	bool        _sprRenderFullSpan = false; // ClearLinebuf late phase walks all sprite slots, including stale phantom slots
+	bool        _sprPipelinePrimed = false;
 	uint8_t     _maxSpritesLine = MAX_SPRITES_LINE_H40;
 	uint8_t     _maxDrawsLine   = MAX_DRAWS_H40;
 	uint8_t     _sprCellBudget  = 40;   // max sprite cells processed this line (H40=40, H32=32)
+	uint16_t    _currentHSlot   = 0xFFFFu; // currently dispatched slot hcounter (trace attribution only)
 
-	// SAT cache: snapshot of the sprite attribute table taken at EndLine().
-	// BeginLine()'s batch sprite scan reads from this cache so that the scan
-	// sees the SAT state from the *previous* line (before the 68K ran the
-	// current line's cycles), matching hardware timing for mid-frame SAT
-	// rewrites used by sprite-multiplexing games.
+	// SAT cache used by the slot-driven sprite scan. It is seeded from VRAM and
+	// mirrored by VRAM writes so SAT updates are visible at BlastEm-compatible
+	// timing without making the scan read unrelated live VRAM state.
 	static constexpr uint16_t SAT_CACHE_SIZE = 80u * 8u; // 80 entries × 8 bytes
 	uint8_t  _satCache[SAT_CACHE_SIZE] = {};
 	void CacheSpriteTable();
+	void UpdateSatCacheByte(uint16_t byteAddr, uint8_t value);
+	void WriteVramByte(uint16_t byteAddr, uint8_t value);
+	void WriteVramWord(uint16_t byteAddr, uint16_t value);
 
 	// --- Slot operation methods ---
 	void DispatchSlot(const SlotDescriptor& slot);
@@ -294,9 +306,19 @@ private:
 	void SlotExternalSlot();
 	void SlotClearLinebuf();
 	void SlotHScrollLoad();
+	void ResetActiveLineSlotState(uint16_t line);
+	void BeginNextLineSpriteSetup(uint16_t line);
+	void LoadLineHScroll(uint16_t line);
+	uint16_t WrapScanline(uint32_t line) const;
+	void PrimeSpriteScanForLine(uint16_t line);
+	void PrimeSpriteDrawListForLine(uint16_t line);
+	void PrimeSpriteLinebufFromDrawList();
+	void BootstrapSpritePipeline(uint16_t line);
+	uint16_t GetSpriteSetupTraceLine() const;
+	void GetSpriteRenderTracePosition(uint32_t& frame, uint16_t& line) const;
 	void FifoDrainOne();       // drain one FIFO entry (execute the write)
 	void FifoUpdateStatus();   // update status bits 9:8 from _fifoCount
-	void RunDmaSrc();          // feed one Bus68k DMA word into FIFO (called at external slots)
+	void RunDmaSrc(uint64_t accessClock); // feed one Bus68k DMA word into FIFO
 	void FlushCompositeBuf(uint16_t line);
 
 	// -----------------------------------------------------------------------
@@ -322,9 +344,17 @@ private:
 	// Control port helpers
 	void     AdvanceAddr();
 	void     PrimeBuf();
+	void     SyncPortAccessState(uint64_t accessClock);
+	void     StartReadPipeline(uint64_t accessClock);
 	void     HandleControlWrite(uint16_t word);
 	void     WriteReg(uint8_t r, uint8_t val);
 	void     BeginOperation();   // called after address/code are finalized
+	uint64_t GetCurrentVdpClock() const;
+	uint64_t GetScheduledAccessClock() const;
+	uint8_t  GetEffectiveFifoCount(uint64_t accessClock) const;
+	uint64_t GetNextReadyFifoClock(uint64_t accessClock) const;
+	uint32_t GetPortLatencyMclk() const;
+	bool     IsBlankingAtClock(uint64_t accessClock) const;
 
 	// DMA
 	void     ExecDma();
@@ -333,28 +363,12 @@ private:
 	void     ExecDmaCopy(uint32_t maxWords);
 	void     AdvanceDmaAddr();
 	void     StartDmaIfArmed();
+	uint16_t ReadDmaBusWord(uint32_t srcByteAddr) const;
 
 	// -----------------------------------------------------------------------
 	// Rendering
 	// -----------------------------------------------------------------------
-	void RenderScanline(uint16_t line);
 	void RenderBackdrop(uint16_t line);
-
-	// Per-pixel encoding:
-	//   bit 7   : priority flag
-	//   bits 6:4: palette (0-3) — note only 2 bits needed, stored in 4:3
-	//   bits 3:0: color index within palette (0 = transparent for planes/sprites)
-	// Full CRAM index = ((pix >> 4) & 0xF) * 16 + (pix & 0xF)
-	//   but palette is 2 bits (bits 5:4) and color index 4 bits (3:0), so:
-	//   CRAM index = ((pix >> 4) & 3) * 16 + (pix & 0xF)
-
-	void RenderPlaneB (uint16_t line, uint8_t* dst, uint16_t pixels) const;
-	void RenderPlaneA (uint16_t line, uint8_t* dst, uint16_t pixels) const;
-	void RenderWindow (uint16_t line, uint8_t* dst, uint16_t pixels) const;
-	void RenderSprites(uint16_t line, uint8_t* dst, uint16_t pixels);
-	void Composite    (uint16_t line,
-	                   const uint8_t* planeB, const uint8_t* planeA,
-	                   const uint8_t* spr,    uint16_t pixels);
 
 	// Render one 8-wide name-table row into dst[0..7]
 	// Returns true if any pixel in this column is covered by the window plane.
@@ -384,6 +398,7 @@ private:
 	bool     VIntEnabled()       const { return (_reg[1]  & 0x20) != 0; }
 	bool     HIntEnabled()       const { return (_reg[0]  & 0x10) != 0; }
 	bool     DmaEnabled()        const { return (_reg[1]  & 0x10) != 0; }
+	bool     Mode5Enabled()      const { return (_reg[1]  & 0x04) != 0; }
 	bool     ShadowHlEnabled()   const { return (_reg[12] & 0x08) != 0; }
 	// Interlace mode from R12 bits [2:1] (LS1-LS0):
 	//   00 = no interlace, 01 = interlace normal, 10 = no interlace, 11 = interlace double.
@@ -402,8 +417,11 @@ private:
 	uint16_t HScrollBase() const { return (uint16_t)(_reg[13] & 0x3F) << 10; }
 	uint8_t  AutoInc()     const { return _reg[15]; }
 	uint8_t  HIntReload()  const { return _reg[10]; }
+	uint32_t GetFirstVBlankLineMclk() const;
 	uint32_t GetVIntEventOffsetMclk() const;
 	uint32_t GetVBlankFlagOffsetMclk() const;
+	uint32_t GetDeferredEventMclk(uint32_t scheduledMclk, uint32_t eventOffsetMclk) const;
+	uint32_t PredictNextHIntMclk() const;
 	void     ProcessDeferredInterruptFlags();
 
 public:
@@ -419,6 +437,7 @@ public:
 	uint32_t NextVIntMclk() const;
 	uint32_t NextHIntMclk() const;
 	uint32_t NextVBlankFlagMclk() const;
+	uint32_t Next68kBusDmaReleaseMclk() const;
 	uint32_t GetMclkPos()   const { return _mclkPos; }
 
 	uint16_t ActiveWidth()  const { return (_reg[12] & 0x01) ? 320u : 256u; }
@@ -429,6 +448,7 @@ public:
 	// addr is the raw 24-bit bus address (in $C00000-$C0001F range)
 	uint8_t ReadByte (uint32_t addr);
 	void    WriteByte(uint32_t addr, uint8_t val);
+	uint8_t GetPortWaitStates(uint32_t addr, bool isWrite) const;
 
 	// Called once per scanline from the backend's RunFrame loop.
 	// Renders line `line` into `fb` (ARGB8888, stride `fbW`).
@@ -479,6 +499,8 @@ public:
 	bool     IsDmaFillPending() const { return _dmaFillPend; }
 	bool     IsVIntPending() const { return _vintPending; }
 	bool     IsHIntPending() const { return _hintPending; }
+	static GenesisTraceConfig GetDefaultTraceConfig(GenesisTraceBufferKind kind);
+	static bool ConfigureTrace(GenesisTraceBufferKind kind, const GenesisTraceConfig& config);
 
 	// Save / load state helpers (called by GenesisNativeBackend::SaveState/LoadState)
 	void SaveState(vector<uint8_t>& out) const;

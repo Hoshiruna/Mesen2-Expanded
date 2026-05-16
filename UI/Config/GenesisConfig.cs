@@ -13,15 +13,12 @@ public class GenesisConfig : BaseConfig<GenesisConfig>
 	[ValidValues(ConsoleRegion.Auto, ConsoleRegion.Ntsc, ConsoleRegion.NtscJapan, ConsoleRegion.Pal)]
 	[Reactive] public ConsoleRegion Region { get; set; } = ConsoleRegion.Auto;
 
-	[Reactive] public GenesisCoreType CoreType { get; set; } = GenesisCoreType.Native;
-
 	public void ApplyConfig()
 	{
 		ConfigApi.SetGenesisConfig(new InteropGenesisConfig() {
 			Port1 = Port1.ToInterop(),
 			Port2 = Port2.ToInterop(),
-			Region = Region,
-			CoreType = CoreType
+			Region = Region
 		});
 	}
 
@@ -39,10 +36,4 @@ public struct InteropGenesisConfig
 	public InteropControllerConfig Port2;
 
 	public ConsoleRegion Region;
-	public GenesisCoreType CoreType;
-}
-
-public enum GenesisCoreType
-{
-	Native = 0
 }

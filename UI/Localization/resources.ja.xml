@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Resources>
+	<Forms>
+		<Form ID="MainMenuView">
+			<Control ID="mnuFile">ファイル(_F)</Control>
+			<Control ID="mnuGame">ゲーム(_G)</Control>
+			<Control ID="mnuOptions">設定(_S)</Control>
+			<Control ID="mnuTools">ツール(_T)</Control>
+			<Control ID="mnuDebug">デバッグ(_D)</Control>
+			<Control ID="mnuHelp">ヘルプ(_H)</Control>
+		</Form>
+
+		<Form ID="PreferencesConfigView">
+			<Control ID="tpgGeneral">全般</Control>
+			<Control ID="lblTheme">テーマ:</Control>
+			<Control ID="lblRequiresRestart">（再起動が必要）</Control>
+			<Control ID="lblDisplayLanguage">表示言語:</Control>
+			<Control ID="chkSingleInstance">Mesen のインスタンスを 1 つだけ実行する</Control>
+			<Control ID="chkAutomaticallyCheckForUpdates">更新を自動的に確認する</Control>
+			<Control ID="chkDeveloperMode">開発者モードを有効にする</Control>
+
+			<Control ID="lblPauseBackgroundSettings">一時停止 / バックグラウンド設定</Control>
+			<Control ID="lblMiscSettings">その他の設定</Control>
+			<Control ID="chkAutoHideMenu">メニューバーを自動的に隠す</Control>
+			<Control ID="chkDisplayTitleBarInfo">タイトルバーに追加情報を表示する</Control>
+			<Control ID="chkConfirmExitResetPower">リセット / 電源再投入 / 電源オフ / 終了の前に確認する</Control>
+			<Control ID="chkPauseOnMovieEnd">ムービーの再生終了時に一時停止する</Control>
+			<Control ID="chkShowMovieIcons">ムービーの再生または録画中に再生/一時停止アイコンを表示する</Control>
+			<Control ID="chkShowTurboRewindIcons">早送り/巻き戻し中にアイコンを表示する</Control>
+			<Control ID="chkAllowBackgroundInput">バックグラウンド時も入力を許可する（コントローラーのみ）</Control>
+			<Control ID="chkPauseWhenInBackground">バックグラウンド時に一時停止する</Control>
+			<Control ID="chkPauseInMenuAndConfig">メニューや設定画面を開いている間は一時停止する</Control>
+			<Control ID="chkPauseInDebugger">デバッグツール</Control>
+			<Control ID="chkAutoLoadIps">IPS/BPS パッチを自動的に読み込む</Control>
+			<Control ID="chkHidePauseOverlay">一時停止オーバーレイを隠す</Control>
+			<Control ID="chkDisplayMovieIcons">ムービーの再生または録画中に再生/録画アイコンを表示する</Control>
+
+			<Control ID="tpgFiles">フォルダー / ファイル</Control>
+			<Control ID="grpFileAssociations">ファイルの関連付け</Control>
+			<Control ID="chkSnesRomFiles">SNES ROM: .sfc, .smc, .swc, .fig, .bs</Control>
+			<Control ID="chkSnesMusicFiles">SNES 音楽: .spc</Control>
+			<Control ID="chkNesRomFiles">NES ROM: .nes, .unif, .fds, .qd, .studybox</Control>
+			<Control ID="chkNesMusicFiles">NES 音楽: .nsf, .nsfe</Control>
+			<Control ID="chkGbRomFiles">Game Boy ROM: .gb, .gbc, .gbx</Control>
+			<Control ID="chkGbMusicFiles">Game Boy 音楽: .gbs</Control>
+			<Control ID="chkGbaRomFiles">Game Boy Advance ROM: .gba</Control>
+			<Control ID="chkPceRomFiles">PC Engine ROM: .pce, .sgx</Control>
+			<Control ID="chkPceMusicFiles">PC Engine 音楽: .hes</Control>
+			<Control ID="chkSmsRomFiles">SMS ROM: .sms</Control>
+			<Control ID="chkGenesisRomFiles">Genesis ROM: .md</Control>
+			<Control ID="chkGameGearRomFiles">Game Gear ROM: .gg</Control>
+			<Control ID="chkSgRomFiles">SG-1000 ROM: .sg</Control>
+			<Control ID="chkCvRomFiles">ColecoVision ROM: .col</Control>
+			<Control ID="chkWsRomFiles">WonderSwan ROM: .ws, .wsc</Control>
+
+			<Control ID="grpDataStorageLocation">データ保存フォルダー</Control>
+			<Control ID="btnChangeStorageFolder">フォルダーを変更...</Control>
+			<Control ID="lblDataLocation">フォルダー:</Control>
+			<Control ID="grpPathOverrides">フォルダーの上書き</Control>
+			<Control ID="chkGameOverride">ゲーム:</Control>
+			<Control ID="chkAviOverride">動画:</Control>
+			<Control ID="chkScreenshotsOverride">スクリーンショット:</Control>
+			<Control ID="chkSaveDataOverride">セーブデータ:</Control>
+			<Control ID="chkWaveOverride">音声:</Control>
+			<Control ID="chkSaveStatesOverride">ステートセーブ:</Control>
+			<Control ID="chkMoviesOverride">ムービー:</Control>
+
+			<Control ID="tpgAdvanced">詳細</Control>
+			<Control ID="chkShowFullPathInRecents">最近使ったファイルにフルパスを表示する</Control>
+			<Control ID="chkShowFrameCounter">フレームカウンターを表示する</Control>
+			<Control ID="chkShowGameTimer">ゲームタイマーを表示する</Control>
+			<Control ID="chkShowLagCounter">ラグカウンターを表示する</Control>
+			<Control ID="btnResetLagCounter">ラグカウンターをリセット</Control>
+			<Control ID="chkShowVsConfigOnLoad">VS System ゲーム読み込み時にゲーム設定ダイアログを表示する</Control>
+			<Control ID="lblFontSettings">フォント設定</Control>
+			<Control ID="lblFontAntialiasing">フォントのアンチエイリアス:</Control>
+			<Control ID="lblRegularFont">通常フォント:</Control>
+			<Control ID="lblMenuFont">メニューフォント:</Control>
+			<Control ID="lblAdvancedMisc">その他の設定</Control>
+			<Control ID="chkEnableAutoSaveState">毎 </Control>
+			<Control ID="lblSaveStateMinutes">分ごとにステートセーブを作成する（ゲーム時間）</Control>
+			<Control ID="lblRewind">巻き戻しに最大 </Control>
+			<Control ID="lblRewindMinutes">MB のメモリを使用する（約 5MB/分）</Control>
+			<Control ID="tpgShortcuts">ショートカット</Control>
+			<Control ID="lblUiDisplaySettings">UI 表示設定</Control>
+			<Control ID="lblWindowSettings">ウィンドウ設定</Control>
+			<Control ID="chkDisableMouseResize">マウスでメインウィンドウのサイズを変更しない</Control>
+			<Control ID="lblGameSelectionScreenSettings">ゲーム選択画面の設定</Control>
+			<Control ID="chkGameSelectionScreenResetGame">前回のセッションを復元せず、電源投入状態からゲームを開始する</Control>
+			<Control ID="lblGameSelectionScreen">ゲーム選択画面:</Control>
+			<Control ID="chkDisableGameDatabase">ゲームデータベースを無効にする</Control>
+			<Control ID="chkDisableHighResolutionTimer">高精度タイマーを無効にする</Control>
+			<Control ID="chkDisableOsd">画面メッセージを隠す</Control>
+			<Control ID="chkAlwaysOnTop">常に最前面に表示する</Control>
+			<Control ID="chkShowFps">FPS を表示する</Control>
+			<Control ID="lblHudDisplaySize">HUD 表示サイズ:</Control>
+			<Control ID="chkShowDebugInformation">デバッグ情報を表示する</Control>
+			<Control ID="lblLastFolderUsed">前回使用したフォルダー</Control>
+			<Control ID="btnOK">OK</Control>
+			<Control ID="btnCancel">キャンセル</Control>
+		</Form>
+
+		<Form ID="SelectBinFileConsoleTypeWindow">
+			<Control ID="wndTitle">Console Type を選択</Control>
+			<Control ID="lblPrompt">この .bin ファイルを開く Console Type を選択してください。</Control>
+			<Control ID="lblConsoleType">Console Type:</Control>
+			<Control ID="chkRememberSelection">この .bin ファイルの選択を記憶する</Control>
+			<Control ID="btnOK">OK</Control>
+			<Control ID="btnCancel">キャンセル</Control>
+		</Form>
+
+		<Form ID="SelectRomWindow">
+			<Control ID="wndTitle">ROM を選択...</Control>
+			<Control ID="lblSearch">検索:</Control>
+			<Control ID="btnOK">OK</Control>
+			<Control ID="btnCancel">キャンセル</Control>
+		</Form>
+
+		<Form ID="SelectStorageFolderWindow">
+			<Control ID="wndTitle">データ保存フォルダーを選択</Control>
+			<Control ID="lblStorageHint">Mesen データの保存場所を選択してください:</Control>
+			<Control ID="lblDocuments">ユーザープロファイル</Control>
+			<Control ID="lblDocumentsLocation">「ドキュメント」フォルダーに保存します。</Control>
+			<Control ID="lblPortable">ポータブルモード</Control>
+			<Control ID="lblPortableLocation">Mesen と同じフォルダーに保存します。</Control>
+			<Control ID="btnOK">OK</Control>
+			<Control ID="btnCancel">キャンセル</Control>
+		</Form>
+
+		<Form ID="FirmwareSelect">
+			<Control ID="btnSelect">選択...</Control>
+			<Control ID="btnDelete">ファイルを削除</Control>
+		</Form>
+	</Forms>
+
+	<Messages>
+		<Message ID="LastSession">前回のセッション</Message>
+		<Message ID="AutoSave">自動保存</Message>
+		<Message ID="SlotNumber">スロット #{0}</Message>
+		<Message ID="LoadStateDialog">ステートロードメニュー</Message>
+		<Message ID="SaveStateDialog">ステートセーブメニュー</Message>
+		<Message ID="LoadFromFile">ファイルから読み込み...</Message>
+		<Message ID="SaveToFile">ファイルに保存...</Message>
+		<Message ID="VideoLayerDisabled">{0} を無効にしました。</Message>
+		<Message ID="VideoLayerEnabled">{0} を有効にしました。</Message>
+		<Message ID="AllLayersEnabled">すべての背景/スプライトレイヤーを有効にしました。</Message>
+		<Message ID="PromptSaveChanges">変更を保存しますか?</Message>
+		<Message ID="PromptKeepChanges">変更を保持しますか?</Message>
+		<Message ID="PromptLoadSufamiTurbo">2 つ目の Sufami Turbo ROM を読み込み、スロット B に挿入しますか?</Message>
+		<Message ID="UnknownFirmwareHash">このファイルは既知のファームウェアと一致しません。正しく動作しない可能性があります。&#xA;&#xA;期待値 (SHA256): {0}&#xA;現在値 (SHA256): {1}</Message>
+		<Message ID="InvalidFirmwareSize">このファイルサイズは必要なサイズと一致しません。&#xA;&#xA;期待値: {0} バイト&#xA;現在値: {1} バイト</Message>
+		<Message ID="PromptDeleteFirmware">次のファイルは完全に削除されます。続行しますか?&#xA;&#xA;{0}</Message>
+		<Message ID="OverwriteFirmware">次のファイルは既に存在し、上書きされます。この操作は元に戻せません。続行しますか?&#xA;&#xA;{0}</Message>
+		<Message ID="MovieSegment">セグメント #{0}</Message>
+		<Message ID="MovieExportEntireSegment">セグメント全体をエクスポート</Message>
+		<Message ID="MovieExportSpecificRange">指定範囲をエクスポート...</Message>
+		<Message ID="MovieSaveError">ムービーファイルの保存中にエラーが発生しました。</Message>
+		<Message ID="FileSaveError">ファイルの保存中にエラーが発生しました。</Message>
+		<Message ID="SetKeyHint">新しい割り当てに使うキーを押してください。</Message>
+		<Message ID="SetKeyMouseHint">キーボード、コントローラー、またはマウスのボタンを押して新しい割り当てを設定してください。</Message>
+		<Message ID="ClearHistory">履歴を消去</Message>
+		<Message ID="FirmwareNotFound">このゲームには次のファームウェアファイルが必要です: {0}&#xA;&#xA;  ファイル名: {1}&#xA;  サイズ: {2} バイト&#xA;&#xA;今すぐ選択しますか?</Message>
+		<Message ID="FirmwareMismatch">選択したファイルは必要なファームウェアと一致しません: {0}&#xA;&#xA;ファームウェア SHA-256:&#xA;{1}&#xA;&#xA;選択したファイル SHA-256:&#xA;{2}&#xA;&#xA;それでもこのファイルを使用しますか?</Message>
+		<Message ID="FirmwareFileWrongSize">選択したファイルは必要なサイズ（{0} バイト）ではないため使用できません。</Message>
+		<Message ID="MouseModeEnabled">マウスが有効です - 一時停止するとカーソルを解放します</Message>
+		<Message ID="RightClickToClearBinding">右クリックで割り当てを消去</Message>
+		<Message ID="Resume">再開</Message>
+		<Message ID="Pause">一時停止</Message>
+		<Message ID="StartServer">サーバーを開始</Message>
+		<Message ID="StopServer">サーバーを停止</Message>
+		<Message ID="ConnectToServer">サーバーに接続</Message>
+		<Message ID="Disconnect">切断</Message>
+		<Message ID="PlayerNumber">プレイヤー {0}</Message>
+		<Message ID="ExpansionDevice">拡張デバイス</Message>
+		<Message ID="PressToExitFullscreen">{0} を押すと全画面表示を終了します</Message>
+		<Message ID="DefaultResolution">既定</Message>
+		<Message ID="RomsFound">{0} 個の ROM が見つかりました</Message>
+		<Message ID="ResetSettingsConfirmation">警告: すべての設定がリセットされ、元に戻せません。&#xA;&#xA;続行しますか?</Message>
+		<Message ID="FileNotFound">ファイルが見つかりません: {0}</Message>
+		<Message ID="CouldNotLoadFile">ファイルを読み込めませんでした: {0}</Message>
+		<Message ID="UnexpectedError">予期しないエラーが発生しました: {0}</Message>
+		<Message ID="ApplyingPatch">パッチを適用中: {0}</Message>
+		<Message ID="PatchFailed">パッチの適用に失敗しました: {0}</Message>
+		<Message ID="SelectRomIps">このパッチファイルに使用する ROM を選択してください。</Message>
+		<Message ID="PatchAndReset">現在の ROM にパッチを適用してリセットしますか?</Message>
+		<Message ID="btnOK">OK</Message>
+		<Message ID="btnCancel">キャンセル</Message>
+		<Message ID="btnYes">はい</Message>
+		<Message ID="btnNo">いいえ</Message>
+	</Messages>
+
+	<Enums>
+		<Enum ID="MesenTheme">
+			<Value ID="Light">ライト</Value>
+			<Value ID="Dark">ダーク</Value>
+		</Enum>
+		<Enum ID="GameSelectionMode">
+			<Value ID="Disabled">無効</Value>
+			<Value ID="ResumeState">状態を復元</Value>
+			<Value ID="PowerOn">電源投入</Value>
+		</Enum>
+		<Enum ID="HudDisplaySize">
+			<Value ID="Fixed">固定</Value>
+			<Value ID="Scaled">拡大縮小</Value>
+		</Enum>
+		<Enum ID="FontAntialiasing">
+			<Value ID="Disabled">無効</Value>
+			<Value ID="Antialias">アンチエイリアス</Value>
+			<Value ID="SubPixelAntialias">サブピクセルアンチエイリアス</Value>
+		</Enum>
+		<Enum ID="PceConsoleType">
+			<Value ID="Auto">自動（推奨）</Value>
+			<Value ID="PcEngine">PC Engine（日本）</Value>
+			<Value ID="SuperGrafx">PC Engine SuperGrafx（日本）</Value>
+			<Value ID="TurboGrafx">TurboGrafx-16（北米）</Value>
+		</Enum>
+		<Enum ID="PceCdRomType">
+			<Value ID="CdRom">CD-ROM²</Value>
+			<Value ID="SuperCdRom">Super CD-ROM²</Value>
+			<Value ID="Arcade">Arcade CD-ROM²（推奨）</Value>
+		</Enum>
+		<Enum ID="RamState">
+			<Value ID="Random">ランダム値</Value>
+			<Value ID="AllZeros">すべて 0</Value>
+			<Value ID="AllOnes">すべて 1</Value>
+		</Enum>
+	</Enums>
+</Resources>

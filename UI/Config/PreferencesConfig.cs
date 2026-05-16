@@ -22,6 +22,7 @@ namespace Mesen.Config
 	public class PreferencesConfig : BaseConfig<PreferencesConfig>
 	{
 		[Reactive] public MesenTheme Theme { get; set; } = MesenTheme.Light;
+		[Reactive] public string Language { get; set; } = "en";
 		[Reactive] public bool AutomaticallyCheckForUpdates { get; set; } = true;
 		[Reactive] public bool SingleInstance { get; set; } = true;
 		[Reactive] public bool AutoLoadPatches { get; set; } = true;
@@ -91,6 +92,8 @@ namespace Mesen.Config
 		[Reactive] public string SaveStateFolder { get; set; } = "";
 		[Reactive] public string ScreenshotFolder { get; set; } = "";
 		[Reactive] public string WaveFolder { get; set; } = "";
+
+		[Reactive] public Dictionary<string, ConsoleType> RememberedBinFileConsoleTypes { get; set; } = new();
 
 		public PreferencesConfig()
 		{

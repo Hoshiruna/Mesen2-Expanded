@@ -3010,9 +3010,6 @@
     <ClInclude Include="Genesis\GenesisCpuZ80.h">
       <Filter>Genesis</Filter>
     </ClInclude>
-    <ClInclude Include="Genesis\IGenesisCoreBackend.h">
-      <Filter>Genesis</Filter>
-    </ClInclude>
     <ClInclude Include="Genesis\IGenesisPlatformCallbacks.h">
       <Filter>Genesis</Filter>
     </ClInclude>

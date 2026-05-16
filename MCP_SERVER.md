@@ -9,6 +9,7 @@ The emulator-side debugger integration is designed for local use. External clien
 Current implementation details visible in the codebase:
 
 - Default HTTP endpoint: `http://127.0.0.1:51234/mcp/`
+- HTTP port is configurable from the emulator's `Debug > MCP Server` window
 - Local-only binding by default
 - Named-pipe bridge support for local tooling
 
@@ -28,7 +29,7 @@ codex mcp add mesen-debugger -- "path\\to\\MCPServer.exe" --stdio
 
 ### 2. HTTP bridge
 
-Start the MCP bridge and connect a client to:
+Open `Debug > MCP Server`, choose a port, start the bridge, and connect a client to:
 
 ```text
 http://127.0.0.1:51234/mcp/

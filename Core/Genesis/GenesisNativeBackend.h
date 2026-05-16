@@ -1,12 +1,12 @@
 ﻿#pragma once
 
 #include "pch.h"
-#include "Genesis/IGenesisCoreBackend.h"
 #include "Genesis/GenesisI2cEeprom.h"
 #include "Genesis/GenesisCpu68k.h"
 #include "Genesis/GenesisVdp.h"
 #include "Genesis/GenesisCpuZ80.h"
 #include "Genesis/APU/GenesisApu.h"
+#include "Shared/MemoryType.h"
 
 class Emulator;
 class IGenesisPlatformCallbacks;
@@ -17,7 +17,7 @@ class IGenesisPlatformCallbacks;
 // Native core: correct cart bus map + native M68000 interpreter.
 // VDP/APU are integrated with scanline-based scheduling.
 // ---------------------------------------------------------------------------
-class GenesisNativeBackend final : public IGenesisCoreBackend
+class GenesisNativeBackend final
 {
 public:
 	// SRAM bus width exposed by the cart header.
@@ -50,7 +50,7 @@ public:
 			// Save-state identity
 			// -----------------------------------------------------------------------
 			static constexpr uint32_t NativeStateMagic   = 0x314E444Du; // MDN1
-			static constexpr uint32_t NativeStateVersion = 34;          // Deferred V-blank flag timing
+			static constexpr uint32_t NativeStateVersion = 36;          // Refresh-delay parity state
 
 	// -----------------------------------------------------------------------
 	// Platform callbacks / emulator
@@ -74,6 +74,9 @@ public:
 	vector<uint8_t> _saveRam;
 	bool _cpuTestBusEnabled = false;
 	vector<uint8_t> _cpuTestBus;
+	uint16_t _openBusValue = 0xFFFFu;
+	mutable uint32_t _refreshCounterMclk = 0;
+	mutable uint64_t _refreshLastAccessClock = 0;
 
 	// -----------------------------------------------------------------------
 	// Cart / mapper state
@@ -111,8 +114,8 @@ public:
 		// -----------------------------------------------------------------------
 		GenesisCpuZ80 _z80;
 		GenesisApu    _apu;
-		static constexpr uint16_t Z80BusReqAckDelayMclk = 45; // ~3 Z80 cycles
-		static constexpr uint16_t Z80BusResumeDelayMclk = 15; // ~1 Z80 cycle
+	static constexpr uint16_t Z80BusReqAckDelayMclk = 45; // ~3 Z80 cycles
+	static constexpr uint16_t Z80BusResumeDelayMclk = 15; // ~1 Z80 cycle
 
 	// -----------------------------------------------------------------------
 	// Video / timing
@@ -143,6 +146,10 @@ public:
 	bool     _z80BusAck = false; // true when Z80 has released its bus to 68K
 	uint16_t _z80BusReqDelayMclk = 0;
 	uint16_t _z80ResumeDelayMclk = 0;
+	uint64_t _z80BusReqReadyClock = 0;
+	uint64_t _z80ResumeReadyClock = 0;
+	uint32_t _z80SliceSyncedMclk = 0;
+	uint8_t  _z80SliceClockRemainder = 0;
 	uint8_t  _ioData[3] = { 0x7F, 0x7F, 0x7F };
 	uint8_t  _ioCtrl[3] = { 0x00, 0x00, 0x00 };
 	// MD I/O registers 0x07-0x0F (TxData/RxData/Serial control).
@@ -168,7 +175,16 @@ public:
 	void     InitBankTable();
 	BusRegion DecodeBusRegion(uint32_t address) const;
 	bool     IsZ80BusGranted() const;
+		uint8_t  GetOpenBusByte(uint32_t address) const;
+		void     UpdateOpenBusByte(uint32_t address, uint8_t value);
+		bool     IsRefreshFreeAccess(BusRegion region) const;
+		uint8_t  GetRefreshWaitStates(BusRegion region) const;
 		void     AdvanceZ80BusArbitration(uint32_t masterClocks);
+		void     SyncZ80ToSliceOffset(uint32_t offsetMclk);
+		void     SyncZ80ToCurrentExecution();
+		void     UpdateZ80ArbitrationState(uint64_t accessClock);
+		uint64_t GetCurrentExecutionMasterClock() const;
+		uint32_t GetRemainingZ80CycleMclk() const;
 		void     UpdateFrameGeometry();
 		void     DeliverPendingVdpInterrupts();
 		uint32_t GetCurrentSliceOffsetMclk() const;
@@ -191,12 +207,13 @@ public:
 
 public:
 	GenesisNativeBackend(Emulator* emu, IGenesisPlatformCallbacks* callbacks);
-	~GenesisNativeBackend() override = default;
+	~GenesisNativeBackend() = default;
 
 	// CPU bus access — called by GenesisCpu68k
 	uint8_t CpuBusRead8 (uint32_t address);
 	void    CpuBusWrite8(uint32_t address, uint8_t value);
 	uint8_t CpuBusWaitStates(uint32_t address, bool isWrite) const;
+	uint16_t GetOpenBusWord() const { return _openBusValue; }
 
 	// Z80 ROM window access — called by GenesisCpuZ80
 	uint8_t ReadBusForZ80 (uint32_t physAddr);
@@ -205,41 +222,41 @@ public:
 	bool    RaiseVdpIrq(uint8_t level);
 	void    VdpInterruptAcknowledge();
 
-	// IGenesisCoreBackend --------------------------------------------------
-	GenesisCoreType GetCoreType() const override;
+	// Core interface -------------------------------------------------------
 
 	bool LoadRom(const vector<uint8_t>& romData, const char* region,
 	             const uint8_t* saveRamData, uint32_t saveRamSize,
-	             const uint8_t* saveEepromData, uint32_t saveEepromSize) override;
+	             const uint8_t* saveEepromData, uint32_t saveEepromSize);
 
-	void RunFrame()     override;
-	void SyncSaveData() override;
+	void RunFrame();
+	void SyncSaveData();
 
-	const uint8_t* GetMemoryPointer(MemoryType type, uint32_t& size) override;
-	const uint8_t* GetSaveEeprom(uint32_t& size)                     override;
+	const uint8_t* GetMemoryPointer(MemoryType type, uint32_t& size);
+	const uint8_t* GetSaveEeprom(uint32_t& size);
 
-	bool     IsPAL()            const override;
-	double   GetFps()           const override;
-	uint64_t GetMasterClock()   const override;
-	uint32_t GetMasterClockRate() const override;
+	bool     IsPAL()            const;
+	double   GetFps()           const;
+	uint32_t GetFrameCount()    const;
+	uint64_t GetMasterClock()   const;
+	uint32_t GetMasterClockRate() const;
 
-	void GetCpuState(GenesisCpuState& state) const override;
-	void GetVdpState(GenesisVdpState& state) const override;
-	void GetVdpRegisters(uint8_t regs[24]) const override;
-	bool GetVdpDebugState(GenesisVdpDebugState& state) const override;
-	bool GetVdpTraceLines(GenesisTraceBufferKind kind, vector<string>& lines) const override;
-	void GetFrameSize(uint32_t& width, uint32_t& height) const override;
-	bool GetBackendDebugState(GenesisBackendState& state) const override;
+	void GetCpuState(GenesisCpuState& state) const;
+	void GetVdpState(GenesisVdpState& state) const;
+	void GetVdpRegisters(uint8_t regs[24]) const;
+	bool GetVdpDebugState(GenesisVdpDebugState& state) const;
+	bool GetVdpTraceLines(GenesisTraceBufferKind kind, vector<string>& lines) const;
+	void GetFrameSize(uint32_t& width, uint32_t& height) const;
+	bool GetBackendDebugState(GenesisBackendState& state) const;
 
-	uint8_t ReadMemory(MemoryType type, uint32_t address)            override;
-	void    WriteMemory(MemoryType type, uint32_t address, uint8_t value) override;
+	uint8_t ReadMemory(MemoryType type, uint32_t address);
+	void    WriteMemory(MemoryType type, uint32_t address, uint8_t value);
 
-	bool        SetProgramCounter(uint32_t address)          override;
-	uint32_t    GetInstructionSize(uint32_t address)         override;
-	const char* DisassembleInstruction(uint32_t address)     override;
+	bool        SetProgramCounter(uint32_t address);
+	uint32_t    GetInstructionSize(uint32_t address);
+	const char* DisassembleInstruction(uint32_t address);
 
-	bool SaveState(vector<uint8_t>& outState) override;
-	bool LoadState(const vector<uint8_t>& state) override;
+	bool SaveState(vector<uint8_t>& outState);
+	bool LoadState(const vector<uint8_t>& state);
 
 	// Z80 debug interface (called from GenesisCpuZ80 via _backend pointer)
 	void Z80ProcessInstruction();

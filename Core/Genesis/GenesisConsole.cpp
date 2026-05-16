@@ -134,10 +134,9 @@ GenesisConsole::~GenesisConsole()
 	}
 }
 
-void GenesisConsole::CreateBackend(GenesisCoreType coreType)
+void GenesisConsole::CreateBackend()
 {
-	(void)coreType;
-	if(_backend && _backend->GetCoreType() == GenesisCoreType::Native) {
+	if(_backend) {
 		return;
 	}
 
@@ -225,7 +224,7 @@ LoadRomResult GenesisConsole::LoadRom(VirtualFile& romFile)
 	if(cfg.Port2.Type == ControllerType::None) {
 		cfg.Port2.Type = ControllerType::GenesisController;
 	}
-	CreateBackend(cfg.CoreType);
+	CreateBackend();
 
 	// Create control manager
 	_controlManager.reset(new GenesisControlManager(_emu, this));
@@ -259,8 +258,8 @@ LoadRomResult GenesisConsole::LoadRom(VirtualFile& romFile)
 		_emu->RegisterMemory(MemoryType::GenesisWorkRam, const_cast<uint8_t*>(wramPtr), wramSize);
 	}
 
-	// Register Z80 RAM if native backend
-	if(_backend && _backend->GetCoreType() == GenesisCoreType::Native) {
+	// Register Z80 RAM
+	if(_backend) {
 		uint32_t audioRamSize = 0;
 		const uint8_t* audioRam = _backend->GetMemoryPointer(MemoryType::GenesisAudioRam, audioRamSize);
 		if(audioRam && audioRamSize > 0) {
@@ -306,7 +305,6 @@ void GenesisConsole::OnVideoFrame(const uint32_t* pixels, uint32_t pitch,
 
 	_frameWidth = targetWidth;
 	_frameHeight = targetHeight;
-	_frameCount++;
 
 	uint32_t pitchPixels = pitch / sizeof(uint32_t);
 	uint32_t needed = _frameWidth * _frameHeight;
@@ -385,7 +383,7 @@ void GenesisConsole::RunFrame()
 	_emu->ProcessEvent(EventType::EndFrame, CpuType::GenesisMain);
 
 	if(!_frameBuffer.empty() && _frameWidth > 0 && _frameHeight > 0) {
-		RenderedFrame frame((void*)_frameBuffer.data(), _frameWidth, _frameHeight, 1.0, _frameCount);
+		RenderedFrame frame((void*)_frameBuffer.data(), _frameWidth, _frameHeight, 1.0, _backend->GetFrameCount());
 		_emu->GetVideoDecoder()->UpdateFrame(frame, false, false);
 	}
 
@@ -430,10 +428,7 @@ ConsoleType GenesisConsole::GetConsoleType()
 
 vector<CpuType> GenesisConsole::GetCpuTypes()
 {
-	if(_backend && _backend->GetCoreType() == GenesisCoreType::Native) {
-		return { CpuType::GenesisMain, CpuType::GenesisZ80 };
-	}
-	return { CpuType::GenesisMain };
+	return { CpuType::GenesisMain, CpuType::GenesisZ80 };
 }
 
 RomFormat GenesisConsole::GetRomFormat()
@@ -450,7 +445,7 @@ PpuFrameInfo GenesisConsole::GetPpuFrame()
 {
 	PpuFrameInfo frame = {};
 	frame.FirstScanline = 0;
-	frame.FrameCount = _frameCount;
+	frame.FrameCount = _backend ? _backend->GetFrameCount() : 0;
 	frame.Width = _frameWidth;
 	frame.Height = _frameHeight;
 	frame.ScanlineCount = _isPAL ? 313 : 262;
@@ -587,14 +582,12 @@ void GenesisConsole::Serialize(Serializer& s)
 
 	vector<uint8_t> stateVec;
 
-	if(_backend->GetCoreType() == GenesisCoreType::Native) {
-		uint32_t stateFormatMarker = s.IsSaving() ? NativeStateFormatMarker : 0;
-		SV(stateFormatMarker);
-		if(!s.IsSaving() && stateFormatMarker != NativeStateFormatMarker) {
-			// Reject legacy Genesis states that predate the native format marker.
-			s.SetErrorFlag();
-			return;
-		}
+	uint32_t stateFormatMarker = s.IsSaving() ? NativeStateFormatMarker : 0;
+	SV(stateFormatMarker);
+	if(!s.IsSaving() && stateFormatMarker != NativeStateFormatMarker) {
+		// Reject legacy Genesis states that predate the native format marker.
+		s.SetErrorFlag();
+		return;
 	}
 
 	if(s.IsSaving()) {
@@ -612,26 +605,23 @@ void GenesisConsole::Serialize(Serializer& s)
 
 GenesisZ80State GenesisConsole::GetZ80DebugState()
 {
-	if(_backend && _backend->GetCoreType() == GenesisCoreType::Native) {
-		auto* nb = static_cast<GenesisNativeBackend*>(_backend.get());
-		return nb->GetZ80DebugState();
+	if(_backend) {
+		return _backend->GetZ80DebugState();
 	}
 	return {};
 }
 
 void GenesisConsole::SetZ80ProgramCounter(uint16_t addr)
 {
-	if(_backend && _backend->GetCoreType() == GenesisCoreType::Native) {
-		auto* nb = static_cast<GenesisNativeBackend*>(_backend.get());
-		nb->SetZ80ProgramCounter(addr);
+	if(_backend) {
+		_backend->SetZ80ProgramCounter(addr);
 	}
 }
 
 uint8_t GenesisConsole::GetVdpRegister(uint8_t index) const
 {
-	if(_backend && _backend->GetCoreType() == GenesisCoreType::Native) {
-		auto* nb = static_cast<GenesisNativeBackend*>(_backend.get());
-		return nb->GetVdpRegister(index);
+	if(_backend) {
+		return _backend->GetVdpRegister(index);
 	}
 
 	return 0;
@@ -639,9 +629,8 @@ uint8_t GenesisConsole::GetVdpRegister(uint8_t index) const
 
 uint16_t GenesisConsole::GetHVCounter() const
 {
-	if(_backend && _backend->GetCoreType() == GenesisCoreType::Native) {
-		auto* nb = static_cast<GenesisNativeBackend*>(_backend.get());
-		return nb->GetHVCounter();
+	if(_backend) {
+		return _backend->GetHVCounter();
 	}
 
 	return 0;

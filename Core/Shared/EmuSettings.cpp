@@ -132,7 +132,6 @@ void EmuSettings::Serialize(Serializer& s)
 			SV(_genesis.Port1.Type);
 			SV(_genesis.Port2.Type);
 			SV(_genesis.Region);
-			SV(_genesis.CoreType);
 			break;
 
 		default:

@@ -85,6 +85,7 @@ public:
 	static int GetLogWindowLog(lua_State *lua);
 	static int GetGenesisVdpDebugState(lua_State* lua);
 	static int GetGenesisVdpTrace(lua_State* lua);
+	static int SetGenesisVdpTraceConfig(lua_State* lua);
 
 	static int SetState(lua_State *lua);
 	static int GetState(lua_State *lua);
