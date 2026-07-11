@@ -1,3 +1,9 @@
+# Notice
+This repository is an archive of Mesen Expanded.  
+Development related to Genesis and other extensions has been moved here: https://github.com/Hoshiruna/MesenGM
+
+---
+
 # Mesen Expanded
 
 Mesen Expanded is a fork of [Mesen](https://github.com/SourMesen/Mesen2/) with broader platform support and an MCP debugger bridge for AI-assisted workflows.
